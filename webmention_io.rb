@@ -90,10 +90,10 @@ module Jekyll
           author_block << "#{a_name}"
         
           if a_url
-            author_block = "<a href=\"#{a_url}\">#{author_block}</a>"
+            author_block = "<a class=\"fn url\" href=\"#{a_url}\">#{author_block}</a>"
           end
 
-          author_block = "<div class=\"webmention__author\">#{author_block}</div>"
+          author_block = "<div class=\"webmention__author vcard\">#{author_block}</div>"
         end
         
         published_block = ""
