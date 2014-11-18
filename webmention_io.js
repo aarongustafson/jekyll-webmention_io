@@ -1,6 +1,5 @@
 /**
  *  WebMentions.io JS
- *  https://github.com/aarongustafson/jekyll-webmention_io
  *  A re-tooling of Aaron Parecki’s recommended JS for using the WebMention.io API
  * 
  *  Updates Webmentions on a static site immediately when the page is loaded and
@@ -78,6 +77,13 @@
         $item.id = 'webmention-' + id;
         $item.appendChild( $mention );
 
+        // no doubling up
+        if ( title && content &&
+             title == content )
+        {
+            title = false;
+        }
+
         if ( author )
         {
             $author_link.href = data.author.url;
@@ -91,22 +97,24 @@
             $mention.appendChild( $author );
         }
 
-
-        $pubdate.setAttribute( 'datetime', data.published );
-        pubdate = new Date( data.published );
-        display_date += pubdate.getUTCDate() + ' ';
-        display_date += months[ pubdate.getUTCMonth() ] + ' ';
-        display_date += pubdate.getUTCFullYear();
-        $pubdate.appendChild( document.createTextNode( display_date ) );
-        $meta.appendChild( $pubdate );
-
-        // no doubling up
-        if ( title && content &&
-             title == content )
+        if ( data.published )
         {
-            title = false;
+            $pubdate.setAttribute( 'datetime', data.published );
+            pubdate = new Date( data.published );
+            display_date += pubdate.getUTCDate() + ' ';
+            display_date += months[ pubdate.getUTCMonth() ] + ' ';
+            display_date += pubdate.getUTCFullYear();
+            $pubdate.appendChild( document.createTextNode( display_date ) );
+            $meta.appendChild( $pubdate );
         }
+        
 
+        if ( ( title && title.indexOf(author) === 0 ) ||
+             ( content && content.indexOf(author) === 0 ) )
+        {
+            $mention.className += ' webmention--author-starts';
+        }
+        
 
         if ( title )
         {
