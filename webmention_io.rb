@@ -91,6 +91,10 @@ module Jekyll
         link_title = title || url
         id = link["id"]
         
+        if title and content and title == content
+          title = false
+        end
+        
         author_block = ""
         if author = link["data"]["author"]
 
@@ -99,46 +103,56 @@ module Jekyll
           a_photo = author["photo"]
         
           if a_photo
-            author_block << "<img class=\"webmention__author__photo photo\" src=\"#{a_photo}\" alt=\"\">"
+            author_block << "<img class=\"webmention__author__photo photo\" src=\"#{a_photo}\" alt=\"\" title=\"#{a_name}\">"
           end
         
-          author_block << "#{a_name}"
+          name_block = "<b class=\"fn\">#{a_name}</b>"
+          author_block << name_block
         
           if a_url
-            author_block = "<a class=\"fn url\" href=\"#{a_url}\">#{author_block}</a>"
+            author_block = "<a class=\"url\" href=\"#{a_url}\">#{author_block}</a>"
           end
 
           author_block = "<div class=\"webmention__author vcard\">#{author_block}</div>"
         end
         
         published_block = ""
-        pubdate = link["data"]["published"]
-        if pubdate_formatted = Time.at(link["data"]["published_ts"])
+        pubdate = link["data"]["published_ts"]
+        pubdate_formatted = link["data"]["published_ts"]
+        if pubdate and pubdate_formatted and pubdate_formatted = Time.at(pubdate_formatted)
           pubdate_formatted = pubdate_formatted.strftime("%-d %B %Y")
           published_block = "<time class=\"webmention__pubdate\" datetime=\"#{pubdate}\">#{pubdate_formatted}</time>"
         end
-                
-        if title and content and title == content
-          title = false
+        
+        webmention_classes = "webmention"
+        if ( title and title.start_with?(a_name) ) or ( content and content.start_with?(a_name) )
+          webmention_classes << ' webmention--author-starts'
         end
         
+        content_block = ""
         if title
-          
-          lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\"><article class=\"webmention webmention--title-only\">"
-          lis << author_block
-          lis << "<div class=\"webmention__title\"><a href=\"#{url}\">#{link_title}</a></div>"
-          lis << "<div class=\"webmention__meta\">#{published_block}</div>"
-          lis << "</article></li>"
-          
+          webmention_classes << " webmention--title-only"
+          content_block << "<div class=\"webmention__title\"><a href=\"#{url}\">#{link_title}</a></div>"
+          if published_block
+            content_block << "<div class=\"webmention__meta\">#{published_block}</div>"
+          end
         elsif content
           content = @converter.convert("#{content}")
-          
-          lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\"><article class=\"webmention webmention--content-only\">"
-          lis << author_block
-          lis << "<div class=\"webmention__meta\">#{published_block} | <a class=\"webmention__source\" href=\"#{url}\">Permalink</a></div>"
-          lis << "<div class=\"webmention__content\">#{content}</div>"
-          lis << "</article></li>"
+          webmention_classes << " webmention--content-only"
+          content_block << "<div class=\"webmention__meta\">"
+          if published_block
+            content_block << "#{published_block} | "
+          end
+          content_block << "<a class=\"webmention__source\" href=\"#{url}\">Permalink</a></div>"
+          content_block << "<div class=\"webmention__content\">#{content}</div>"
         end
+        
+        # put it together
+        lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\">"
+        lis << "<article class=\"#{webmention_classes}\">"
+        lis << author_block
+        lis << content_block
+        lis << "</article></li>"
         
       }
 

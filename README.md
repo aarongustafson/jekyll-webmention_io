@@ -71,6 +71,7 @@ To summarize the classes, here’s what you have to work with:
 * `webmention` - the webmention itself (`article`)
 	* `webmention--title-only` - title-only variant
 	* `webmention--content-only` - content-only variant
+	* `webmention--author-starts` - variant for when the author’s name starts the title or content
 * `webmention__author` - Author of the webmention (`div`)
 * `webmention__author__photo` - Author’s photo (`img`)
 * `webmention__title` - The webmention’s title (`div`)
