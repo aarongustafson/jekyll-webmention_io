@@ -83,12 +83,13 @@ module Jekyll
     def parse_links(links)
       lis = ""
       
-      links.each { |link|
+      links.reverse_each { |link|
         
         title = link["data"]["name"]
         content = link["data"]["content"]
         url = link["data"]["url"]
         link_title = title || url
+        id = link["id"]
         
         author_block = ""
         if author = link["data"]["author"]
@@ -123,7 +124,7 @@ module Jekyll
         
         if title
           
-          lis << "<li class=\"webmentions__item\"><article class=\"webmention webmention--title-only\">"
+          lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\"><article class=\"webmention webmention--title-only\">"
           lis << author_block
           lis << "<div class=\"webmention__title\"><a href=\"#{url}\">#{link_title}</a></div>"
           lis << "<div class=\"webmention__meta\">#{published_block}</div>"
@@ -132,7 +133,7 @@ module Jekyll
         elsif content
           content = @converter.convert("#{content}")
           
-          lis << "<li class=\"webmentions__item\"><article class=\"webmention webmention--content-only\">"
+          lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\"><article class=\"webmention webmention--content-only\">"
           lis << author_block
           lis << "<div class=\"webmention__meta\">#{published_block} | <a class=\"webmention__source\" href=\"#{url}\">Permalink</a></div>"
           lis << "<div class=\"webmention__content\">#{content}</div>"
