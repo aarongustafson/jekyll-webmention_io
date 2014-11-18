@@ -21,8 +21,11 @@ module Jekyll
     end
     
     def render(context)
-      args = @text.split(/\s+/).map(&:strip)
-      api_params = {'target' => args.shift}
+      output = super
+      if @text =~ /([\w]+(\.[\w]+)*)/i
+          target = lookup(context, $1)
+      end
+      api_params = {'target' => target}
       response = get_response(api_params)
 
       site = context.registers[:site]
@@ -42,9 +45,20 @@ module Jekyll
     end
 
     def get_response(api_params)
-      api_uri = URI.parse(@api_endpoint + "?#{url_params_for(api_params)}")
+      api_params = url_params_for(api_params)
+      api_uri = URI.parse(@api_endpoint + "?#{api_params}")
       response = Net::HTTP.get(api_uri.host, api_uri.request_uri)
       JSON.parse(response)
+    end
+    
+    def lookup(context, name)
+      lookup = context
+
+      name.split(".").each do |value|
+        lookup = lookup[value]
+      end
+
+      lookup
     end
 
   end
