@@ -79,3 +79,7 @@ To summarize the classes, here’s what you have to work with:
 * `webmention__pubdate` - The publication date (`time`)
 * `webmention__source` - The webmention permalink (`a`)
 * `webmentions__not-found` - The "no results" message (`p`)
+
+## JavaScript (optional)
+
+I have also included a JavaScript file that will keep your webmentions up to date even when you don’t publish frequently. It will also update your page’s webmentions in realtime.
