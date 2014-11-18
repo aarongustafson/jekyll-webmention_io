@@ -113,8 +113,8 @@ module Jekyll
         
         published_block = ""
         pubdate = link["data"]["published"]
-        if pubdate
-          pubdate_formatted = Time.at(link["data"]["published_ts"]).strftime("%-d %B %Y")
+        if pubdate_formatted = Time.at(link["data"]["published_ts"])
+          pubdate_formatted = pubdate_formatted.strftime("%-d %B %Y")
           published_block = "<time class=\"webmention__pubdate\" datetime=\"#{pubdate}\">#{pubdate_formatted}</time>"
         end
                 
