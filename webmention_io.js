@@ -13,6 +13,7 @@
     var $webmentions_list = document.querySelectorAll( '.webmentions__list' ),
         elements = {
             a:          document.createElement('a'),
+            author_name:document.createElement('b'),
             article:    document.createElement('article'),
             div:        document.createElement('div'), 
             photo:      document.createElement('img'),
@@ -36,8 +37,9 @@
     elements.time.className = 'webmention__pubdate';
     elements.author = elements.div.cloneNode();
     elements.author.className = 'webmention__author vcard';
+    elements.author_name.className = 'fn';
     elements.author_link = elements.a.cloneNode();
-    elements.author_link.className = 'fn url';
+    elements.author_link.className = 'url';
     elements.photo.className = 'webmention__author__photo photo';
     elements.photo.alt = '';
     elements.title = elements.div.cloneNode();
@@ -60,6 +62,7 @@
             $item = elements.li.cloneNode( true ),
             $mention = elements.article.cloneNode( true ),
             $author = elements.author.cloneNode( true ),
+            $author_name = elements.author_name.cloneNode( true ),
             $author_link = elements.author_link.cloneNode( true ),
             $author_photo = elements.photo.cloneNode( true ),
             $meta = elements.meta.cloneNode( true ),
@@ -92,7 +95,8 @@
                 $author_photo.src = author_photo;
                 $author_link.appendChild( $author_photo );
             }
-            $author_link.appendChild( document.createTextNode( author ) );
+            $author_name.appendChild( document.createTextNode( author ) );
+            $author_link.appendChild( $author_name );
             $author.appendChild( $author_link );
             $mention.appendChild( $author );
         }
