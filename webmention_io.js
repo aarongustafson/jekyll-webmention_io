@@ -25,11 +25,28 @@
             'July', 'August', 'September', 'October', 'November', 'December'
         ],
         json_webmentions,
-        this_page = window.location.href;
+        this_page = window.location.href,
+        $none = false;
 
-    // bail early
-    if ( $webmentions_list.length < 1 ){ return; }
-    $webmentions_list = $webmentions_list[0];
+    // Do we need to create the list?
+    if ( $webmentions_list.length < 1 )
+    {
+        var $none = document.querySelectorAll( '.webmentions__not-found' );
+        if ( $none.length )
+        {
+            $none = $none[0];
+            $webmentions_list = document.createElement( 'ol' );
+            $webmentions_list.className = 'webmentions__list';
+        }
+        else
+        {
+            return;
+        }
+    }
+    else
+    {
+        $webmentions_list = $webmentions_list[0];
+    }
     
     // Set up the markup
     elements.li.className = 'webmentions__item';
@@ -152,6 +169,11 @@
         
         if ( $existing_mention.length < 1 )
         {
+            if ( !! $none )
+            {
+                $none.parentNode.replaceChild( $webmentions_list, $none );
+                $none = false;
+            }
             $webmentions_list.appendChild( $item );
         }
         else
@@ -173,8 +195,11 @@
     }
     
     window.AG.processWebmentions = function( data ){
-        data.links.reverse();
-        data.links.forEach( addMention );
+        if ( ! ( 'error' in data ) )
+        {
+            data.links.reverse();
+            data.links.forEach( addMention );
+        }
     };
     
     // Load up any unpublished webmentions on load
