@@ -103,17 +103,17 @@ module Jekyll
           a_photo = author["photo"]
         
           if a_photo
-            author_block << "<img class=\"webmention__author__photo photo\" src=\"#{a_photo}\" alt=\"\" title=\"#{a_name}\">"
+            author_block << "<img class=\"webmention__author__photo u-photo\" src=\"#{a_photo}\" alt=\"\" title=\"#{a_name}\">"
           end
         
-          name_block = "<b class=\"fn\">#{a_name}</b>"
+          name_block = "<b class=\"p-name\">#{a_name}</b>"
           author_block << name_block
         
           if a_url
-            author_block = "<a class=\"url\" href=\"#{a_url}\">#{author_block}</a>"
+            author_block = "<a class=\"u-url\" href=\"#{a_url}\">#{author_block}</a>"
           end
 
-          author_block = "<div class=\"webmention__author vcard\">#{author_block}</div>"
+          author_block = "<div class=\"webmention__author p-author h-card\">#{author_block}</div>"
         end
         
         published_block = ""
@@ -121,7 +121,7 @@ module Jekyll
         pubdate_formatted = link["data"]["published_ts"]
         if pubdate and pubdate_formatted and pubdate_formatted = Time.at(pubdate_formatted)
           pubdate_formatted = pubdate_formatted.strftime("%-d %B %Y")
-          published_block = "<time class=\"webmention__pubdate\" datetime=\"#{pubdate}\">#{pubdate_formatted}</time>"
+          published_block = "<time class=\"webmention__pubdate dt-published\" datetime=\"#{pubdate}\">#{pubdate_formatted}</time>"
         end
         
         webmention_classes = "webmention"
@@ -132,7 +132,7 @@ module Jekyll
         content_block = ""
         if title
           webmention_classes << " webmention--title-only"
-          content_block << "<div class=\"webmention__title\"><a href=\"#{url}\">#{link_title}</a></div>"
+          content_block << "<div class=\"webmention__title p-name\"><a href=\"#{url}\">#{link_title}</a></div>"
           if published_block
             content_block << "<div class=\"webmention__meta\">#{published_block}</div>"
           end
@@ -143,13 +143,13 @@ module Jekyll
           if published_block
             content_block << "#{published_block} | "
           end
-          content_block << "<a class=\"webmention__source\" href=\"#{url}\">Permalink</a></div>"
-          content_block << "<div class=\"webmention__content\">#{content}</div>"
+          content_block << "<a class=\"webmention__source u-url\" href=\"#{url}\">Permalink</a></div>"
+          content_block << "<div class=\"webmention__content p-content\">#{content}</div>"
         end
         
         # put it together
         lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\">"
-        lis << "<article class=\"#{webmention_classes}\">"
+        lis << "<article class=\"h-cite #{webmention_classes}\">"
         lis << author_block
         lis << content_block
         lis << "</article></li>"

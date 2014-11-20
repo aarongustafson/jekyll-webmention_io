@@ -50,22 +50,22 @@
     
     // Set up the markup
     elements.li.className = 'webmentions__item';
-    elements.article.className = 'webmention';
-    elements.time.className = 'webmention__pubdate';
+    elements.article.className = 'h-cite webmention';
+    elements.time.className = 'webmention__pubdate dt-published';
     elements.author = elements.div.cloneNode();
-    elements.author.className = 'webmention__author vcard';
-    elements.author_name.className = 'fn';
+    elements.author.className = 'webmention__author p-author h-card';
+    elements.author_name.className = 'p-name';
     elements.author_link = elements.a.cloneNode();
-    elements.author_link.className = 'url';
-    elements.photo.className = 'webmention__author__photo photo';
+    elements.author_link.className = 'u-url';
+    elements.photo.className = 'webmention__author__photo u-photo';
     elements.photo.alt = '';
     elements.title = elements.div.cloneNode();
-    elements.title.className = 'webmention__title';
+    elements.title.className = 'webmention__title p-name';
     elements.permalink = elements.a.cloneNode();
-    elements.permalink.className = 'webmention__source';
+    elements.permalink.className = 'webmention__source u-url';
     elements.permalink.appendChild( document.createTextNode('Permalink') );
     elements.content = elements.div.cloneNode();
-    elements.content.className = 'webmention__content';
+    elements.content.className = 'webmention__content p-content';
     elements.meta = elements.div.cloneNode();
     elements.meta.className = 'webmention__meta';
     
