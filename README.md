@@ -84,3 +84,18 @@ To summarize the classes, here’s what you have to work with:
 ## JavaScript (optional)
 
 I have also included a JavaScript file that will keep your webmentions up to date even when you don’t publish frequently. It will also update your page’s webmentions in realtime.
+
+## Publishing Webmentions
+
+Included in this repo is a [Rake](https://github.com/ruby/rake) task for publishing webmentions (webmention.Rakefile). You can add this task to your global Rakefile or reference it.
+
+The workflow is as follows:
+
+1. `rake generate` to generate your site and collect a list of mentioned URLs in your posts
+2. `rake webmention` to cycle through those URLs and post to any that offer webmention endpoints.
+
+Notes:
+
+ * If an endpoint is not offered, the URL will be skipped and can be processed later.
+ * In order to streamline the process, a webmention connection will only be processed once (and cached so it can be skipped).
+ * You may want to add .webmention-cache to your `.gitignore` file.
