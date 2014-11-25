@@ -10,6 +10,9 @@
 #   
 require 'json'
 
+WEBMENTION_CACHE_DIR = File.expand_path('../../.webmention-cache', __FILE__)
+FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
+
 module Jekyll
   
   class Webmentions < Liquid::Tag
@@ -48,7 +51,11 @@ module Jekyll
       api_params = url_params_for(api_params)
       api_uri = URI.parse(@api_endpoint + "?#{api_params}")
       response = Net::HTTP.get(api_uri.host, api_uri.request_uri)
-      JSON.parse(response)
+      if response
+        JSON.parse(response)
+      else
+        ""
+      end
     end
     
     def lookup(context, name)
@@ -73,7 +80,7 @@ module Jekyll
     def html_output_for(response)
       body = "<p class=\"webmentions__not-found\">No webmentions were found</p>"
       
-      if response['links']
+      if response and response['links']
         body = parse_links(response['links'])
       end
       
@@ -95,9 +102,15 @@ module Jekyll
           title = false
         end
         
+        if ! id
+          time = Time.now();
+          id = time.strftime("%s")
+        end
+        
         author_block = ""
         if author = link["data"]["author"]
-
+          
+          #puts author
           a_name = author["name"]
           a_url = author["url"]
           a_photo = author["photo"]
@@ -112,7 +125,7 @@ module Jekyll
           if a_url
             author_block = "<a class=\"u-url\" href=\"#{a_url}\">#{author_block}</a>"
           end
-
+        
           author_block = "<div class=\"webmention__author p-author h-card\">#{author_block}</div>"
         end
         
@@ -125,18 +138,18 @@ module Jekyll
         end
         
         webmention_classes = "webmention"
-        if ( title and title.start_with?(a_name) ) or ( content and content.start_with?(a_name) )
+        if a_name and ( title and title.start_with?(a_name) ) or ( content and content.start_with?(a_name) )
           webmention_classes << ' webmention--author-starts'
         end
         
         content_block = ""
-        if title
+        if link_title and url
           webmention_classes << " webmention--title-only"
           content_block << "<div class=\"webmention__title p-name\"><a href=\"#{url}\">#{link_title}</a></div>"
           if published_block
             content_block << "<div class=\"webmention__meta\">#{published_block}</div>"
           end
-        elsif content
+        elsif content and url
           content = @converter.convert("#{content}")
           webmention_classes << " webmention--content-only"
           content_block << "<div class=\"webmention__meta\">"
@@ -173,6 +186,32 @@ module Jekyll
       "<span class=\"webmention-count\">#{count}</span>"
     end
     
+  end
+  
+  class WebmentionGenerator < Generator
+    safe true
+    priority :low
+    
+    def generate(site)
+      webmentions = {}
+      if defined?(WEBMENTION_CACHE_DIR)
+        cache_file = File.join(WEBMENTION_CACHE_DIR, "webmentions.yml")
+        site.posts.each do |post|
+          source = "#{site.config['url']}#{post.url}"
+          targets = []
+          if post.data['in_reply_to']
+            targets.push(post.data['in_reply_to'])
+          end
+          post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
+            if ! targets.find_index( match )
+              targets.push(match)
+            end
+          end
+          webmentions[source] = targets
+        end
+        File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
+      end
+    end
   end
   
 end
