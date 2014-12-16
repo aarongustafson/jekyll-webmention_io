@@ -7,6 +7,12 @@
 #
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
+# 
+# If you need to track multiple URLS (perhaps because you adjusted your paths)
+# You can supply multiple URLs in the tags too:
+#
+#    {% webmentions URL_1 URL_2 %}
+#    {% webmention_count URL_1 URL_2 URL_3 %}
 #   
 require 'json'
 
@@ -25,10 +31,16 @@ module Jekyll
     
     def render(context)
       output = super
-      if @text =~ /([\w]+(\.[\w]+)*)/i
-          target = lookup(context, $1)
+      
+      targets = []
+      
+      args = @text.split(/\s+/).map(&:strip)
+      args.each do |url|
+        target = lookup(context, url)
+        targets.push(target)
       end
-      api_params = {'target' => target}
+      
+      api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
       response = get_response(api_params)
 
       site = context.registers[:site]
@@ -48,7 +60,6 @@ module Jekyll
     end
 
     def get_response(api_params)
-      api_params = url_params_for(api_params)
       api_uri = URI.parse(@api_endpoint + "?#{api_params}")
       response = Net::HTTP.get(api_uri.host, api_uri.request_uri)
       if response
@@ -88,87 +99,141 @@ module Jekyll
     end
     
     def parse_links(links)
-      lis = ""
       
+      # load from the cache
+      cache_file = File.join(WEBMENTION_CACHE_DIR, "recieved_webmentions.yml")
+      if File.exists?(cache_file)
+        cached_webmentions = open(cache_file) { |f| YAML.load(f) }
+      else
+        cached_webmentions = {}
+      end
+      
+      lis = ""
+
       links.reverse_each { |link|
         
-        title = link["data"]["name"]
-        content = link["data"]["content"]
-        url = link["data"]["url"]
-        link_title = title || url
         id = link["id"]
         
-        if title and content and title == content
-          title = false
-        end
-        
-        if ! id
-          time = Time.now();
-          id = time.strftime("%s")
-        end
-        
-        author_block = ""
-        if author = link["data"]["author"]
+        if ! cached_webmentions[id]
           
-          #puts author
-          a_name = author["name"]
-          a_url = author["url"]
-          a_photo = author["photo"]
-        
-          if a_photo
-            author_block << "<img class=\"webmention__author__photo u-photo\" src=\"#{a_photo}\" alt=\"\" title=\"#{a_name}\">"
+          webmention = ""
+
+          title = link["data"]["name"]
+          content = link["data"]["content"]
+          url = link["data"]["url"]
+
+          if ! ( title and content and url )
+            url = link["source"]
+            
+            status = `curl -s -I -L -o /dev/null -w "%{http_code}" --location "#{url}"`
+            next if status != "200"
+            
+            title = `curl -s --location "#{url}" | grep '<title>'`
+            if title
+              title = title.gsub(/<\/?title>/i,'').strip
+            end
           end
-        
-          name_block = "<b class=\"p-name\">#{a_name}</b>"
-          author_block << name_block
-        
-          if a_url
-            author_block = "<a class=\"u-url\" href=\"#{a_url}\">#{author_block}</a>"
+
+          link_title = title || url
+
+          if title and content and title == content
+            title = false
           end
-        
-          author_block = "<div class=\"webmention__author p-author h-card\">#{author_block}</div>"
+
+          if ! id
+            time = Time.now();
+            id = time.strftime("%s")
+          end
+
+          author_block = ""
+          if author = link["data"]["author"]
+
+            #puts author
+            a_name = author["name"]
+            a_url = author["url"]
+            a_photo = author["photo"]
+
+            if a_photo
+              status = `curl -s -I -L -o /dev/null -w "%{http_code}" --location "#{a_photo}"`
+              if status == "200"
+                author_block << "<img class=\"webmention__author__photo u-photo\" src=\"#{a_photo}\" alt=\"\" title=\"#{a_name}\">"
+              end
+            end
+
+            name_block = "<b class=\"p-name\">#{a_name}</b>"
+            author_block << name_block
+
+            if a_url
+              author_block = "<a class=\"u-url\" href=\"#{a_url}\">#{author_block}</a>"
+            end
+
+            author_block = "<div class=\"webmention__author p-author h-card\">#{author_block}</div>"
+          end
+
+          published_block = ""
+          pubdate = link["data"]["published_ts"]
+          if pubdate
+            pubdate = Time.at(pubdate)
+          elsif link["verified_date"]
+            pubdate = Time.parse(link["verified_date"])
+          end
+          if pubdate
+            pubdate_iso = pubdate.strftime("%FT%T%:z")
+            pubdate_formatted = pubdate.strftime("%-d %B %Y")
+            published_block = "<time class=\"webmention__pubdate dt-published\" datetime=\"#{pubdate_iso}\">#{pubdate_formatted}</time>"
+          end
+
+          webmention_classes = "webmention"
+          if a_name and ( title and title.start_with?(a_name) ) or ( content and content.start_with?(a_name) )
+            webmention_classes << ' webmention--author-starts'
+          end
+
+          content_block = ""
+          if link_title
+            webmention_classes << " webmention--title-only"
+            if url
+              content_block << "<div class=\"webmention__title p-name\"><a href=\"#{url}\">#{link_title}</a></div>"
+            else
+              content_block << "<div class=\"webmention__title p-name\">#{link_title}</div>"
+            end
+            if published_block
+              content_block << "<div class=\"webmention__meta\">#{published_block}</div>"
+            end
+          elsif content
+            content = @converter.convert("#{content}")
+            webmention_classes << " webmention--content-only"
+            content_block << "<div class=\"webmention__meta\">"
+            if published_block
+              content_block << published_block
+            end
+            if published_block and url
+                content_block << " | "
+            end
+            if url
+              content_block << "<a class=\"webmention__source u-url\" href=\"#{url}\">Permalink</a>"
+            end
+            content_block << "</div>"
+            content_block << "<div class=\"webmention__content p-content\">#{content}</div>"
+          end
+
+          # put it together
+          webmention << "<li id=\"webmention-#{id}\" class=\"webmentions__item\">"
+          webmention << "<article class=\"h-cite #{webmention_classes}\">"
+          webmention << author_block
+          webmention << content_block
+          webmention << "</article></li>"
+
+          cached_webmentions[id] = webmention
+          
         end
         
-        published_block = ""
-        pubdate = link["data"]["published_ts"]
-        pubdate_formatted = link["data"]["published_ts"]
-        if pubdate and pubdate_formatted and pubdate_formatted = Time.at(pubdate_formatted)
-          pubdate_formatted = pubdate_formatted.strftime("%-d %B %Y")
-          published_block = "<time class=\"webmention__pubdate dt-published\" datetime=\"#{pubdate}\">#{pubdate_formatted}</time>"
-        end
-        
-        webmention_classes = "webmention"
-        if a_name and ( title and title.start_with?(a_name) ) or ( content and content.start_with?(a_name) )
-          webmention_classes << ' webmention--author-starts'
-        end
-        
-        content_block = ""
-        if link_title and url
-          webmention_classes << " webmention--title-only"
-          content_block << "<div class=\"webmention__title p-name\"><a href=\"#{url}\">#{link_title}</a></div>"
-          if published_block
-            content_block << "<div class=\"webmention__meta\">#{published_block}</div>"
-          end
-        elsif content and url
-          content = @converter.convert("#{content}")
-          webmention_classes << " webmention--content-only"
-          content_block << "<div class=\"webmention__meta\">"
-          if published_block
-            content_block << "#{published_block} | "
-          end
-          content_block << "<a class=\"webmention__source u-url\" href=\"#{url}\">Permalink</a></div>"
-          content_block << "<div class=\"webmention__content p-content\">#{content}</div>"
-        end
-        
-        # put it together
-        lis << "<li id=\"webmention-#{id}\" class=\"webmentions__item\">"
-        lis << "<article class=\"h-cite #{webmention_classes}\">"
-        lis << author_block
-        lis << content_block
-        lis << "</article></li>"
+        lis << cached_webmentions[id]
         
       }
-
+      
+      # store it all back in the cache
+      File.open(cache_file, 'w') { |f| YAML.dump(cached_webmentions, f) }
+      
       "<ol class=\"webmentions__list\">#{lis}</ol>"
     end
 
