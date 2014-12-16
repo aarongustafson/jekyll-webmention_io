@@ -7,12 +7,6 @@
 #
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
-# 
-# If you need to track multiple URLS (perhaps because you adjusted your paths)
-# You can supply multiple URLs in the tags too:
-#
-#    {% webmentions URL_1 URL_2 %}
-#    {% webmention_count URL_1 URL_2 URL_3 %}
 #   
 require 'json'
 
@@ -92,7 +86,11 @@ module Jekyll
       body = "<p class=\"webmentions__not-found\">No webmentions were found</p>"
       
       if response and response['links']
-        body = parse_links(response['links'])
+        webmentions = parse_links(response['links'])
+      end
+
+      if webmentions
+        body = webmentions
       end
       
       "<div class=\"webmentions\">#{body}</div>"
@@ -234,7 +232,9 @@ module Jekyll
       # store it all back in the cache
       File.open(cache_file, 'w') { |f| YAML.dump(cached_webmentions, f) }
       
-      "<ol class=\"webmentions__list\">#{lis}</ol>"
+      if lis != ""
+        "<ol class=\"webmentions__list\">#{lis}</ol>"
+      end
     end
 
   end
