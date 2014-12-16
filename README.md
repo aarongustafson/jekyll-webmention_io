@@ -81,9 +81,17 @@ To summarize the classes, here’s what you have to work with:
 * `webmention__source` - The webmention permalink (`a`)
 * `webmentions__not-found` - The "no results" message (`p`)
 
+Note: Webmentions are cached to the `.webmention-cache` directory in a file named `received_webmentions.yml`. If you are unhappy with how a webmention is displayed, you can alter the HTML in this file, but be careful, the file must remain valid YAML. But if you botch things, you can always delete the file and the webmentions will be re-cached.
+
 ## JavaScript (optional)
 
 I have also included a JavaScript file that will keep your webmentions up to date even when you don’t publish frequently. It will also update your page’s webmentions in realtime.
+
+To inform the JavaScript of additional URLs to check (e.g. when the current page receives redirects from old URLs), use the following `meta` element:
+
+	<meta property="webmention:redirected_from" content="URL_1,URL_2">
+
+The `content` attribute should contain a single URL or multiple URLs separated by commas.
 
 ## Publishing Webmentions
 
@@ -98,4 +106,4 @@ Notes:
 
  * If an endpoint is not offered, the URL will be skipped and can be processed later.
  * In order to streamline the process, a webmention connection will only be processed once (and cached so it can be skipped).
- * You may want to add .webmention-cache to your `.gitignore` file.
+ * You may want to add `.webmention-cache` to your `.gitignore` file.
