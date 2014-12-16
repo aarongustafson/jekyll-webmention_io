@@ -4,11 +4,23 @@
  * 
  *  Updates Webmentions on a static site immediately when the page is loaded and
  *  in real-time (using WebSockets) as the user engages with the page.
+ * 
+ * To inform the JavaScript of additional URLs to check (e.g. when the current page 
+ * receives redirects from old URLs), use the following meta element:
+ * 
+ *  <meta property="webmention:redirected_from" content="URL_1,URL_2">
+ * 
+ * The content should be a single URL or multiple, separated by commas.
  */
     
 ;(function(window){
     
     if ( !( 'AG' in window ) ){ window.AG = {}; }
+    
+    if ( ! window.location.origin )
+    {
+       window.location.origin = window.location.protocol + "//" + window.location.host;
+    }
 
     var $webmentions_list = document.querySelectorAll( '.webmentions__list' ),
         elements = {
@@ -25,8 +37,22 @@
             'July', 'August', 'September', 'October', 'November', 'December'
         ],
         json_webmentions,
-        this_page = window.location.href,
-        $none = false;
+        targets = [ window.location.href ],
+        $none = false,
+        $redirects = document.querySelector('meta[property="webmention:redirected_from"]'),
+        redirects,
+        base_url = window.location.origin;
+    
+    if ( $redirects )
+    {
+        redirects = $redirects.getAttribute('content').split(',');
+        redirects.forEach(function( value, i ){
+            targets.push( 
+                value.indexOf('//') < 0 ? base_url + value : value
+            );
+        });
+        redirects = false;
+    }
 
     // Do we need to create the list?
     if ( $webmentions_list.length < 1 )
@@ -141,9 +167,16 @@
         {
             $mention.className += ' webmention--title-only';
 
-            $link = elements.a.cloneNode( true );
-            $link.href = url;
-            $link.appendChild( document.createTextNode( data.name ) );
+            if ( url )
+            {
+                $link = elements.a.cloneNode( true );
+                $link.href = url;
+                $link.appendChild( document.createTextNode( data.name ) );
+            }
+            else
+            {
+                $link = document.createTextNode( data.name );
+            }
 
             $block = elements.title.cloneNode( true );
             $block.appendChild( $link );
@@ -155,10 +188,14 @@
         {
             $mention.className += ' webmention--content-only';
 
-            $meta.appendChild( document.createTextNode( ' | ' ) );
-            $link = elements.permalink.cloneNode( true );
-            $link.href = url;
-            $meta.appendChild( $link );
+            if ( url )
+            {
+                $meta.appendChild( document.createTextNode( ' | ' ) );
+                $link = elements.permalink.cloneNode( true );
+                $link.href = url;
+                $meta.appendChild( $link );
+            }
+
             $mention.appendChild( $meta );
 
             // TODO: Add Markdown
@@ -205,7 +242,8 @@
     // Load up any unpublished webmentions on load
     json_webmentions = document.createElement('script');
     json_webmentions.async = true;
-    json_webmentions.src = 'http://webmention.io/api/mentions?jsonp=window.AG.processWebmentions&target=' + this_page;
+    json_webmentions.src = 'http://webmention.io/api/mentions?jsonp=window.AG.processWebmentions&amp;target[]=' +
+                            targets.join( '&amp;target[]' );
     document.getElementsByTagName('head')[0].appendChild( json_webmentions );
     
     // Listen for new ones
