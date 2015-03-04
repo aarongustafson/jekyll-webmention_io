@@ -9,6 +9,7 @@
 #    {% webmention_count URL %}
 #   
 require 'json'
+require 'net/http'
 
 WEBMENTION_CACHE_DIR = File.expand_path('../../.webmention-cache', __FILE__)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
