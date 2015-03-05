@@ -1,5 +1,6 @@
 desc "Trigger webmentions"
 task :webmention do
+  require 'yaml'
   # Caches
   webmention_cache = '.webmention-cache'    # generic caching directory
   FileUtils.mkdir_p( webmention_cache )
