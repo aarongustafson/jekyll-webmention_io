@@ -13,7 +13,9 @@
  * The content should be a single URL or multiple, separated by commas.
  */
     
-;(function(window){
+;(function(window,document){
+    
+    if ( ! 'querySelectorAll' in document ){ return; }
     
     if ( !( 'AG' in window ) ){ window.AG = {}; }
     
@@ -32,16 +34,22 @@
             li:         document.createElement('li'),
             time:       document.createElement('time')
         },
+        space = document.createTextNode(' '),
         months = [
             'January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'
         ],
         json_webmentions,
-        targets = [ window.location.href ],
+        targets = [
+            window.location.href.replace( 'localhost', 'www.aaron-gustafson.com' )
+        ],
         $none = false,
         $redirects = document.querySelector('meta[property="webmention:redirected_from"]'),
         redirects,
-        base_url = window.location.origin;
+        base_url = window.location.origin,
+        $existing_webmentions,
+        existing_webmentions = [],
+        e = 0;
     
     if ( $redirects )
     {
@@ -72,6 +80,21 @@
     else
     {
         $webmentions_list = $webmentions_list[0];
+        // get existing webmentions
+        $existing_webmentions = $webmentions_list.querySelectorAll( '[id^=webmention-]' );
+        e = $existing_webmentions.length;
+        while ( e-- )
+        {
+            existing_webmentions.push(
+                parseInt( 
+                    $existing_webmentions[e]
+                        .getAttribute( 'id' )
+                        .replace( 'webmention-', '' ),
+                    10
+                )
+            );
+        }
+        $existing_webmentions = null;
     }
     
     // Set up the markup
@@ -100,6 +123,18 @@
         var streaming = !( 'data' in mention ),
             data = streaming ? mention : mention.data,
             id = streaming ? mention.element_id : mention.id;
+
+        // Twitter uses the actual satus ID
+        if ( data.url && data.url.indexOf( 'twitter.com/' ) > -1 )
+        {
+            id = data.url.replace(/^.*?status\/(.*)$/, '$1' );
+        }
+
+        // No need to replace
+        if ( existing_webmentions.indexOf( id ) > -1 )
+        {
+            return;
+        }
         
         var $existing_mention = document.querySelectorAll( '#webmention-' + id  ),
             $item = elements.li.cloneNode( true ),
@@ -115,20 +150,16 @@
             title = data.name,
             content = data.content,
             url = data.url,
+            type = mention.activity.type,
+            activity = ( type == "like" || type == "repost" ),
+            sentence = mention.activity.sentence_html,
             author = data.author.name,
             author_photo = data.author.photo,
-            pubdate,
+            pubdate = data.published || mention.verified_date,
             display_date = '';
-
+        
         $item.id = 'webmention-' + id;
         $item.appendChild( $mention );
-
-        // no doubling up
-        if ( title && content &&
-             title == content )
-        {
-            title = false;
-        }
 
         if ( author )
         {
@@ -142,66 +173,92 @@
             $author_link.appendChild( $author_name );
             $author.appendChild( $author_link );
             $mention.appendChild( $author );
+
+            if ( activity )
+            {
+                console.log( 'activity!' );
+                title = author + ' ' + title;
+                $mention.className += ' webmention--author-starts';
+            }
         }
 
-        if ( data.published )
+        if ( pubdate )
         {
-            $pubdate.setAttribute( 'datetime', data.published );
-            pubdate = new Date( data.published );
+            $pubdate.setAttribute( 'datetime', pubdate );
+            pubdate = new Date( pubdate );
             display_date += pubdate.getUTCDate() + ' ';
             display_date += months[ pubdate.getUTCMonth() ] + ' ';
             display_date += pubdate.getUTCFullYear();
             $pubdate.appendChild( document.createTextNode( display_date ) );
             $meta.appendChild( $pubdate );
+            
+            if ( url & ! activity )
+            {
+                $meta.appendChild( document.createTextNode( ' | ' ) );
+            }
         }
-        
-
-        if ( ( title && title.indexOf(author) === 0 ) ||
-             ( content && content.indexOf(author) === 0 ) )
+        if ( url & ! activity )
         {
-            $mention.className += ' webmention--author-starts';
+            $link = elements.permalink.cloneNode( true );
+            $link.href = url;
+            $meta.appendChild( $link );
         }
-        
+
+        if ( type == "reply" )
+        {
+            title = false;
+        }
+
+        // no doubling up
+        if ( title && content &&
+             title == content )
+        {
+            title = false;
+        }
 
         if ( title )
         {
             $mention.className += ' webmention--title-only';
 
+            title = title.replace( 'reposts', 'reposted' );
+
             if ( url )
             {
                 $link = elements.a.cloneNode( true );
                 $link.href = url;
-                $link.appendChild( document.createTextNode( data.name ) );
+                $link.appendChild( document.createTextNode( title ) );
             }
             else
             {
-                $link = document.createTextNode( data.name );
+                $link = document.createTextNode( title );
             }
 
             $block = elements.title.cloneNode( true );
             $block.appendChild( $link );
+            $mention.appendChild( space.cloneNode( true ) );
             $mention.appendChild( $block );
-
-            $mention.appendChild( $meta );
         }
         else if ( content )
         {
             $mention.className += ' webmention--content-only';
 
-            if ( url )
-            {
-                $meta.appendChild( document.createTextNode( ' | ' ) );
-                $link = elements.permalink.cloneNode( true );
-                $link.href = url;
-                $meta.appendChild( $link );
-            }
-
-            $mention.appendChild( $meta );
-
             // TODO: Add Markdown
             $block = elements.content.cloneNode( true );
-            $block.appendChild( document.createTextNode( content ) );
+            
+            if ( activity && sentence )
+            {
+                $block.innerHTML = sentence.replace( /href/, 'class="p-author h-card" href' );
+            }
+            else
+            {
+                $block.innerHTML = content;
+            }
             $mention.appendChild( $block );
+        }
+
+        if ( $meta.children.length > 0 )
+        {
+            $mention.appendChild( $meta );
         }
         
         if ( $existing_mention.length < 1 )
@@ -217,6 +274,9 @@
         {
             $webmentions_list.replaceChild( $item, $existing_mention[0] );
         }
+
+        // Store the id
+        existing_webmentions.push( id );
         
         // Release
         $item = null;
@@ -261,4 +321,4 @@
         };
     }
     
-}(window));
+}(this,this.document));

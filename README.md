@@ -81,7 +81,7 @@ To summarize the classes, here’s what you have to work with:
 * `webmention__source` - The webmention permalink (`a`)
 * `webmentions__not-found` - The "no results" message (`p`)
 
-Note: Webmentions are cached to the `.webmention-cache` directory in a file named `received_webmentions.yml`. If you are unhappy with how a webmention is displayed, you can alter the HTML in this file, but be careful, the file must remain valid YAML. But if you botch things, you can always delete the file and the webmentions will be re-cached.
+Note: Webmentions are cached to the `.cache` directory in a file named `webmentions_received.yml`. If you are unhappy with how a webmention is displayed, you can alter the HTML in this file, but be careful, the file must remain valid YAML. But if you botch things, you can always delete the file and the webmentions will be re-cached.
 
 ## JavaScript (optional)
 
@@ -95,7 +95,7 @@ The `content` attribute should contain a single URL or multiple URLs separated b
 
 ## Publishing Webmentions
 
-Included in this repo is a [Rake](https://github.com/ruby/rake) task for publishing webmentions (webmention.Rakefile). You can add this task to your global Rakefile or reference it.
+Included in this repo is a [Rake](https://github.com/ruby/rake) task for publishing webmentions (webmention.Rakefile). You can add this task to your global Rakefile or reference it. Just be sure to update the path for your `.cache` folder
 
 The workflow is as follows:
 
@@ -106,4 +106,4 @@ Notes:
 
  * If an endpoint is not offered, the URL will be skipped and can be processed later.
  * In order to streamline the process, a webmention connection will only be processed once (and cached so it can be skipped).
- * You may want to add `.webmention-cache` to your `.gitignore` file.
+ * You may want to add `.cache` to your `.gitignore` file.
