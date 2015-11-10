@@ -29,7 +29,7 @@ task :webmention do
             endpoint.scan(/href="([^"]+)"/) do |endpoint_url|
               endpoint_url = endpoint_url[0]
               puts "Sending webmention of #{source} to #{endpoint_url}"
-              command =  "curl -s -i -d \"source=#{source}&target=#{target}\" #{endpoint_url}"
+              command =  "curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint_url}"
               # puts command
               system command
             end
