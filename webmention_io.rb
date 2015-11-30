@@ -46,7 +46,7 @@ module Jekyll
       response = get_response(api_params)
 
       site = context.registers[:site]
-      @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
+      @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
 
       html_output_for(response)
     end
