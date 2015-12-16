@@ -46,7 +46,7 @@ module Jekyll
       response = get_response(api_params)
 
       site = context.registers[:site]
-      @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
+      @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
 
       html_output_for(response)
     end
@@ -396,7 +396,7 @@ module Jekyll
       webmentions = {}
       if defined?(WEBMENTION_CACHE_DIR)
         cache_file = File.join(WEBMENTION_CACHE_DIR, 'webmentions.yml')
-        site.posts.each do |post|
+        site.posts.docs.each do |post|
           source = "#{site.config['url']}#{post.url}"
           targets = []
           if post.data['in_reply_to']
