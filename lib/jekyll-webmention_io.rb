@@ -8,11 +8,11 @@
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
 #   
-require "jekyll/webmention_io/version"
-require "jekyll/webmention_io/webmentions"
-require "jekyll/webmention_io/webmentions_tag"
-require "jekyll/webmention_io/webmention_count_tag"
-require "jekyll/webmention_io/webmention_generator"
+require "jekyll-webmention_io/version"
+require "jekyll-webmention_io/webmentions"
+require "jekyll-webmention_io/webmentions_tag"
+require "jekyll-webmention_io/webmention_count_tag"
+require "jekyll-webmention_io/webmention_generator"
 
 WEBMENTION_CACHE_DIR = File.expand_path('../../.cache', __FILE__)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
@@ -23,5 +23,5 @@ FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 #   end
 # end
 
-Liquid::Template.register_tag('webmentions', Jekyll::WebmentionsTag)
-Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionCountTag)
+Liquid::Template.register_tag('webmentions', Jekyll::WebmentionIo::WebmentionsTag)
+Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionIo::WebmentionCountTag)
