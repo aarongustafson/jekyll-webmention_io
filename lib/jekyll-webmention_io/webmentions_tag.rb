@@ -295,3 +295,5 @@ module Jekyll
     
   end
 end
+
+Liquid::Template.register_tag('webmentions', Jekyll::WebmentionIo::WebmentionsTag)

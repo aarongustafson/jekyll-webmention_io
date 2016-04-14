@@ -22,6 +22,3 @@ FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 #     # Your code goes here...
 #   end
 # end
-
-Liquid::Template.register_tag('webmentions', Jekyll::WebmentionIo::WebmentionsTag)
-Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionIo::WebmentionCountTag)
