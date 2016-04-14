@@ -18,8 +18,11 @@ require "jekyll-webmention_io/webmention_header_tag"
 require "jekyll-webmention_io/webmention_js_generator"
 
 WEBMENTION_GEM_BASE_DIR = File.expand_path('../../', __FILE__)
+WEBMENTION_JEKYLL_BASE_DIR = Dir.pwd
 
-WEBMENTION_CACHE_DIR = File.expand_path('../../.cache', __FILE__)
+WEBMENTION_CONFIG = Jekyll.configuration({})['jekyll-webmention-io']
+
+WEBMENTION_CACHE_DIR = File.expand_path(WEBMENTION_CONFIG['cache'] || ".jekyll-webmention-io", Dir.pwd)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 
 # module Jekyll
