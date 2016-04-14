@@ -15,6 +15,9 @@ require "jekyll-webmention_io/webmentions_tag"
 require "jekyll-webmention_io/webmention_count_tag"
 require "jekyll-webmention_io/webmention_generator"
 require "jekyll-webmention_io/webmention_header_tag"
+require "jekyll-webmention_io/webmention_js_generator"
+
+WEBMENTION_GEM_BASE_DIR = File.expand_path('../../', __FILE__)
 
 WEBMENTION_CACHE_DIR = File.expand_path('../../.cache', __FILE__)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
