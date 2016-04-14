@@ -5,11 +5,17 @@
 module Jekyll
   module WebmentionIo
 
+    class WebmentionIoJsFile < StaticFile
+      def destination_rel_dir
+        @site.config['jekyll-webmention-io']['jsdir'] || "assets/js/"
+      end
+    end
+
     class CategoryPageGenerator < Generator
       safe true
 
       def generate(site)
-        site.static_files << Jekyll::StaticFile.new(site, WEBMENTION_GEM_BASE_DIR, "", "webmention_io.js")
+        site.static_files << Jekyll::WebmentionIo::WebmentionIoJsFile.new(site, WEBMENTION_GEM_BASE_DIR, "", "webmention_io.js")
       end
     end
 
