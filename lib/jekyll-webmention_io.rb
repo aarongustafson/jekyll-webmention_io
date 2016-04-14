@@ -5,6 +5,7 @@
 #  this liquid plugin insert a webmentions into your Octopress or Jekyll blog
 #  using http://webmention.io/ and the following syntax:
 #
+#    {% webmention_head_tags %}
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
 #   
@@ -13,6 +14,7 @@ require "jekyll-webmention_io/webmentions"
 require "jekyll-webmention_io/webmentions_tag"
 require "jekyll-webmention_io/webmention_count_tag"
 require "jekyll-webmention_io/webmention_generator"
+require "jekyll-webmention_io/webmention_header_tag"
 
 WEBMENTION_CACHE_DIR = File.expand_path('../../.cache', __FILE__)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
