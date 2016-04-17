@@ -2,7 +2,29 @@
 
 This plugin makes it possible to load [webmentions](http://indiewebcamp.com/webmention) from [Webmention.io](http://webmention.io) into your Jekyll and Octopress projects. It currently supports the following:
 
-## Webmention Count
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'jekyll-webmention_io'
+```
+
+And then execute:
+
+```
+$ bundle
+```    
+
+Or install it yourself as:
+
+```
+$ gem install jekyll-webmention_io
+```
+
+## Usage
+
+### Webmention Count
 
 Get a count of webmentions for a page or post using the following liquid tag:
 
@@ -10,7 +32,7 @@ Get a count of webmentions for a page or post using the following liquid tag:
 	
 The output will simply be a number.
 
-## Webmention List
+### Webmention List
 
 You can get a complete list of webmentions for a page or post using the following liquid tag:
 
@@ -83,7 +105,7 @@ To summarize the classes, here’s what you have to work with:
 
 Note: Webmentions are cached to the `.cache` directory in a file named `webmentions_received.yml`. If you are unhappy with how a webmention is displayed, you can alter the HTML in this file, but be careful, the file must remain valid YAML. But if you botch things, you can always delete the file and the webmentions will be re-cached.
 
-## JavaScript (optional)
+### JavaScript (optional)
 
 I have also included a JavaScript file that will keep your webmentions up to date even when you don’t publish frequently. It will also update your page’s webmentions in realtime.
 
@@ -93,7 +115,7 @@ To inform the JavaScript of additional URLs to check (e.g. when the current page
 
 The `content` attribute should contain a single URL or multiple URLs separated by commas.
 
-## Publishing Webmentions
+### Publishing Webmentions
 
 Included in this repo is a [Rake](https://github.com/ruby/rake) task for publishing webmentions (webmention.Rakefile). You can add this task to your global Rakefile or reference it. Just be sure to update the path for your `.cache` folder
 
@@ -107,3 +129,13 @@ Notes:
  * If an endpoint is not offered, the URL will be skipped and can be processed later.
  * In order to streamline the process, a webmention connection will only be processed once (and cached so it can be skipped).
  * You may want to add `.cache` to your `.gitignore` file.
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/aarongustafson/jekyll-webmention_io.
+
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+

@@ -9,6 +9,17 @@
 /test/version_tmp/
 /tmp/
 
+## From bundle gem generator
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+
 ## Specific to RubyMotion:
 .dat*
 .repl_history
