@@ -10,7 +10,10 @@
 #    {% webmention_redirected_from PAGE, TAGS, TO, READ %}
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
-#   
+#
+#  Notify any mentioned sites that are webmention enabled:
+#
+#    jekyll webmention
 
 def config_err(key)
   Jekyll.logger.warn "jekyll-webmention-io:", "Required _config.yml key not defined: #{key}"
@@ -35,6 +38,7 @@ FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 require "jekyll-webmention_io/version"
 require "jekyll-webmention_io/webmentions"
 
+require "jekyll-webmention_io/webmention_command"
 require "jekyll-webmention_io/webmentions_tag"
 require "jekyll-webmention_io/webmention_count_tag"
 require "jekyll-webmention_io/webmention_generator"
