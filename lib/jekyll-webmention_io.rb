@@ -6,6 +6,7 @@
 #  using http://webmention.io/ and the following syntax:
 #
 #    {% webmention_head_tags %}
+#    {% webmention_redirected_from PAGE, TAGS, TO, READ %}
 #    {% webmention_js_tag %}
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
@@ -33,9 +34,11 @@ FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 
 require "jekyll-webmention_io/version"
 require "jekyll-webmention_io/webmentions"
+
 require "jekyll-webmention_io/webmentions_tag"
 require "jekyll-webmention_io/webmention_count_tag"
 require "jekyll-webmention_io/webmention_generator"
 require "jekyll-webmention_io/webmention_head_tags"
 require "jekyll-webmention_io/webmention_js_generator"
 require "jekyll-webmention_io/webmention_js_tag"
+require "jekyll-webmention_io/webmention_redirected_from_tag"
