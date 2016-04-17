@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "jekyll-webmention_io"
   spec.version       = Jekyll::WebmentionIo::VERSION
   spec.authors       = ["Aaron Gustafson"]
-  spec.email         = [""]
+  spec.email         = ["aaron@easy-designs.net"]
 
   spec.summary       = %q{A Jekyll Plugin for rendering Webmentions via Webmention.io}
   #spec.description   = %q{TODO: Write a longer description or delete this line.}
