@@ -38,9 +38,3 @@ require "jekyll-webmention_io/webmention_generator"
 require "jekyll-webmention_io/webmention_head_tags"
 require "jekyll-webmention_io/webmention_js_generator"
 require "jekyll-webmention_io/webmention_js_tag"
-
-# module Jekyll
-#   module WebmentionIo
-#     # Your code goes here...
-#   end
-# end
