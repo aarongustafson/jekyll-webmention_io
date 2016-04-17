@@ -7,7 +7,7 @@ module Jekyll
 
     class WebmentionIoJsFile < StaticFile
       def destination_rel_dir
-        @site.config['jekyll-webmention-io']['jsdir'] || "assets/js/"
+        @site.config['jekyll-webmention-io']['js'] || "/assets/js/"
       end
     end
 
