@@ -17,6 +17,7 @@ def config_err(key)
   exit 1
 end
 
+# TODO: Find a less hacky way of accessing the config here
 WEBMENTION_JEKYLL_CONFIG = Jekyll.configuration({})
 
 config_err('jekyll-webmention-io') unless WEBMENTION_JEKYLL_CONFIG.has_key?('jekyll-webmention-io')
