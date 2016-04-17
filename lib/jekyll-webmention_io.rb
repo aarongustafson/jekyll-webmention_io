@@ -6,8 +6,8 @@
 #  using http://webmention.io/ and the following syntax:
 #
 #    {% webmention_head_tags %}
-#    {% webmention_redirected_from PAGE, TAGS, TO, READ %}
 #    {% webmention_js_tag %}
+#    {% webmention_redirected_from PAGE, TAGS, TO, READ %}
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
 #   
