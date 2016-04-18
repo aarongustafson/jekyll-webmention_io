@@ -13,15 +13,16 @@
  * The content should be a single URL or multiple, separated by commas.
  */
     
-;(function(window,document){
+;(function( window, document ){
+    'use strict';
     
-    if ( ! 'querySelectorAll' in document ){ return; }
+    if ( ! ( 'querySelectorAll' in document ) ){ return; }
     
-    if ( !( 'AG' in window ) ){ window.AG = {}; }
+    if ( ! ( 'AG' in window ) ){ window.AG = {}; }
     
     if ( ! window.location.origin )
     {
-       window.location.origin = window.location.protocol + "//" + window.location.host;
+       window.location.origin = window.location.protocol + '//' + window.location.host;
     }
 
     var $webmentions_list = document.querySelectorAll( '.webmentions__list' ),
@@ -46,6 +47,7 @@
         $none = false,
         $redirects = document.querySelector('meta[property="webmention:redirected_from"]'),
         redirects,
+        complete_urls = [],
         base_url = window.location.origin,
         $existing_webmentions,
         existing_webmentions = [],
@@ -54,7 +56,7 @@
     if ( $redirects )
     {
         redirects = $redirects.getAttribute('content').split(',');
-        redirects.forEach(function( value, i ){
+        redirects.forEach(function( value ){
             targets.push( 
                 value.indexOf('//') < 0 ? base_url + value : value
             );
@@ -62,10 +64,24 @@
         redirects = false;
     }
 
+    // map to http too
+    if ( window.location.protocol != 'http:' )
+    {
+        targets.forEach(function( value ){
+            complete_urls.push( value );
+            if ( value.indexOf( 'https://' ) != -1 )
+            {
+                complete_urls.push( value.replace( 'https://', 'http://' ) );
+            }
+        });
+        targets = complete_urls;
+        complete_urls = false;
+    }
+    
     // Do we need to create the list?
     if ( $webmentions_list.length < 1 )
     {
-        var $none = document.querySelectorAll( '.webmentions__not-found' );
+        $none = document.querySelectorAll( '.webmentions__not-found' );
         if ( $none.length )
         {
             $none = $none[0];
@@ -120,14 +136,28 @@
     
     function addMention( mention )
     {
+        //console.log(mention);
         var streaming = !( 'data' in mention ),
             data = streaming ? mention : mention.data,
-            id = streaming ? mention.element_id : mention.id;
+            id = streaming ? mention.element_id : mention.id,
+            is_tweet = false,
+            is_gplus = false;
 
-        // Twitter uses the actual satus ID
+        // Tweets gets handled differently
         if ( data.url && data.url.indexOf( 'twitter.com/' ) > -1 )
         {
-            id = data.url.replace(/^.*?status\/(.*)$/, '$1' );
+            is_tweet = true;
+            // Unique tweets gets unique IDs
+            if ( data.url.indexOf( '#favorited-by' ) == -1 )
+            {
+                id = data.url.replace( /^.*?status\/(.*)$/, '$1' );
+            }
+        }
+        
+        // Google Plus gets handled differently
+        if ( data.url.indexOf( '/googleplus/' ) )
+        {
+            is_gplus = true;
         }
 
         // No need to replace
@@ -136,8 +166,7 @@
             return;
         }
         
-        var $existing_mention = document.querySelectorAll( '#webmention-' + id  ),
-            $item = elements.li.cloneNode( true ),
+        var $item = elements.li.cloneNode( true ),
             $mention = elements.article.cloneNode( true ),
             $author = elements.author.cloneNode( true ),
             $author_name = elements.author_name.cloneNode( true ),
@@ -148,89 +177,209 @@
             $block,
             $link,
             title = data.name,
+            link_title = false,
             content = data.content,
-            url = data.url,
+            url = data.url || mention.source,
             type = mention.activity.type,
-            activity = ( type == "like" || type == "repost" ),
-            sentence = mention.activity.sentence_html,
-            author = data.author.name,
-            author_photo = data.author.photo,
-            pubdate = data.published || mention.verified_date,
+            author = data.author ? data.author.name : false,
+            author_photo = data.author ? data.author.photo : false,
+            pubdate,
             display_date = '';
         
         $item.id = 'webmention-' + id;
         $item.appendChild( $mention );
 
+        // no data, skip it
+        if ( ! title && ! content )
+        {
+            return;
+        }
+        
+        ////
+        // Authorship
+        ////
         if ( author )
         {
-            $author_link.href = data.author.url;
             if ( author_photo )
             {
                 $author_photo.src = author_photo;
                 $author_link.appendChild( $author_photo );
             }
-            $author_name.appendChild( document.createTextNode( author ) );
-            $author_link.appendChild( $author_name );
-            $author.appendChild( $author_link );
-            $mention.appendChild( $author );
-
-            if ( activity )
+            else
             {
-                console.log( 'activity!' );
-                title = author + ' ' + title;
-                $mention.className += ' webmention--author-starts';
+                $mention.className += ' webmention--no-photo';
             }
+            $author_name.appendChild( document.createTextNode( author ) );
+            if ( data.author.url )
+            {
+                $author_link.href = data.author.url;
+                $author_link.appendChild( $author_name );
+                $author.appendChild( $author_link );
+            }
+            else
+            {
+                $author.appendChild( $author_name );
+            }
+            $mention.appendChild( $author );
+        }
+        else
+        {
+            $mention.className += ' webmention--no-author';
         }
 
+        ////
+        // Content
+        ////
+        if ( ! type )
+        {
+            // Trap Google Plus from Bridgy
+            if ( is_gplus )
+            {
+                if ( url.indexOf( '/like/' ) > -1 )
+                {
+                    type = 'like';
+                }
+                else if ( url.indexOf( '/repost/' ) > -1 )
+                {
+                    type = 'repost';
+                }
+                else if ( url.indexOf( '/comment/' ) > -1 )
+                {
+                    type = 'reply';
+                }
+                else
+                {
+                    type = 'link';
+                }
+            }
+            // Default
+            else
+            {
+                type = 'post';
+            }
+        }
+        
+        // more than likely the content was pushed into the post name
+        if ( title && title.length > 200 )
+        {
+            title = false;
+        }
+        
+        // TODO: Google Plus masked by Bridgy
+        // Ruby Code:
+        // if is_gplus and url.include? 'brid-gy'
+        //     # 
+        //     status = `curl -s -I -L -o /dev/null -w "%{http_code}" --location "#{url}"`
+        //     if status == '200'
+        //         # Now get the content
+        //         html_source = `curl -s --location "#{url}"`
+        // 
+        //         if ! html_source.valid_encoding?
+        //             html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
+        //         end
+        // 
+        //         matches = /class="u-url" href=".+">(https:.+)</.match( html_source )
+        //         if matches
+        //             url = matches[1].strip
+        //         end
+        //     else
+        //         url = false
+        //     end
+        // end
+        
+        // Posts (but not tweeted links)
+        if ( type == 'post' ||
+             ( type == 'link' && ! is_tweet && ! is_gplus ) )
+        {
+            link_title = title;
+            
+            // No title - Async update
+            if ( ! title && url )
+            {
+                readWebPage( url, function( html_source ){
+                    if ( html_source )
+                    {
+                        linkTitle( $item, url, html_source );
+                    }
+                });
+            }    
+        }
+        // Likes & Shares
+        else if ( type == 'like' || type == 'repost' )
+        {
+            // new Twitter faves are doing something weird
+            if ( type == 'like' && is_tweet )
+            {
+                link_title = author + ' favorited this.';
+            }
+            else if ( type == 'repost' && is_tweet )
+            {
+                link_title = author + ' retweeted this.';
+            }
+            else
+            {
+                link_title = title;
+            }
+            $mention.className += ' webmention--author-starts';
+        }
+        
+        // Published info
+        if ( data.published_ts )
+        {
+            pubdate = new Date(0);
+            pubdate.setUTCSeconds( data.published_ts );
+        }
+        else if ( data.published || mention.verified_date )
+        {
+            pubdate = new Date( data.published || mention.verified_date );
+        }
         if ( pubdate )
         {
-            $pubdate.setAttribute( 'datetime', pubdate );
-            pubdate = new Date( pubdate );
+            $pubdate.setAttribute( 'datetime', pubdate.toISOString() );
             display_date += pubdate.getUTCDate() + ' ';
             display_date += months[ pubdate.getUTCMonth() ] + ' ';
             display_date += pubdate.getUTCFullYear();
             $pubdate.appendChild( document.createTextNode( display_date ) );
             $meta.appendChild( $pubdate );
-            
-            if ( url & ! activity )
+        }
+        
+        if ( ! link_title )
+        {
+            if ( pubdate && url )
             {
                 $meta.appendChild( document.createTextNode( ' | ' ) );
             }
+            if ( url )
+            {
+                $link = elements.permalink.cloneNode( true );
+                $link.href = url;
+                $meta.appendChild( $link );
+            }
         }
-        if ( url & ! activity )
+        
+        if ( author &&
+             $mention.className.indexOf( 'webmention--author-starts' ) == -1 &&
+             ( ( title && title.indexOf( author ) == '0' ) ||
+               ( content && content.indexOf( author ) == '0' ) ) )
         {
-            $link = elements.permalink.cloneNode( true );
-            $link.href = url;
-            $meta.appendChild( $link );
+            $mention.className += ' webmention--author-starts';
         }
 
-        if ( type == "reply" )
-        {
-            title = false;
-        }
-
-        // no doubling up
-        if ( title && content &&
-             title == content )
-        {
-            title = false;
-        }
-
-        if ( title )
+        if ( link_title )
         {
             $mention.className += ' webmention--title-only';
 
-            title = title.replace( 'reposts', 'reposted' );
+            link_title = link_title.replace( 'reposts', 'reposted' );
 
             if ( url )
             {
                 $link = elements.a.cloneNode( true );
                 $link.href = url;
-                $link.appendChild( document.createTextNode( title ) );
+                $link.appendChild( document.createTextNode( link_title ) );
             }
             else
             {
-                $link = document.createTextNode( title );
+                $link = document.createTextNode( link_title );
             }
 
             $block = elements.title.cloneNode( true );
@@ -238,21 +387,11 @@
             $mention.appendChild( space.cloneNode( true ) );
             $mention.appendChild( $block );
         }
-        else if ( content )
+        else
         {
             $mention.className += ' webmention--content-only';
-
-            // TODO: Add Markdown
             $block = elements.content.cloneNode( true );
-            
-            if ( activity && sentence )
-            {
-                $block.innerHTML = sentence.replace( /href/, 'class="p-author h-card" href' );
-            }
-            else
-            {
-                $block.innerHTML = content;
-            }
+            $block.innerHTML = content;
             $mention.appendChild( $block );
         }
 
@@ -261,34 +400,28 @@
             $mention.appendChild( $meta );
         }
         
-        if ( $existing_mention.length < 1 )
+        if ( !! $none )
         {
-            if ( !! $none )
-            {
-                $none.parentNode.replaceChild( $webmentions_list, $none );
-                $none = false;
-            }
-            $webmentions_list.appendChild( $item );
+            $none.parentNode.replaceChild( $webmentions_list, $none );
+            $none = false;
         }
-        else
-        {
-            $webmentions_list.replaceChild( $item, $existing_mention[0] );
-        }
-
+        $webmentions_list.appendChild( $item );
+        
         // Store the id
         existing_webmentions.push( id );
         
         // Release
         $item = null;
-        $existing_mention = null;
         $mention = null;
         $author = null;
+        $author_name = null;
         $author_link = null;
         $author_photo = null;
         $block = null;
         $link = null;
         $meta = null;
         $pubdate = null;
+        
     }
     
     window.AG.processWebmentions = function( data ){
@@ -299,22 +432,101 @@
         }
     };
     
+    // Synchromous XHR proxied through whateverorigin.org
+    function readWebPage( uri, callback )
+    {
+        if ( 'XMLHttpRequest' in window )
+        {
+            var XHR = new XMLHttpRequest();
+            readWebPage = function( uri, callback ){
+                var done = false;
+                uri = 'http://whateverorigin.org/get?url=' + encodeURIComponent( uri );
+                XHR.onreadystatechange = function() {
+                    if ( this.readyState == 4 && ! done ) {
+                        done = true;
+                        callback( XHR.responseText );
+                    }
+                };
+                xhr.onabort = function() {
+                    if ( ! done )
+                    {
+                        done = true;
+                        callback( false );
+                    }
+                };
+                XHR.onerror = XHR.onabort;
+                XHR.open( 'GET', uri );
+                XHR.send( null );
+            };
+        }
+        else
+        {
+            readWebPage = function( uri, callback ){
+                callback( false );
+            };
+        }
+        return readWebPage( uri, callback );
+    }
+    
+    // Async update of the title
+    function updateTitle( $item, url, html_source )
+    {
+        var $current_title = $item.querySelector( '.webmention__title' ),
+            matches = /<title>\s*(.*)\s*<\/title>/.match( html_source ),
+            title = '',
+            $link_title;
+        
+        if ( matches )
+        {
+            title = matches[1];
+        }
+        else
+        {
+            matches = /<h1>\s*(.*)\s*<\/h1>/.match( html_source );
+            if ( matches )
+            {
+                title = matches[1];
+            }
+            else
+            {
+                title = 'No title available';
+            }
+        }
+        
+        if ( title )
+        {
+            $link_title = elements.a.cloneNode( true );
+            $link_title.href = url;
+            $link_title.appendChild( document.createTextNode( title ) );
+            // clear and replace title contents
+            $current_title.innerHTML = '';
+            $currentTitle.appendChild( $link_title );
+        }
+    }
+    
+    // Preconnect to Webmention.io
+    if ( 'preconnect' in window.AG )
+    {
+        window.AG.preconnect( '//webmention.io' );
+        window.AG.preconnect( 'ws://webmention.io:8080' );
+    }
+
     // Load up any unpublished webmentions on load
     json_webmentions = document.createElement('script');
     json_webmentions.async = true;
-    json_webmentions.src = 'http://webmention.io/api/mentions?jsonp=window.AG.processWebmentions&amp;target[]=' +
-                            targets.join( '&amp;target[]' );
+    json_webmentions.src = '//webmention.io/api/mentions?jsonp=window.AG.processWebmentions&amp;target[]=' +
+                            targets.join( '&amp;target[]=' );
     document.getElementsByTagName('head')[0].appendChild( json_webmentions );
     
     // Listen for new ones
     if ( $webmentions_list.length &&
-        "WebSocket" in window )
+         'WebSocket' in window )
     {
         var ws = new WebSocket('ws://webmention.io:8080');
         
-        ws.onopen = function( event ){
+        ws.onopen = function(){
             // Send the current window URL to the server to register to receive notifications about this URL
-            ws.send( this_page );
+            ws.send( window.location );
         };
         ws.onmessage = function( event ){
             addMention( JSON.parse( event.data ) );
