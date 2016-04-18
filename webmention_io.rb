@@ -52,7 +52,15 @@ module Jekyll
       response = get_response(api_params)
 
       site = context.registers[:site]
-      @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
+
+      # post Jekyll commit 0c0aea3
+      # https://github.com/jekyll/jekyll/commit/0c0aea3ad7d2605325d420a23d21729c5cf7cf88
+      if defined? site.find_converter_instance
+        @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
+      # Prior to Jekyll commit 0c0aea3
+      else
+        @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
+      end
 
       html_output_for(response)
     end
