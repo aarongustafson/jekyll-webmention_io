@@ -134,7 +134,7 @@ module Jekyll
               return false
           end
         rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-          warn "Got an error: #{e}"
+          warn "Got an error checking #{original_uri}: #{e}"
           return false
         end
       else
