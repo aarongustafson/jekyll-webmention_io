@@ -13,7 +13,15 @@ module Jekyll
         webmentions = {}
         if defined?(WEBMENTION_CACHE_DIR)
           cache_file = File.join(WEBMENTION_CACHE_DIR, 'webmentions.yml')
-          site.posts.each do |post|
+
+          # Support both Jekyll 2.x & 3.x
+          if defined? site.posts.docs
+            site_posts = site.posts.docs # 3.x
+          else
+            site_posts = site.posts # 2.x
+          end
+
+          site_posts.each do |post|
             source = "#{site.config['url']}#{post.url}"
             targets = []
             if post.data['in_reply_to']
