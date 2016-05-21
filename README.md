@@ -7,7 +7,7 @@ This plugin makes it possible to load [webmentions](http://indiewebcamp.com/webm
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'jekyll-webmention_io'
+gem 'jekyll-webmention-io'
 ```
 
 And then execute:
@@ -19,7 +19,7 @@ $ bundle
 Or install it yourself as:
 
 ```
-$ gem install jekyll-webmention_io
+$ gem install jekyll-webmention-io
 ```
 
 ## Usage

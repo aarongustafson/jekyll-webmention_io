@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'jekyll-webmention_io/version'
+require 'jekyll-webmention-io/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "jekyll-webmention_io"
+  spec.name          = "jekyll-webmention-io"
   spec.version       = Jekyll::WebmentionIo::VERSION
   spec.authors       = ["Aaron Gustafson"]
   spec.email         = ["aaron@easy-designs.net"]
 
   spec.summary       = %q{A Jekyll Plugin for rendering Webmentions via Webmention.io}
   #spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "https://github.com/aarongustafson/jekyll-webmention_io"
+  spec.homepage      = "https://github.com/aarongustafson/jekyll-webmention-io"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or

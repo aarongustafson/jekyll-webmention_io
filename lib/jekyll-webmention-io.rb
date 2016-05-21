@@ -35,14 +35,14 @@ WEBMENTION_JEKYLL_BASE_DIR = Dir.pwd
 WEBMENTION_CACHE_DIR = File.expand_path(WEBMENTION_CONFIG['cache'] || ".jekyll-webmention-io", Dir.pwd)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 
-require "jekyll-webmention_io/version"
-require "jekyll-webmention_io/webmentions"
+require "jekyll-webmention-io/version"
+require "jekyll-webmention-io/webmentions"
 
-require "jekyll-webmention_io/webmention_command"
-require "jekyll-webmention_io/webmentions_tag"
-require "jekyll-webmention_io/webmention_count_tag"
-require "jekyll-webmention_io/webmention_generator"
-require "jekyll-webmention_io/webmention_head_tags"
-require "jekyll-webmention_io/webmention_js_generator"
-require "jekyll-webmention_io/webmention_js_tag"
-require "jekyll-webmention_io/webmention_redirected_from_tag"
+require "jekyll-webmention-io/webmention_command"
+require "jekyll-webmention-io/webmentions_tag"
+require "jekyll-webmention-io/webmention_count_tag"
+require "jekyll-webmention-io/webmention_generator"
+require "jekyll-webmention-io/webmention_head_tags"
+require "jekyll-webmention-io/webmention_js_generator"
+require "jekyll-webmention-io/webmention_js_tag"
+require "jekyll-webmention-io/webmention_redirected_from_tag"
