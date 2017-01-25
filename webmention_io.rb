@@ -76,13 +76,10 @@ module Jekyll
     end
 
     def get_response(api_params)
-      api_uri = URI.parse(@api_endpoint + "?#{api_params}")
-      # print api_uri
-      # print "\r\n"
-      response = Net::HTTP.get(api_uri.host, api_uri.request_uri)
-      if response
-        # print response
-        JSON.parse(response)
+      source = get_uri_source(@api_endpoint + "?#{api_params}")
+      if source
+        # print source
+        JSON.parse(source)
       else
         ""
       end
@@ -119,8 +116,17 @@ module Jekyll
       original_uri = original_uri || uri
       if redirect_limit > 0
         uri = URI.parse(URI.encode(uri))
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.read_timeout = 10
+        if uri.scheme == 'https'
+          http.use_ssl = true
+          http.ssl_version = :TLSv1
+          http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
+          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        end
         begin 
-          response = Net::HTTP.get_response(uri)
+          request = Net::HTTP::Get.new(uri.request_uri)
+          response = http.request(request)
           case response
             when Net::HTTPSuccess then
               return true
@@ -136,6 +142,8 @@ module Jekyll
         rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
           warn "Got an error checking #{original_uri}: #{e}"
           return false
+        rescue Exception => e
+          warn "Got an error: #{e}"
         end
       else
         if original_uri
@@ -151,17 +159,23 @@ module Jekyll
       if redirect_limit > 0
         uri = URI.parse(URI.encode(uri))
         http = Net::HTTP.new(uri.host, uri.port)
+        http.read_timeout = 10
         if uri.scheme == 'https'
           http.use_ssl = true
           http.ssl_version = :TLSv1
           http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
           http.verify_mode = OpenSSL::SSL::VERIFY_PEER
         end
-        request = Net::HTTP::Get.new(uri.request_uri)
-        response = http.request(request)
+        begin
+          request = Net::HTTP::Get.new(uri.request_uri)
+          response = http.request(request)
+        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+          warn "Got an error checking #{original_uri}: #{e}"
+          return false
+        end
         case response
           when Net::HTTPSuccess then
-            return response.body
+            return response.body.force_encoding('UTF-8')
           when Net::HTTPRedirection then
             # puts "Location redirect to #{response['location']}"
             redirect_to = URI.parse(URI.encode(response['location']))
@@ -198,7 +212,7 @@ module Jekyll
       end
 
       if webmentions
-        body = webmentions
+        body = webmentions.force_encoding('UTF-8')
       end
       
       "<div class=\"webmentions\">#{body}</div>"
@@ -271,6 +285,7 @@ module Jekyll
         end
 
         # Make sure we have the webmention
+        # puts "#{target} - #{the_date} - #{id}"
         if ! cached_webmentions[target][the_date][id]
           
           webmention = ''
@@ -348,6 +363,7 @@ module Jekyll
               html_source = get_uri_source(url)
               
               if ! html_source.valid_encoding?
+                # puts "invalid encoding\r\n"
                 html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
               end
               
@@ -377,6 +393,7 @@ module Jekyll
               # Now get the content
               # print "checking #{url}\r\n"
               html_source = get_uri_source(url)
+              # print "#{html_source}\r\n"
               
               if ! html_source.valid_encoding?
                 html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
