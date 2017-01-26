@@ -1,52 +1,66 @@
 #  (c) Aaron Gustafson
-#  https://github.com/aarongustafson/jekyll-webmention_io 
+#  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
-#  
+#
 #  this liquid plugin insert a webmentions into your Octopress or Jekill blog
 #  using http://webmention.io/ and the following syntax:
 #
 #    {% webmentions URL %}
 #    {% webmention_count URL %}
-#   
+#
 require 'json'
 require 'net/http'
 require 'uri'
+require 'openssl'
 
-WEBMENTION_CACHE_DIR = File.expand_path('../../.cache', __FILE__)
+WEBMENTION_CACHE_DIR = File.expand_path('../.cache', __FILE__)
 FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
 
 module Jekyll
-  
+
   class Webmentions < Liquid::Tag
-    
+
     def initialize(tagName, text, tokens)
       super
       @text = text
       @api_endpoint = ''
       @api_suffix = ''
+      @targets = []
     end
-    
+
     def render(context)
       output = super
-      
-      targets = []
-      
+
       args = @text.split(/\s+/).map(&:strip)
       args.each do |url|
         target = lookup(context, url)
-        targets.push(target)
+        @targets.push(target)
         # For legacy (non www) URIs
         legacy = target.sub 'www.', ''
-        targets.push(legacy)
+        @targets.push(legacy)
+        # For legacy (non https) URIs
+        legacy = target.sub 'https://', 'http://'
+        @targets.push(legacy)
+        # Combined
+        legacy = legacy.sub 'www.', ''
+        @targets.push(legacy)
       end
-      
-      api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
+
+      api_params = @targets.collect { |v| "target[]=#{v}" }.join('&')
       api_params << @api_suffix
 
       response = get_response(api_params)
 
       site = context.registers[:site]
-      @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
+
+      # post Jekyll commit 0c0aea3
+      # https://github.com/jekyll/jekyll/commit/0c0aea3ad7d2605325d420a23d21729c5cf7cf88
+      if defined? site.find_converter_instance
+        @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
+      # Prior to Jekyll commit 0c0aea3
+      else
+        @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
+      end
 
       html_output_for(response)
     end
@@ -54,7 +68,7 @@ module Jekyll
     def html_output_for(response)
       ""
     end
-    
+
     def url_params_for(api_params)
       api_params.keys.sort.map do |k|
         "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
@@ -73,7 +87,7 @@ module Jekyll
         ""
       end
     end
-    
+
     def lookup(context, name)
       lookup = context
 
@@ -84,10 +98,91 @@ module Jekyll
       lookup
     end
 
+    def key_exists(hash, test_key)
+      if hash.is_a? Hash
+        hash.each do |key, value|
+          if test_key == key
+            return true
+          # nest
+          elsif value.is_a? Hash
+            if key_exists value, test_key
+              return true
+            end
+          end
+        end
+      end
+      return false
+    end
+
+    def is_working_uri(uri, redirect_limit = 10, original_uri = false)
+      # puts "checking URI #{uri}"
+      original_uri = original_uri || uri
+      if redirect_limit > 0
+        uri = URI.parse(URI.encode(uri))
+        begin
+          response = Net::HTTP.get_response(uri)
+          case response
+            when Net::HTTPSuccess then
+              return true
+            when Net::HTTPRedirection then
+              # puts "Location redirect to #{response['location']}"
+              redirect_to = URI.parse(URI.encode(response['location']))
+              redirect_to = redirect_to.relative? ? "#{uri.scheme}://#{uri.host}" + redirect_to.to_s : redirect_to.to_s
+              # puts "redirecting to #{redirect_to}"
+              return is_working_uri(redirect_to, redirect_limit - 1, original_uri)
+            else
+              return false
+          end
+        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+          warn "Got an error checking #{original_uri}: #{e}"
+          return false
+        end
+      else
+        if original_uri
+          warn "too many redirects for #{original_uri}"
+        end
+        return false
+      end
+    end
+
+    def get_uri_source(uri, redirect_limit = 10, original_uri = false)
+      # puts "Getting the source of #{uri}"
+      original_uri = original_uri || uri
+      if redirect_limit > 0
+        uri = URI.parse(URI.encode(uri))
+        http = Net::HTTP.new(uri.host, uri.port)
+        if uri.scheme == 'https'
+          http.use_ssl = true
+          http.ssl_version = :TLSv1
+          http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
+          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        end
+        request = Net::HTTP::Get.new(uri.request_uri)
+        response = http.request(request)
+        case response
+          when Net::HTTPSuccess then
+            return response.body
+          when Net::HTTPRedirection then
+            # puts "Location redirect to #{response['location']}"
+            redirect_to = URI.parse(URI.encode(response['location']))
+            redirect_to = redirect_to.relative? ? "#{uri.scheme}://#{uri.host}" + redirect_to.to_s : redirect_to.to_s
+            # puts "redirecting to #{redirect_to}"
+            return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
+          else
+            return false
+        end
+      else
+        if original_uri
+          warn "too many redirects for #{original_uri}"
+        end
+        return false
+      end
+    end
+
   end
-  
+
   class WebmentionsTag < Webmentions
-  
+
     def initialize(tagName, text, tokens)
       super
       @api_endpoint = 'http://webmention.io/api/mentions'
@@ -97,7 +192,7 @@ module Jekyll
 
     def html_output_for(response)
       body = '<p class="webmentions__not-found">No webmentions were found</p>'
-      
+
       if response and response['links']
         webmentions = parse_links(response['links'])
       end
@@ -105,12 +200,12 @@ module Jekyll
       if webmentions
         body = webmentions
       end
-      
+
       "<div class=\"webmentions\">#{body}</div>"
     end
-    
+
     def parse_links(links)
-      
+
       # load from the cache
       cache_file = File.join(WEBMENTION_CACHE_DIR, 'webmentions_received.yml')
       if File.exists?(cache_file)
@@ -118,25 +213,52 @@ module Jekyll
       else
         cached_webmentions = {}
       end
-      
-      targets = []
 
+      # puts links.inspect
       links.reverse_each { |link|
-        
+
         id = link['id']
-        target = link['target'].sub(/\?.*$/, '')
+        url = link['data']['url'] || link["source"]
+
+        # Tweets get handled differently
+        is_tweet = false
+        if url.include? 'twitter.com/'
+          is_tweet = true
+          # Unique tweets gets unique IDs
+          if ! url.include? '#favorited-by'
+            id = URI(link['data']['url']).path.split('/').last
+          end
+        end
+
+        # Google Plus gets handled differently
+        is_gplus = false
+        if url.include? '/googleplus/'
+          is_gplus = true
+        end
+
+        # No ID
+        if ! id
+          time = Time.now();
+          id = time.strftime('%s')
+        end
+
+        if key_exists cached_webmentions, id
+          # puts "found #{id}, using the cached one…"
+          next
+        end
+
+        # Get the mentioned URI, stripping fragments and query strings
+        target = URI::parse( link['target'] )
+        target.fragment = target.query = nil
+        target = target.to_s
+
         pubdate = link['data']['published_ts']
         if pubdate
           pubdate = Time.at(pubdate)
         elsif link['verified_date']
           pubdate = Time.parse(link['verified_date'])
         end
-        the_date = pubdate.strftime('%F')
-
-        # add the target to the array if it does not exist
-        if ! targets.include? target
-          targets << target
-        end
+        the_date = pubdate.strftime('%s')
 
         # Make sure we have the target
         if ! cached_webmentions[target]
@@ -148,88 +270,20 @@ module Jekyll
           cached_webmentions[target][the_date] = {}
         end
 
-        # Twitter gets unique ids
-        if link['data']['url'] and link['data']['url'].include? 'twitter.com/'
-          # puts link['data']['url']
-          id = URI(link['data']['url']).path.split('/').last
-        end
-        # puts id
-
         # Make sure we have the webmention
         if ! cached_webmentions[target][the_date][id]
-          
+
           webmention = ''
           webmention_classes = 'webmention'
-          
-          title = link['data']['name']
-          content = link['data']['content']
-          url = link['data']['url'] || link["source"]
-          type = link['activity']['type']
-          sentence = link['activity']['sentence_html']
+          webmention_removed = ''
 
-          activity = false
-          if type == 'like' or type == 'repost'
-            activity = true
-          end
-          
-          link_title = false
-          if !( title and content ) and url
-            url = link['source']
-            
-            status = `curl -s -I -L -o /dev/null -w "%{http_code}" --location "#{url}"`
-            next if status != '200'
-            
-            # print "checking #{url}\r\n"
-            html_source = `curl -s --location "#{url}"`
-            
-            if ! html_source.valid_encoding?
-              html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
-            end
-
-            matches = /<title>(.*)<\/title>/.match( html_source )
-            if matches
-              title = matches[1].strip
-            else
-              matches = /<h1>(.*)<\/h1>/.match( html_source )
-              if matches
-                title = matches[1].strip
-              else
-                title = 'No title available'
-              end
-            end
-            
-            title = title.gsub(%r{</?[^>]+?>}, '')
-            link_title = title
-          end
-
-          # make sure non-activities also get a link_title
-          if !( activity and link_title )
-            link_title = title
-          end
-
-          # except replies
-          if type == 'reply'
-            link_title = false
-          end
-
-          # no duplicate content
-          if title and content and title == content
-            title = false
-            link_title = false
-          end
-
-          # truncation
-          if content and content.length > 200 
-            content = content[0..200].gsub(/\s\w+\s*$/, '...')
-          end
-
-          if ! id
-            time = Time.now();
-            id = time.strftime('%s')
-          end
-
+          ####
+          # Authorship
+          ####
+          author = link['data']['author']
           author_block = ''
-          if author = link['data']['author']
+
+          if author
 
             # puts author
             a_name = author['name']
@@ -237,8 +291,7 @@ module Jekyll
             a_photo = author['photo']
 
             if a_photo
-              status = `curl -s -I -L -o /dev/null -w "%{http_code}" --location "#{a_photo}"`
-              if status == "200"
+              if is_working_uri( a_photo )
                 author_block << "<img class=\"webmention__author__photo u-photo\" src=\"#{a_photo}\" alt=\"\" title=\"#{a_name}\">"
               else
                 webmention_classes << ' webmention--no-photo'
@@ -254,20 +307,114 @@ module Jekyll
 
             author_block = "<div class=\"webmention__author p-author h-card\">#{author_block}</div>"
 
-            if activity
-              link_title = "#{a_name} #{title}"
-              webmention_classes << ' webmention--author-starts'
-            end
-
           elsif
             webmention_classes << ' webmention--no-author'
+
           end
 
-          # API change. The content now loses the person.
-          #if author and title and content and title == "#{author["name"]} #{content}"
-          #  link_title = title
-          #end
+          ####
+          # Content
+          ####
+          title = link['data']['name']
+          content = link['data']['content']
+          type = link['activity']['type']
 
+          # fix bad webmentions
+          if ! type
+            # Trap Google Plus from Bridgy
+            if is_gplus
+              if url.include? '/like/'
+                type = 'like'
+              elsif url.include? '/repost/'
+                type = 'repost'
+              elsif url.include? '/comment/'
+                type = 'reply'
+              else
+                type = 'link'
+              end
+            # Default
+            else
+              type = 'post'
+            end
+          end
+          # more than likely the content was pushed into the post name
+          if title and title.length > 200
+            title = false
+          end
+
+          # Google Plus masked by Bridgy
+          if is_gplus and url.include? 'brid-gy'
+            # sometimes links go away
+            if is_working_uri( url )
+              # Now get the content
+              html_source = get_uri_source(url)
+
+              if ! html_source.valid_encoding?
+                html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
+              end
+
+              matches = /class="u-url" href=".+">(https:.+)</.match( html_source )
+              if matches
+                url = matches[1].strip
+              end
+            else
+              url = false
+            end
+          end
+
+          # Posts (but not tweeted links)
+          link_title = false
+          if type == 'post' or ( type == 'link' and ! is_tweet and ! is_gplus )
+
+            # No title, look it up
+            if ! title and url
+              url = link['source']
+
+              # ping it first
+              if ! is_working_uri( url )
+                puts "#{url} is not returning a 200 HTTP status, skipping it"
+                next
+              end
+
+              # Now get the content
+              # print "checking #{url}\r\n"
+              html_source = get_uri_source(url)
+
+              if ! html_source.valid_encoding?
+                html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
+              end
+
+              matches = /<title>(.*)<\/title>/.match( html_source )
+              if matches
+                title = matches[1].strip
+              else
+                matches = /<h1>(.*)<\/h1>/.match( html_source )
+                if matches
+                  title = matches[1].strip
+                else
+                  title = 'No title available'
+                end
+              end
+
+              title = title.gsub(%r{</?[^>]+?>}, '')
+            end
+
+            link_title = title
+
+          # Likes & Shares
+          elsif type == 'like' or type == 'repost'
+            # new twitter faves are doing something weird
+            if type == 'like' and is_tweet
+              link_title = "#{a_name} favorited this."
+            elsif type == 'repost' and is_tweet
+              link_title = "#{a_name} retweeted this."
+            else
+              link_title = title
+            end
+            webmention_classes << ' webmention--author-starts'
+          end
+
+          # Published info
           pubdate_iso = pubdate.strftime('%FT%T%:z')
           pubdate_formatted = pubdate.strftime('%-d %B %Y')
           published_block = "<time class=\"webmention__pubdate dt-published\" datetime=\"#{pubdate_iso}\">#{pubdate_formatted}</time>"
@@ -297,24 +444,25 @@ module Jekyll
           if link_title
 
             link_title = link_title.sub 'reposts', 'reposted'
-            
+
             webmention_classes << ' webmention--title-only'
 
-            content_block = "<a href=\"#{url}\">#{link_title}</a>"
-            
+            if url
+              content_block = "<a href=\"#{url}\">#{link_title}</a>"
+            else
+              content_block = link_title
+            end
+
             # build the block
             content_block = " <div class=\"webmention__title p-name\">#{content_block}</div>"
-            
+
           else
-            
+
             webmention_classes << ' webmention--content-only'
-            
-            # like, repost
-            if activity and sentence
-              content = sentence.sub /href/, 'class="p-author h-card" href'
-            # everything else
-            else
-              content = @converter.convert("#{content}")
+
+            content = @converter.convert("#{content}")
+            if !content.start_with?('<p')
+              content = content.sub(/^<[^>]+>/, '<p>').sub(/<\/[^>]+>$/, '</p>')
             end
 
             content_block << "<div class=\"webmention__content p-content\">#{content}</div>"
@@ -323,34 +471,60 @@ module Jekyll
 
           # meta
           content_block << meta_block
-            
+
+          # banned webmentions not to render
+          banned_webmentions = [377221,377219,377220,377218,783280251019337729,399422]
+
+          if banned_webmentions.include? id
+
+          else
+
           # put it together
-          webmention << "<li id=\"webmention-#{id}\" class=\"webmentions__item\">"
+          webmention << "<li id=\"webmention-#{id}\" class=\"webmentions__item #{webmention_removed}\">"
           webmention << "<article class=\"h-cite #{webmention_classes}\">"
-          
+
+          if type == 'rsvp-yes'
+          webmention << "<div class=\"webmention-#{type}\">RSVP yes ✔</div>"
+          end
+
+          if type == 'rsvp-no'
+          webmention << "<div class=\"webmention-#{type}\">RSVP no ✘</div>"
+          end
+
           webmention << author_block
           webmention << content_block
           webmention << '</article></li>'
 
+          end
+
           cached_webmentions[target][the_date][id] = webmention
-          
+
         end
-        
+
       }
-      
+
       # store it all back in the cache
       File.open(cache_file, 'w') { |f| YAML.dump(cached_webmentions, f) }
-      
+
       all_webmentions = {}
 
       # merge & organize by day
-      targets.each do |target|
-        cached_webmentions[target].each do |day, webmentions|
-          if ! all_webmentions[day]
-            all_webmentions[day] = []
-          end
-          webmentions.each do |key, webmention|
-            all_webmentions[day] << webmention
+      # puts @targets.inspect
+      if @targets.length
+        @targets.each do |target|
+          # puts target
+          if cached_webmentions[target]
+            # puts cached_webmentions[target].inspect
+            cached_webmentions[target].each do |day, webmentions|
+              if ! all_webmentions[day]
+                all_webmentions[day] = {}
+              end
+              webmentions.each do |key, webmention|
+                if ! all_webmentions[day][key]
+                  all_webmentions[day][key] = webmention
+                end
+              end
+            end
           end
         end
       end
@@ -361,7 +535,7 @@ module Jekyll
       lis = ''
       if all_webmentions.length
         all_webmentions.sort.each do |day, webmentions|
-          webmentions.each do |webmention|
+          webmentions.each do |key, webmention|
             lis << webmention
           end
         end
@@ -375,7 +549,7 @@ module Jekyll
   end
 
   class WebmentionCountTag < Webmentions
-    
+
     def initialize(tagName, text, tokens)
       super
       @api_endpoint = 'http://webmention.io/api/count'
@@ -385,13 +559,13 @@ module Jekyll
       count = response['count'] || '0'
       "<span class=\"webmention-count\">#{count}</span>"
     end
-    
+
   end
-  
+
   class WebmentionGenerator < Generator
     safe true
     priority :low
-    
+
     def generate(site)
       webmentions = {}
       if defined?(WEBMENTION_CACHE_DIR)
@@ -413,7 +587,7 @@ module Jekyll
       end
     end
   end
-  
+
 end
 
 Liquid::Template.register_tag('webmentions', Jekyll::WebmentionsTag)
