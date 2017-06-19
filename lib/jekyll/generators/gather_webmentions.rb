@@ -23,11 +23,31 @@ module Jekyll
         @cached_webmentions = {}
       end
 			
-      site.posts.each do |post|
+			if Jekyll::VERSION >= "3.0.0"
+				posts = site.posts.docs
+			else
+				posts = site.posts
+			end
+				
+      posts.each do |post|
 				# Gather the URLs
-				url = "#{@jekyll_config['url']}#{post.url}"
-        targets = []
-        targets.push(url)
+				targets = get_webmention_target_urls("#{site.config['url']}#{post.url}")
+        
+				# execute the API
+      	api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
+      	response = get_response(api_params)
+      	log 'info', response.inspect
+				
+				process_webmentions( post.url, response )
+      end # posts loop
+
+      File.open(@cache_files['incoming'], 'w') { |f| YAML.dump(@cached_webmentions, f) }
+    
+		end # generate
+
+    def get_webmention_target_urls(url)
+      targets = []
+      targets.push(url)
         if @config.has_key? 'legacy_domains'
           log 'info', 'adding legacy URLs'
           @config['legacy_domains'].each do |domain|
@@ -36,18 +56,8 @@ module Jekyll
             targets.push(legacy)
           end
         end
-
-				# execute the API
-      	api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
-      	response = get_response(api_params)
-      	log 'info', response.inspect
-				
-				process_webmentions( page.url, response )
-      end # posts loop
-
-      File.open(@cache_files['incoming'], 'w') { |f| YAML.dump(@cached_webmentions, f) }
-    
-		end # generate
+      return targets
+    end
 
 		def process_webmentions( url, response )
 

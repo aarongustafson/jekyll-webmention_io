@@ -11,12 +11,17 @@ module Jekyll
     def initialize(tagName, text, tokens)
       super
       @text = text
-      @targets = []
-      @template = ''
-      @data = {}
+      @template = false
+      @data = false
+      
+      if File.exists?(@cache_files['incoming'])
+        @cached_webmentions = open(@cache_files['incoming']) { |f| YAML.load(f) }
+      else
+        @cached_webmentions = {}
+      end
     end
 
-    def set_template(template)
+    def set_template( template )
       supported_templates = ['all','count','likes','replies','reposts']
       
       log 'error', "#{template} is not supported" if ! supported_templates.include? template
@@ -35,43 +40,55 @@ module Jekyll
       @data = data
     end
 
-    def render_template()
-      if @template
-        template = Liquid::Template.parse(@template)
-        template.render(@data, { strict_variables: true })
-      else
-        log 'warn', 'No template provided'
-        ""
+    def get_webmentions_by_type( url, type )
+      webmentions = []
+      @cached_webmentions[url].each do |date, webmentions|
+        webmentions.each do |webmention|
+          if webmention.type == type
+            webmentions.push(webmention)
+          end
+        end          
       end
+      return webmentions
     end
 
     def render(context)
       output = super
       
-      args = @text.split(/\s+/).map(&:strip)
-      args.each do |url|
-        target = lookup(context, url)
-        @targets.push(target)
-        if @config.has_key? 'legacy_domains'
-          log 'info', 'adding legacy URLs'
-          @config['legacy_domains'].each do |domain|
-            legacy = target.sub @jekyll_config['url'], domain
-            log 'info', "adding #{legacy}"
-            @targets.push(legacy)
-          end
-        end
-      end
+      # args = @text.split(/\s+/).map(&:strip)
+      # args.each do |url|
+      #   target = lookup(context, url)
+      #   @targets.push(target)
+      #   if @config.has_key? 'legacy_domains'
+      #     log 'info', 'adding legacy URLs'
+      #     @config['legacy_domains'].each do |domain|
+      #       legacy = target.sub @jekyll_config['url'], domain
+      #       log 'info', "adding #{legacy}"
+      #       @targets.push(legacy)
+      #     end
+      #   end
+      # end
       
-      # execute the API
-      api_params = @targets.collect { |v| "target[]=#{v}" }.join('&')
-      response = get_response(api_params)
-      log 'info', response.inspect
+      # # execute the API
+      # api_params = @targets.collect { |v| "target[]=#{v}" }.join('&')
+      # response = get_response(api_params)
+      # log 'info', response.inspect
 
       # set the data
-      set_data( response )
+      # set_data( response )
       
-      # render the template
-      render_template()
+      if @template and @data
+        template = Liquid::Template.parse(@template)
+        template.render(@data, { strict_variables: true })
+      else
+        if ! @template
+          log 'warn', 'No template provided'
+        end
+        if ! @data
+          log 'warn', 'No data provided'
+        end
+        ""
+      end
     end
   end
 end

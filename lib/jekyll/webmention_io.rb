@@ -64,15 +64,15 @@ module Jekyll
       end
     end
     
-    def lookup(context, name)
-      lookup = context
+    # def lookup(context, name)
+    #   lookup = context
 
-      name.split(".").each do |value|
-        lookup = lookup[value]
-      end
+    #   name.split(".").each do |value|
+    #     lookup = lookup[value]
+    #   end
 
-      lookup
-    end
+    #   lookup
+    # end
 
     def key_exists(hash, test_key)
       if hash.is_a? Hash 

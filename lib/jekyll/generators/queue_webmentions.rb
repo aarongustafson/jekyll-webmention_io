@@ -14,21 +14,32 @@ module Jekyll
     def generate(site)
       webmentions = {}
       
-      site.posts.each do |post|
-        source = "#{site.config['url']}#{post.url}"
-        targets = []
-        if post.data['in_reply_to']
-          targets.push(post.data['in_reply_to'])
-        end
-        post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
-          if ! targets.find_index(match)
-            targets.push(match)
-          end
-        end
-        webmentions[source] = targets
+      if Jekyll::VERSION >= "3.0.0"
+				posts = site.posts.docs
+			else
+				posts = site.posts
+			end
+				
+      posts.each do |post|
+        url = "#{site.config['url']}#{post.url}"
+        webmentions[url] = get_mentioned_urls(post)
       end
+
       File.open(@cache_files['outgoing'], 'w') { |f| YAML.dump(webmentions, f) }
     end
 
+    def get_mentioned_urls(post)
+			urls = []
+			if post.data['in_reply_to']
+				urls.push(post.data['in_reply_to'])
+			end
+			post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
+				if ! urls.find_index( match )
+					urls.push(match)
+				end
+			end
+    	return urls
+		end
+    
   end
 end
