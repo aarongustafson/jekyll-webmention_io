@@ -6,209 +6,20 @@
 #  using http://webmention.io/ and the following syntax:
 #
 #    {% webmentions URL %}
-#    {% webmention_count URL %}
 #   
-require 'json'
-require 'net/http'
-require 'uri'
-require 'openssl'
-
-WEBMENTION_CACHE_DIR = File.expand_path('../../.cache', __FILE__)
-FileUtils.mkdir_p(WEBMENTION_CACHE_DIR)
-
 module Jekyll
-  
-  class Webmentions < Liquid::Tag
-    
-    def initialize(tagName, text, tokens)
-      super
-      @text = text
-      @api_endpoint = ''
-      @api_suffix = ''
-      @targets = []
-    end
-    
-    def render(context)
-      output = super
-      
-      args = @text.split(/\s+/).map(&:strip)
-      args.each do |url|
-        target = lookup(context, url)
-        @targets.push(target)
-        # For legacy (non www) URIs
-        legacy = target.sub 'www.', ''
-        @targets.push(legacy)
-        # For legacy (non https) URIs
-        legacy = target.sub 'https://', 'http://'
-        @targets.push(legacy)
-        # Combined
-        legacy = legacy.sub 'www.', ''
-        @targets.push(legacy)
-      end
-      
-      api_params = @targets.collect { |v| "target[]=#{v}" }.join('&')
-      api_params << @api_suffix
-
-      response = get_response(api_params)
-
-      site = context.registers[:site]
-
-      # post Jekyll commit 0c0aea3
-      # https://github.com/jekyll/jekyll/commit/0c0aea3ad7d2605325d420a23d21729c5cf7cf88
-      if defined? site.find_converter_instance
-        @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
-      # Prior to Jekyll commit 0c0aea3
-      else
-        @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
-      end
-
-      html_output_for(response)
-    end
-
-    def html_output_for(response)
-      ""
-    end
-    
-    def url_params_for(api_params)
-      api_params.keys.sort.map do |k|
-        "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
-      end.join('&')
-    end
-
-    def get_response(api_params)
-      source = get_uri_source(@api_endpoint + "?#{api_params}")
-      if source
-        # print source
-        JSON.parse(source)
-      else
-        ""
-      end
-    end
-    
-    def lookup(context, name)
-      lookup = context
-
-      name.split(".").each do |value|
-        lookup = lookup[value]
-      end
-
-      lookup
-    end
-
-    def key_exists(hash, test_key)
-      if hash.is_a? Hash 
-        hash.each do |key, value|
-          if test_key == key
-            return true
-          # nest
-          elsif value.is_a? Hash
-            if key_exists value, test_key
-              return true
-            end
-          end
-        end
-      end
-      return false
-    end
-    
-    def is_working_uri(uri, redirect_limit = 10, original_uri = false)
-      # puts "checking URI #{uri}"
-      original_uri = original_uri || uri
-      if redirect_limit > 0
-        uri = URI.parse(URI.encode(uri))
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.read_timeout = 10
-        if uri.scheme == 'https'
-          http.use_ssl = true
-          http.ssl_version = :TLSv1
-          http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        end
-        begin 
-          request = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(request)
-          case response
-            when Net::HTTPSuccess then
-              return true
-            when Net::HTTPRedirection then
-              # puts "Location redirect to #{response['location']}"
-              redirect_to = URI.parse(URI.encode(response['location']))
-              redirect_to = redirect_to.relative? ? "#{uri.scheme}://#{uri.host}" + redirect_to.to_s : redirect_to.to_s
-              # puts "redirecting to #{redirect_to}"
-              return is_working_uri(redirect_to, redirect_limit - 1, original_uri)
-            else
-              return false
-          end
-        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-          warn "Got an error checking #{original_uri}: #{e}"
-          return false
-        rescue Exception => e
-          warn "Got an error: #{e}"
-        end
-      else
-        if original_uri
-          warn "too many redirects for #{original_uri}"
-        end
-        return false
-      end
-    end
-    
-    def get_uri_source(uri, redirect_limit = 10, original_uri = false)
-      # puts "Getting the source of #{uri}"
-      original_uri = original_uri || uri
-      if redirect_limit > 0
-        uri = URI.parse(URI.encode(uri))
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.read_timeout = 10
-        if uri.scheme == 'https'
-          http.use_ssl = true
-          http.ssl_version = :TLSv1
-          http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        end
-        begin
-          request = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(request)
-        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-          warn "Got an error checking #{original_uri}: #{e}"
-          return false
-        end
-        case response
-          when Net::HTTPSuccess then
-            return response.body.force_encoding('UTF-8')
-          when Net::HTTPRedirection then
-            # puts "Location redirect to #{response['location']}"
-            redirect_to = URI.parse(URI.encode(response['location']))
-            redirect_to = redirect_to.relative? ? "#{uri.scheme}://#{uri.host}" + redirect_to.to_s : redirect_to.to_s
-            # puts "redirecting to #{redirect_to}"
-            return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
-          else
-            return false
-        end
-      else
-        if original_uri
-          warn "too many redirects for #{original_uri}"
-        end
-        return false
-      end
-    end
-
-  end
-  
-  class WebmentionsTag < Webmentions
+  class WebmentionsTag < WebmentionTag
   
     def initialize(tagName, text, tokens)
       super
-      @api_endpoint = 'http://webmention.io/api/mentions'
-      # add an arbitrarily high perPage to trump pagination
-      @api_suffix = '&perPage=9999'
     end
 
-    def html_output_for(response)
-      body = '<p class="webmentions__not-found">No webmentions were found</p>'
-      
+    def set_data(response)
+
+      webmentions = {}
+
       if response and response['links']
-        webmentions = parse_links(response['links'])
+        webmentions = process_webmentions(response['links'])
       end
 
       if webmentions
@@ -546,47 +357,6 @@ module Jekyll
 
   end
 
-  class WebmentionCountTag < Webmentions
-    
-    def initialize(tagName, text, tokens)
-      super
-      @api_endpoint = 'http://webmention.io/api/count'
-    end
-
-    def html_output_for(response)
-      count = response['count'] || '0'
-      "<span class=\"webmention-count\">#{count}</span>"
-    end
-    
-  end
-  
-  class WebmentionGenerator < Generator
-    safe true
-    priority :low
-    
-    def generate(site)
-      webmentions = {}
-      if defined?(WEBMENTION_CACHE_DIR)
-        cache_file = File.join(WEBMENTION_CACHE_DIR, 'webmentions.yml')
-        site.posts.each do |post|
-          source = "#{site.config['url']}#{post.url}"
-          targets = []
-          if post.data['in_reply_to']
-            targets.push(post.data['in_reply_to'])
-          end
-          post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
-            if ! targets.find_index( match )
-              targets.push(match)
-            end
-          end
-          webmentions[source] = targets
-        end
-        File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
-      end
-    end
-  end
-  
 end
 
 Liquid::Template.register_tag('webmentions', Jekyll::WebmentionsTag)
-Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionCountTag)
