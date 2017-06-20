@@ -23,16 +23,15 @@ module Jekyll
       @api_url = 'https://webmention.io/api'
       @api_endpoint = @api_url
       @api_suffix = ''
-      @targets = []
       
       # Set up the cache files
       cache_folder = "#{@config['cache_folder']}/webmentions"
-      @cache_files = Hash[
+      @cache_files = {
         'incoming' => "#{cache_folder}/received.yml",
         'outgoing' => "#{cache_folder}/queued.yml",
         'sent'     => "#{cache_folder}/sent.yml",
         'bad_urls' => "#{cache_folder}/bad_urls.yml"
-      ]
+      }
       @cache_files.each do |file|
         if !File.exists?(file)
           File.open(file, 'w') { |f| YAML.dump({}, f) }

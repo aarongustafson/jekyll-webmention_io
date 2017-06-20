@@ -1,3 +1,3 @@
-module WebmentionIo
-  VERSION = "0.0.1"
+module WebmentionIO
+  VERSION = "2.0.0"
 end
