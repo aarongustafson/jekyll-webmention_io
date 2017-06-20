@@ -6,16 +6,16 @@
 #   
 module Jekyll
   class WebmentionTag < Liquid::Tag
-    include WebmentionIO
-
+    
     def initialize(tagName, text, tokens)
       super
       @text = text
       @template = false
       @data = false
       
-      if File.exists?(@cache_files['incoming'])
-        @cached_webmentions = open(@cache_files['incoming']) { |f| YAML.load(f) }
+      cache_file = WebmentionIO.get_cache_file_path 'incoming'
+      if File.exists?(cache_file)
+        @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       else
         @cached_webmentions = {}
       end
@@ -26,8 +26,8 @@ module Jekyll
       
       log 'error', "#{template} is not supported" if ! supported_templates.include? template
 
-      if @config['templates'].has_key? template
-        template_file = @config['templates'][template]
+      if WebmentionIO.config['templates'].has_key? template
+        template_file = WebmentionIO.config['templates'][template]
       else
         template_file = File.join(File.dirname(File.expand_path(__FILE__)), "../../templates/#{template}.html")
       end
@@ -82,10 +82,10 @@ module Jekyll
         template.render(@data, { strict_variables: true })
       else
         if ! @template
-          log 'warn', 'No template provided'
+          WebmentionIO.log 'warn', 'No template provided'
         end
         if ! @data
-          log 'warn', 'No data provided'
+          WebmentionIO.log 'warn', 'No data provided'
         end
         ""
       end

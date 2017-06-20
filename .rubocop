@@ -3,12 +3,12 @@ inherit_gem:
 
 Metrics/LineLength:
   Exclude:
-    - spec/**/*
-    - jekyll-webmention_io.gemspec
+    - 'spec/**/*'
+    - 'jekyll-webmention_io.gemspec'
 
 Metrics/BlockLength:
   Exclude:
-    - spec/**/*
+    - 'spec/**/*'
 
 Style/Documentation:
   Enabled: false
@@ -18,8 +18,9 @@ Style/FileName:
 
 Style/IndentHeredoc:
   Exclude:
-    - spec/**/*
+    - 'spec/**/*'
 
 AllCops:
   Exclude:
-    - vendor/**/*
+    - 'vendor/**/*'
+    - '.rubocop'

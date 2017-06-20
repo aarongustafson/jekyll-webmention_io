@@ -5,7 +5,7 @@
 #  this liquid plugin insert a webmentions into your Octopress or Jekill blog
 #  using http://webmention.io/ and the following syntax:
 #   
-require 'webmention_io/version'
+require 'jekyll/webmention_io/version'
 
 require 'json'
 require 'net/http'
@@ -14,6 +14,8 @@ require 'openssl'
 
 module Jekyll
   class WebmentionIO
+    attr_reader :jekyll_config, :config
+
     def initialize()
       @logger_prefix = '[jekyll-webmention_io]'
 
@@ -24,21 +26,34 @@ module Jekyll
       @api_endpoint = @api_url
       @api_suffix = ''
       
-      # Set up the cache files
+      # Set up the cache folder & files
+      cache_folder = @config['cache_folder'] || '.cache'
+      Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
       cache_folder = "#{@config['cache_folder']}/webmentions"
+      Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
       @cache_files = {
         'incoming' => "#{cache_folder}/received.yml",
         'outgoing' => "#{cache_folder}/queued.yml",
         'sent'     => "#{cache_folder}/sent.yml",
         'bad_urls' => "#{cache_folder}/bad_urls.yml"
       }
-      @cache_files.each do |file|
-        if !File.exists?(file)
+      @cache_files.each do |key, file|
+        if ! File.exists?(file)
           File.open(file, 'w') { |f| YAML.dump({}, f) }
         end
       end
     end
 
+    # Cache access
+    def get_cache_file_path( key )
+      path = false
+      if @cache_files.has_key? key
+        path = @cache_files[key]
+      end
+      return path
+    end
+
+    # API helpers
     def url_params_for(api_params)
       api_params.keys.sort.map do |k|
         "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
@@ -63,6 +78,16 @@ module Jekyll
       end
     end
     
+    def get_webmention_endpoint( url )
+      log 'info', "Looking for webmention endpoint at #{url}"
+      return `curl -s --location "#{url}" | grep 'rel="webmention"'`
+    end
+
+    def webmention( source, target, endpoint )
+      log 'info', "Sending webmention of #{source} to #{endpoint_url}"
+      return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint_url}`
+    end
+
     # def lookup(context, name)
     #   lookup = context
 
@@ -73,6 +98,7 @@ module Jekyll
     #   lookup
     # end
 
+    # Utilities
     def key_exists(hash, test_key)
       if hash.is_a? Hash 
         hash.each do |key, value|
@@ -89,9 +115,44 @@ module Jekyll
       return false
     end
     
+    # Connections
+    def is_url_ok( uri )
+      now = Time.now.to_s
+      bad_urls = open(@cache_files['bad_urls']) { |f| YAML.load(f) }
+      # puts "#{uri.host} in bad_urls? " + (bad_urls.key? uri.host).to_s
+      if bad_urls.key? uri.host
+        # puts "checking #{uri.host}"
+        last_checked = DateTime.parse( bad_urls[uri.host] )
+        cache_bad_urls_for = @config['cache_bad_urls_for'] || 1 # in days
+        recheck_at = last_checked.next_day(cache_bad_urls_for).to_s
+        # puts "last_checked " + last_checked.to_s
+        # puts "testing " + ( last_checked + ( 60 * 60 * 24 ) ).to_s
+        # puts last_checked + ( 60 * 60 * 24 ) < now
+        # wait at least a day before checking again
+        if recheck_at > now
+          # puts "url is bad"
+          # URL is bad
+          return false
+        end
+      end
+      # puts "url is AOK"
+      return true
+    end
+
+    # Cache bad domains for a bit
+    def domain_is_not_ok( uri )
+      cache_file = @cache_files['bad_urls']
+      bad_urls = open(cache_file) { |f| YAML.load(f) }
+      bad_urls[uri.host] = Time.now.to_s
+      File.open(cache_file, 'w') { |f| YAML.dump(bad_urls, f) }
+    end
+    
     def get_uri_source(uri, redirect_limit = 10, original_uri = false)
       # puts "Getting the source of #{uri}"
       original_uri = original_uri || uri
+      if ! is_url_ok(uri)
+        return false
+      end
       if redirect_limit > 0
         uri = URI.parse(URI.encode(uri))
         http = Net::HTTP.new(uri.host, uri.port)
@@ -107,6 +168,7 @@ module Jekyll
           response = http.request(request)
         rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
           log 'warn', "Got an error checking #{original_uri}: #{e}"
+          domain_is_not_ok(uri)
           return false
         end
         case response
@@ -119,36 +181,32 @@ module Jekyll
             # puts "redirecting to #{redirect_to}"
             return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
           else
+            domain_is_not_ok(uri)
             return false
         end
       else
         if original_uri
           log 'warn', "too many redirects for #{original_uri}"
         end
+        domain_is_not_ok(uri)
         return false
       end
     end
 
-    def get_webmention_endpoint( url )
-      log 'info', "Looking for webmention endpoint at #{url}"
-      return `curl -s --location "#{url}" | grep 'rel="webmention"'`
-    end
-
-    def webmention( source, target, endpoint )
-      log 'info', "Sending webmention of #{source} to #{endpoint_url}"
-      return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint_url}`
-    end
-
     def log( type, message )
-      Jekyll.logger[type]( "#{@logger_prefix} #{message}")
+      Jekyll.logger.method(type).call( "#{@logger_prefix} #{message}" )
     end
-    
 
   end
 end
 
-require 'commands/webmention'
-require 'generators/webmentions'
+# Load all the bits
+Dir[File.dirname(__FILE__) + '/commands/*.rb'].each do |file|
+  require file
+end
+Dir[File.dirname(__FILE__) + '/generators/*.rb'].each do |file|
+  require file
+end
 Dir[File.dirname(__FILE__) + '/tags/*.rb'].each do |file|
   require file
 end

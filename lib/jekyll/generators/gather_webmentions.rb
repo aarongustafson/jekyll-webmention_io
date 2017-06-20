@@ -3,22 +3,24 @@
 #  Licence : MIT
 #  
 #  This generator gathers webmentions of your pages
-#   
+#
+
 module Jekyll
   class GatherWebmentions < Generator
-    include WebmentionIO
-
+    
     safe true
     priority :high
     
     def generate(site)
-
-			set_api_endpoint('mentions')
+			@webmention_io = WebmentionIO.new
+			
+			@webmention_io.set_api_endpoint('mentions')
       # add an arbitrarily high perPage to trump pagination
-      set_api_suffix('&perPage=9999')
+      @webmention_io.set_api_suffix('&perPage=9999')
 
-			if File.exists?(@cache_files['incoming'])
-        @cached_webmentions = open(@cache_files['incoming']) { |f| YAML.load(f) }
+			cache_file = @webmention_io.get_cache_file_path 'incoming'
+			if File.exists?(cache_file)
+        @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       else
         @cached_webmentions = {}
       end
@@ -31,31 +33,41 @@ module Jekyll
 				
       posts.each do |post|
 				# Gather the URLs
-				targets = get_webmention_target_urls("#{site.config['url']}#{post.url}")
+				targets = get_webmention_target_urls(site, post)
         
 				# execute the API
       	api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
-      	response = get_response(api_params)
-      	log 'info', response.inspect
+      	response = @webmention_io.get_response(api_params)
+      	@webmention_io.log 'info', response.inspect
 				
 				process_webmentions( post.url, response )
       end # posts loop
 
-      File.open(@cache_files['incoming'], 'w') { |f| YAML.dump(@cached_webmentions, f) }
+      File.open(cache_file, 'w') { |f| YAML.dump(@cached_webmentions, f) }
     
 		end # generate
 
-    def get_webmention_target_urls(url)
+    def get_webmention_target_urls(site, post)
       targets = []
-      targets.push(url)
-        if @config.has_key? 'legacy_domains'
-          log 'info', 'adding legacy URLs'
-          @config['legacy_domains'].each do |domain|
-            legacy = url.sub @jekyll_config['url'], domain
-            log 'info', "adding URL #{legacy}"
-            targets.push(legacy)
-          end
-        end
+      url = "#{site.config['url']}#{post.url}"
+			targets.push( url )
+			
+			# Redirection?
+			redirected = false
+			if post.data.has_key? 'redirect_from'
+				redirected = url.sub post.url, post.data['redirect_from']
+				targets.push( redirected )
+			end
+			
+			# Domain changed?
+			if @webmention_io.config.has_key? 'legacy_domains'
+				@webmention_io.log 'info', 'adding legacy URLs'
+				@webmention_io.config['legacy_domains'].each do |domain|
+					legacy = url.sub site.config['url'], domain
+					@webmention_io.log 'info', "adding URL #{legacy}"
+					targets.push(legacy)
+				end
+			end
       return targets
     end
 
@@ -70,8 +82,6 @@ module Jekyll
 
 			if response and response['links']
 				
-				response = response.force_encoding('UTF-8')
-
 				response['links'].reverse_each do |link|
 					
 					# set the source
@@ -141,19 +151,14 @@ module Jekyll
 						type = link['activity']['type']
 						if ! type
 							if source == 'googleplus'
-								switch true
-									case url.include? '/like/':
-										type = 'like'
-										break;
-									case url.include? '/repost/':
-										type = 'repost'
-										break;
-									case url.include? '/comment/':
-										type = 'reply'
-										break;
-									default:
-										type = 'link'
-										break;
+								if url.include? '/like/'
+									type = 'like'
+								elsif url.include? '/repost/'
+									type = 'repost'
+								elsif url.include? '/comment/'
+									type = 'reply'
+								else
+									type = 'link'
 								end
 							else
 								type = 'post'

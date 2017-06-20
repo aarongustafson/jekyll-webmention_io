@@ -3,16 +3,18 @@
 #  Licence : MIT
 #  
 #  This generator caches sites you mention so they can be mentioned
-#   
+#
+
 module Jekyll
   class QueueWebmentions < Generator
-    include WebmentionIO
 
     safe true
     priority :low
     
     def generate(site)
-      webmentions = {}
+      @webmention_io = WebmentionIO.new
+
+			webmentions = {}
       
       if Jekyll::VERSION >= "3.0.0"
 				posts = site.posts.docs
@@ -25,7 +27,8 @@ module Jekyll
         webmentions[url] = get_mentioned_urls(post)
       end
 
-      File.open(@cache_files['outgoing'], 'w') { |f| YAML.dump(webmentions, f) }
+			cache_file = @webmention_io.get_cache_file_path 'outgoing'
+      File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
     end
 
     def get_mentioned_urls(post)
