@@ -117,6 +117,7 @@ module Jekyll
     
     # Connections
     def is_url_ok( uri )
+      uri = URI.parse(URI.encode(uri))
       now = Time.now.to_s
       bad_urls = open(@cache_files['bad_urls']) { |f| YAML.load(f) }
       # puts "#{uri.host} in bad_urls? " + (bad_urls.key? uri.host).to_s

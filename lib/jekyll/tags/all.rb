@@ -14,7 +14,7 @@ module Jekyll
       super
 
       # Set the template
-      set_template('webmentions')
+      set_template('all')
 
       # Get the URL
       args = @text.split(/\s+/).map(&:strip)

@@ -84,26 +84,29 @@ module Jekyll
 				
 				response['links'].reverse_each do |link|
 					
+					# puts link.inspect
+					url = link['data']['url'] || link['source']
+
 					# set the source
 					source = false
-					if webmention['url'].include? 'twitter.com/'
+					if url.include? 'twitter.com/'
 						source = 'twitter'
-					elsif webmention['url'].include? '/googleplus/'
+					elsif url.include? '/googleplus/'
 						source = 'googleplus'
 					end
 					
 					# set an id
-					id = link['id']
-					if webmention['source']=='twitter' and ! url.include? '#favorited-by'
-						id = URI(link['data']['url']).path.split('/').last
+					id = link['id'].to_s
+					if source == 'twitter' and ! url.include? '#favorited-by'
+						id = URI(url).path.split('/').last.to_s
 					end
 					if ! id
           	time = Time.now();
-          	id = time.strftime('%s')
+          	id = time.strftime('%s').to_s
         	end
 
 					# Do we already have it?
-					if key_exists webmentions, id
+					if webmentions.has_key? id
 						next
 					end
 
@@ -132,15 +135,12 @@ module Jekyll
 						# Scaffold the webmention
 						webmention = {
 							'id'			=> id,
+							'url'			=> url,
 							'content' => link['data']['content'],
 							'source'	=> source,
 							'pubdate' => pubdate,
 							'raw'			=> link
 						}
-
-						# Get the url
-						url = link['data']['url'] || link['source']
-						webmention['url'] = url
 
 						# Set the author
 						if link['data'].has_key? 'author'
@@ -168,9 +168,9 @@ module Jekyll
 
 						# Get the title from Webmention.io or the source URL
 						title = link['data']['name']
-						if ! title and url
+						if ! title and ( type == 'reply' or type == 'post' )
 
-							html_source = get_uri_source(link['source'])
+							html_source = @webmention_io.get_uri_source( url )
               if ! html_source
                 next
               end
@@ -200,7 +200,7 @@ module Jekyll
 						webmention['title'] = title
 
 						# Add it to the list
-						log 'info', webmention.inspect
+						@webmention_io.log 'info', webmention.inspect
 						webmentions[the_date][id] = webmention
 
 					end # if ID does not exist
