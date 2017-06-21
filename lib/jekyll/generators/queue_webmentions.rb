@@ -23,25 +23,25 @@ module Jekyll
 			end
 				
       posts.each do |post|
-        url = "#{site.config['url']}#{post.url}"
-        webmentions[url] = get_mentioned_urls(post)
+        uri = "#{site.config['url']}#{post.url}"
+        webmentions[uri] = get_mentioned_uris(post)
       end
 
 			cache_file = @webmention_io.get_cache_file_path 'outgoing'
       File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
     end
 
-    def get_mentioned_urls(post)
-			urls = []
+    def get_mentioned_uris(post)
+			uris = []
 			if post.data['in_reply_to']
-				urls.push(post.data['in_reply_to'])
+				uris.push(post.data['in_reply_to'])
 			end
 			post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
-				if ! urls.find_index( match )
-					urls.push(match)
+				if ! uris.find_index( match )
+					uris.push(match)
 				end
 			end
-    	return urls
+    	return uris
 		end
     
   end

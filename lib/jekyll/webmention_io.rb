@@ -31,13 +31,15 @@ module Jekyll
       # Set up the cache folder & files
       cache_folder = @config['cache_folder'] || '.cache'
       Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
-      cache_folder = "#{@config['cache_folder']}/webmentions"
-      Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
+      file_prefix = ''
+      if ! cache_folder.include? 'webmention'
+        file_prefix = 'webmention_io_'
+      end
       @cache_files = {
-        'incoming' => "#{cache_folder}/received.yml",
-        'outgoing' => "#{cache_folder}/queued.yml",
-        'sent'     => "#{cache_folder}/sent.yml",
-        'bad_urls' => "#{cache_folder}/bad_urls.yml"
+        'incoming' => "#{cache_folder}/#{file_prefix}received.yml",
+        'outgoing' => "#{cache_folder}/#{file_prefix}queued.yml",
+        'sent'     => "#{cache_folder}/#{file_prefix}sent.yml",
+        'bad_uris' => "#{cache_folder}/#{file_prefix}bad_uris.yml"
       }
       @cache_files.each do |key, file|
         if ! File.exists?(file)
@@ -56,7 +58,7 @@ module Jekyll
     end
 
     # API helpers
-    def url_params_for(api_params)
+    def uri_params_for(api_params)
       api_params.keys.sort.map do |k|
         "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
       end.join('&')
@@ -80,14 +82,14 @@ module Jekyll
       end
     end
     
-    def get_webmention_endpoint( url )
-      log 'info', "Looking for webmention endpoint at #{url}"
-      return `curl -s --location "#{url}" | grep 'rel="webmention"'`
+    def get_webmention_endpoint( uri )
+      log 'info', "Looking for webmention endpoint at #{uri}"
+      return `curl -s --location "#{uri}" | grep 'rel="webmention"'`
     end
 
     def webmention( source, target, endpoint )
-      log 'info', "Sending webmention of #{source} to #{endpoint_url}"
-      return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint_url}`
+      log 'info', "Sending webmention of #{source} to #{endpoint}"
+      return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
     end
 
     # Utilities
@@ -108,42 +110,33 @@ module Jekyll
     end
     
     # Connections
-    def is_url_ok( uri )
+    def is_uri_ok( uri )
       uri = URI.parse(URI.encode(uri))
       now = Time.now.to_s
-      bad_urls = open(@cache_files['bad_urls']) { |f| YAML.load(f) }
-      # puts "#{uri.host} in bad_urls? " + (bad_urls.key? uri.host).to_s
-      if bad_urls.key? uri.host
-        # puts "checking #{uri.host}"
+      bad_uris = open(@cache_files['bad_uris']) { |f| YAML.load(f) }
+      if bad_uris.key? uri.host
         last_checked = DateTime.parse( bad_urls[uri.host] )
-        cache_bad_urls_for = @config['cache_bad_urls_for'] || 1 # in days
-        recheck_at = last_checked.next_day(cache_bad_urls_for).to_s
-        # puts "last_checked " + last_checked.to_s
-        # puts "testing " + ( last_checked + ( 60 * 60 * 24 ) ).to_s
-        # puts last_checked + ( 60 * 60 * 24 ) < now
-        # wait at least a day before checking again
+        cache_bad_uris_for = @config['cache_bad_uris_for'] || 1 # in days
+        recheck_at = last_checked.next_day(cache_bad_uris_for).to_s
         if recheck_at > now
-          # puts "url is bad"
-          # URL is bad
           return false
         end
       end
-      # puts "url is AOK"
       return true
     end
 
-    # Cache bad domains for a bit
-    def domain_is_not_ok( uri )
-      cache_file = @cache_files['bad_urls']
-      bad_urls = open(cache_file) { |f| YAML.load(f) }
-      bad_urls[uri.host] = Time.now.to_s
-      File.open(cache_file, 'w') { |f| YAML.dump(bad_urls, f) }
+    # Cache bad URLs for a bit
+    def uri_is_not_ok( uri )
+      cache_file = @cache_files['bad_uris']
+      bad_uris = open(cache_file) { |f| YAML.load(f) }
+      bad_uris[uri.host] = Time.now.to_s
+      File.open(cache_file, 'w') { |f| YAML.dump(bad_uris, f) }
     end
     
     def get_uri_source(uri, redirect_limit = 10, original_uri = false)
       # puts "Getting the source of #{uri}"
       original_uri = original_uri || uri
-      if ! is_url_ok(uri)
+      if ! is_uri_ok(uri)
         return false
       end
       if redirect_limit > 0
@@ -161,7 +154,7 @@ module Jekyll
           response = http.request(request)
         rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
           log 'warn', "Got an error checking #{original_uri}: #{e}"
-          domain_is_not_ok(uri)
+          uri_is_not_ok(uri)
           return false
         end
         case response
@@ -174,14 +167,14 @@ module Jekyll
             # puts "redirecting to #{redirect_to}"
             return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
           else
-            domain_is_not_ok(uri)
+            uri_is_not_ok(uri)
             return false
         end
       else
         if original_uri
           log 'warn', "too many redirects for #{original_uri}"
         end
-        domain_is_not_ok(uri)
+        uri_is_not_ok(uri)
         return false
       end
     end

@@ -21,11 +21,9 @@
 						{% endif %}
 
             <div class="webmention__content p-content">
-              {% if webmention.type=='like' %}
-                {{ " shared this." | prepend:webmention.author.name | markdownify }}
-              {% elsif if webmention.type=='repost' and webmention.source=='twitter' %}
-                {{ " liked this." | prepend:webmention.author.name | markdownify }}
-              {% else %}
+              {% if webmention.content %}
+								{{ webmention.content | markdownify }}
+							{% else %}
                 {{ webmention.title | markdownify }}
               {% endif %}
             </div>

@@ -59,44 +59,55 @@ module Jekyll
         return {}
       end
       type = type.to_singular
-      return webmentions.keep_if { |id, webmention| webmention['type'] == type }
+      return webmentions.keep_if { |webmention| webmention['type'] == type }
+    end
+
+    def get_webmentions_as_array( hash )
+      return hash.values
     end
 
     def sort_webmentions( webmentions )
-      return webmentions.sort_by { |id, webmention| webmention['pubdate'].to_i }
+      return webmentions.sort_by { |webmention| webmention['pubdate'].to_i }
     end
 
     def render(context)
       output = super
       
-      # Get the URL
+      # Get the URI
       args = @text.split(/\s+/).map(&:strip)
-      url = args.shift
-      url = lookup(context, url)
+      uri = args.shift
+      uri = lookup(context, uri)
 
-      # puts "#{@cached_webmentions.length} URLs mentioned"
-      if @cached_webmentions.has_key? url
-        # puts "#{@cached_webmentions[url].length} webmentions for #{url}"
+      # puts "#{@cached_webmentions.length} URIs mentioned"
+      if @cached_webmentions.has_key? uri
+        # puts "#{@cached_webmentions[uri].length} webmentions for #{uri}"
         if args.length > 0
           # puts 'Multiple types requested'
           webmentions = {}
           args.each do |type|
             # puts "Merging in #{type}"
-            extracted = extract_type( type, @cached_webmentions[url] )
+            extracted = extract_type( type, @cached_webmentions[uri] )
             # puts extracted.inspect
             webmentions.merge( extracted )
           end          
         else
           # puts 'Grabbing ’em all'
-          webmentions = @cached_webmentions[url]
+          webmentions = @cached_webmentions[uri]
         end
+
+        webmentions = get_webmentions_as_array( webmentions )
+        
         webmentions = sort_webmentions( webmentions )
+        
         set_data( webmentions )
       end
       
       if @template and @data
-        template = Liquid::Template.parse(@template)
-        template.render(@data, { strict_variables: true })
+        template = Liquid::Template.parse(@template, :error_mode => :strict)
+        template.render(@data, { strict_variables: true, strict_filters: true })
+        template.errors.each do |error|
+          @webmention_io.log 'error', error
+        end        
       else
         if ! @template
           @webmention_io.log 'warn', "#{self.class} No template provided"

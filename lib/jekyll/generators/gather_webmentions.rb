@@ -49,33 +49,33 @@ module Jekyll
 
     def get_webmention_target_urls(site, post)
       targets = []
-      url = "#{site.config['url']}#{post.url}"
-			targets.push( url )
+      uri = "#{site.config['url']}#{post.url}"
+			targets.push( uri )
 			
 			# Redirection?
 			redirected = false
 			if post.data.has_key? 'redirect_from'
-				redirected = url.sub post.url, post.data['redirect_from']
+				redirected = uri.sub post.url, post.data['redirect_from']
 				targets.push( redirected )
 			end
 			
 			# Domain changed?
 			if @webmention_io.config.has_key? 'legacy_domains'
-				@webmention_io.log 'info', 'adding legacy URLs'
+				@webmention_io.log 'info', 'adding legacy URIs'
 				@webmention_io.config['legacy_domains'].each do |domain|
-					legacy = url.sub site.config['url'], domain
-					@webmention_io.log 'info', "adding URL #{legacy}"
+					legacy = uri.sub site.config['url'], domain
+					@webmention_io.log 'info', "adding URI #{legacy}"
 					targets.push(legacy)
 				end
 			end
       return targets
     end
 
-		def process_webmentions( post_url, response )
+		def process_webmentions( post_uri, response )
 
 			# Get cached webmentions
-			if @cached_webmentions.has_key? post_url
-				webmentions = @cached_webmentions[post_url]
+			if @cached_webmentions.has_key? post_uri
+				webmentions = @cached_webmentions[post_uri]
 			else
 				webmentions = {}
 			end
@@ -85,20 +85,20 @@ module Jekyll
 				response['links'].reverse_each do |link|
 					
 					# puts link.inspect
-					url = link['data']['url'] || link['source']
+					uri = link['data']['url'] || link['source']
 
 					# set the source
 					source = false
-					if url.include? 'twitter.com/'
+					if uri.include? 'twitter.com/'
 						source = 'twitter'
-					elsif url.include? '/googleplus/'
+					elsif uri.include? '/googleplus/'
 						source = 'googleplus'
 					end
 					
 					# set an id
 					id = link['id'].to_s
-					if source == 'twitter' and ! url.include? '#favorited-by'
-						id = URI(url).path.split('/').last.to_s
+					if source == 'twitter' and ! uri.include? '#favorited-by'
+						id = URI(uri).path.split('/').last.to_s
 					end
 					if ! id
           	time = Time.now();
@@ -136,7 +136,7 @@ module Jekyll
 						# Scaffold the webmention
 						webmention = {
 							'id'			=> id,
-							'url'			=> url,
+							'url'			=> uri,
 							'source'	=> source,
 							'pubdate' => pubdate,
 							'raw'			=> link
@@ -151,11 +151,11 @@ module Jekyll
 						type = link['activity']['type']
 						if ! type
 							if source == 'googleplus'
-								if url.include? '/like/'
+								if uri.include? '/like/'
 									type = 'like'
-								elsif url.include? '/repost/'
+								elsif uri.include? '/repost/'
 									type = 'repost'
-								elsif url.include? '/comment/'
+								elsif uri.include? '/comment/'
 									type = 'reply'
 								else
 									type = 'link'
@@ -170,7 +170,7 @@ module Jekyll
 						title = false
 						if type == 'post'
 
-							html_source = @webmention_io.get_uri_source( url )
+							html_source = @webmention_io.get_uri_source( uri )
               if ! html_source
                 next
               end
@@ -217,7 +217,7 @@ module Jekyll
 
 			end # if response
 
-			@cached_webmentions[post_url] = webmentions
+			@cached_webmentions[post_uri] = webmentions
 
 		end # process_webmentions
 
