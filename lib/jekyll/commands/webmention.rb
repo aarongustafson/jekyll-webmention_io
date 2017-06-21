@@ -11,13 +11,6 @@ module Jekyll
       end
 
       def self.process( args=[], options={} )
-				# Jekyll.logger.adjust_verbosity(options)
-				# options = configuration_from_options(options)
-				# site = Jekyll::Site.new(options)
-
-				# site.reset
-				# site.read
-
 				cached_outgoing = WebmentionIO.get_cache_file_path 'outgoing'
 				cached_sent     = WebmentionIO.get_cache_file_path 'sent'
 				if File.exists?(cached_outgoing)
