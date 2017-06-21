@@ -1,26 +1,2 @@
 inherit_gem:
   jekyll: .rubocop.yml
-
-Metrics/LineLength:
-  Exclude:
-    - 'spec/**/*'
-    - 'jekyll-webmention_io.gemspec'
-
-Metrics/BlockLength:
-  Exclude:
-    - 'spec/**/*'
-
-Style/Documentation:
-  Enabled: false
-
-Style/FileName:
-  Enabled: false
-
-Style/IndentHeredoc:
-  Exclude:
-    - 'spec/**/*'
-
-AllCops:
-  Exclude:
-    - 'vendor/**/*'
-    - '.rubocop'

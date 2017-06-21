@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.authors       = ['Aaron Gustafson']
   s.email         = ['aaron@easy-designs.net']
   s.homepage      = 'https://github.com/aarongustafson/jekyll-webmention_io'
+  s.has_rdoc      = false
 
   s.summary       = 'A Jekyll plugin for sending & receiving webmentions via Webmention.io.'
   s.description   = <<-EOF
@@ -35,4 +36,9 @@ EOF
 
   s.add_runtime_dependency 'string_inflection', '~> 0.1'
   s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
+  s.add_runtime_dependency "jekyll", ">= 3.0", "< 4.0"
+
+  s.add_development_dependency "bundler", "~> 1.14"
+  s.add_development_dependency "rake", "~> 12.0"
+  s.add_development_dependency "rubocop", "~> 0.48"
 end
