@@ -12,9 +12,7 @@ module Jekyll
     priority :low
     
     def generate(site)
-      @webmention_io = WebmentionIO.new
-
-			webmentions = {}
+      webmentions = {}
       
       if Jekyll::VERSION >= "3.0.0"
 				posts = site.posts.docs
@@ -27,7 +25,7 @@ module Jekyll
         webmentions[uri] = get_mentioned_uris(post)
       end
 
-			cache_file = @webmention_io.get_cache_file_path 'outgoing'
+			cache_file = WebmentionIO.get_cache_file_path 'outgoing'
       File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
     end
 

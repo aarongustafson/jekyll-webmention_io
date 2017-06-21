@@ -33,5 +33,6 @@ EOF
 
   s.require_paths = ['.']
 
-  s.add_runtime_dependency 'string_inflection', ['>= 0.1.2']
+  s.add_runtime_dependency 'string_inflection', '~> 0.1'
+  s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
 end

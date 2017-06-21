@@ -12,13 +12,12 @@ module Jekyll
     priority :high
     
     def generate(site)
-			@webmention_io = WebmentionIO.new
 			
-			@webmention_io.set_api_endpoint('mentions')
+			WebmentionIO.set_api_endpoint('mentions')
       # add an arbitrarily high perPage to trump pagination
-      @webmention_io.set_api_suffix('&perPage=9999')
+      WebmentionIO.set_api_suffix('&perPage=9999')
 
-			cache_file = @webmention_io.get_cache_file_path 'incoming'
+			cache_file = WebmentionIO.get_cache_file_path 'incoming'
 			if File.exists?(cache_file)
         @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       else
@@ -30,6 +29,15 @@ module Jekyll
 			else
 				posts = site.posts
 			end
+
+			# post Jekyll commit 0c0aea3
+      # https://github.com/jekyll/jekyll/commit/0c0aea3ad7d2605325d420a23d21729c5cf7cf88
+      if defined? site.find_converter_instance
+        @converter = site.find_converter_instance(::Jekyll::Converters::Markdown)
+      # Prior to Jekyll commit 0c0aea3
+      else
+        @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
+      end
 				
       posts.each do |post|
 				# Gather the URLs
@@ -37,7 +45,7 @@ module Jekyll
         
 				# execute the API
       	api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
-      	response = @webmention_io.get_response(api_params)
+      	response = WebmentionIO.get_response(api_params)
       	# @webmention_io.log 'info', response.inspect
 				
 				process_webmentions( post.url, response )
@@ -60,16 +68,24 @@ module Jekyll
 			end
 			
 			# Domain changed?
-			if @webmention_io.config.has_key? 'legacy_domains'
-				@webmention_io.log 'info', 'adding legacy URIs'
-				@webmention_io.config['legacy_domains'].each do |domain|
+			if WebmentionIO.config.has_key? 'legacy_domains'
+				WebmentionIO.log 'info', 'adding legacy URIs'
+				WebmentionIO.config['legacy_domains'].each do |domain|
 					legacy = uri.sub site.config['url'], domain
-					@webmention_io.log 'info', "adding URI #{legacy}"
+					WebmentionIO.log 'info', "adding URI #{legacy}"
 					targets.push(legacy)
 				end
 			end
       return targets
     end
+
+		def markdownify( string )
+			string = @converter.convert("#{string}")
+			if ! string.start_with?('<p')
+				string = string.sub(/^<[^>]+>/, '<p>').sub(/<\/[^>]+>$/, '</p>')
+			end
+			string.strip
+		end
 
 		def process_webmentions( post_uri, response )
 
@@ -84,7 +100,6 @@ module Jekyll
 				
 				response['links'].reverse_each do |link|
 					
-					# puts link.inspect
 					uri = link['data']['url'] || link['source']
 
 					# set the source
@@ -129,9 +144,7 @@ module Jekyll
         	# end
 
         	# Make sure we have the webmention
-        	# puts "#{target} - #{the_date} - #{id}"
-        	# if ! webmentions[the_date].has_key? id
-					if ! webmentions.has_key? id
+        	if ! webmentions.has_key? id
 						
 						# Scaffold the webmention
 						webmention = {
@@ -170,7 +183,7 @@ module Jekyll
 						title = false
 						if type == 'post'
 
-							html_source = @webmention_io.get_uri_source( uri )
+							html_source = WebmentionIO.get_uri_source( uri )
               if ! html_source
                 next
               end
@@ -197,18 +210,17 @@ module Jekyll
 							# cleanup
               title = title.gsub(%r{</?[^>]+?>}, '')
 						end # if no title
-						webmention['title'] = title
+						webmention['title'] = markdownify( title )
 
 						# Everything else
 						content = link['data']['content']
-						if ! content && type != 'post'
+						if type != 'post' && type != 'reply' && type != 'link'
 							content = link['activity']['sentence_html']
 						end
-						webmention['content'] = content
+						webmention['content'] = markdownify( content )
 
 						# Add it to the list
 						# @webmention_io.log 'info', webmention.inspect
-						# webmentions[the_date][id] = webmention
 						webmentions[id] = webmention
 
 					end # if ID does not exist

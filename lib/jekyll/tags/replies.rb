@@ -12,12 +12,13 @@ module Jekyll
 
     def initialize(tagName, text, tokens)
       super
-      set_template('replies')
+      @text = text
+      set_template 'replies'
     end
 
     def set_data(data)
       webmentions = extract_type 'replies', data
-      @data = { 'webmentions' => webmentions }
+      @data = { 'webmentions' => webmentions.values }
     end
 
   end

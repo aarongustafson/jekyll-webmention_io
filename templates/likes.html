@@ -1,50 +1,17 @@
-<div class="webmentions">
+<div class="webmentions webmentions--likes">
 	{% if webmentions.size > 0 %}
 		<ol class="webmentions__list">
 			{% for webmention in webmentions %}
-				<li id="webmention-{{ webmention.id }}" class="webmentions__item">
-					<article class="h-cite
-						{{ webmention.classes }}
-						{% unless webmention.author %}webmention--no-author{% endunless %}
-						{% unless webmention.author.photo %}webmention--no-photo{% endunless %}
-						{% if webmention.is_tweet == true %}webmention--author-starts{% endif %}
-						">
-						{% if webmention.author %}
-							<div class="webmention__author p-author h-card">
-								<a class="u-url" href="{{ webmention.author.url }}">
-									{% if webmention.author.photo %}
-										<img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
-									{% endif %}
-									<b class="p-name">{{ webmention.author.name }}</b>
-								</a>
-							</div>
-						{% endif %}
-
-            <div class="webmention__content p-content">
-              {% if webmention.type=='like' %}
-                {{ " shared this." | prepend:webmention.author.name | markdownify }}
-              {% elsif if webmention.type=='repost' and webmention.source=='twitter' %}
-                {{ " liked this." | prepend:webmention.author.name | markdownify }}
-              {% else %}
-                {{ webmention.title | markdownify }}
-              {% endif %}
-            </div>
-            
-						<div class="webmention__meta">
-              {% if webmention.pubdate %}
-                <time class="webmention__pubdate dt-published"
-							        datetime="{{ webmention.pubdate | date: '%FT%T%:z' }}">{{ webmention.pubdate | date: '%d %B %Y' }}</time>
-              {% endif %}
-              {% if webmention.pubdate and webmention.url %}|{% endif %}
-              {% if webmention.url %}
-                <a class="webmention__source u-url" href="{{ webmention.url }}">Permalink</a>
-              {% endif %}
-            </div>
-					</article>
+				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmentions__item--{{ webmention.type }}">
+					<div class="webmention__author p-author h-card">
+						<a class="u-url" href="{{ webmention.author.url }}">
+							<img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
+						</a>
+					</div>
 				</li>
 			{% endfor %}
 		</ol>
 	{% else %}
-		<p class="webmentions__not-found">No webmentions were found.</p>
+		<p class="webmentions__not-found">No likes were found.</p>
 	{% endif %}
 </div>

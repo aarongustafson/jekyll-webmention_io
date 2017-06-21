@@ -3,22 +3,17 @@
 #  Licence : MIT
 #  
 #  Base webmention tag
-#   
+#
+
+require 'htmlbeautifier'
+
 module Jekyll
   using StringInflection
   class WebmentionTag < Liquid::Tag
     
     def initialize(tagName, text, tokens)
       super
-      @types = ['likes','posts','replies','reposts']
-
-      @text = text
-      @template = false
-      @data = false
-      
-      @webmention_io = WebmentionIO.new
-
-      cache_file = @webmention_io.get_cache_file_path 'incoming'
+      cache_file = WebmentionIO.get_cache_file_path 'incoming'
       if File.exists?(cache_file)
         @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       else
@@ -35,35 +30,44 @@ module Jekyll
     end
     
     def set_template( template )
-      supported_templates = @types + ['count', 'webmentions']
+      supported_templates = WebmentionIO.types + ['count', 'webmentions']
       
-      @webmention_io.log 'error', "#{template} is not supported" if ! supported_templates.include? template
+      WebmentionIO.log 'error', "#{template} is not supported" if ! supported_templates.include? template
 
-      if @webmention_io.config.has_key? 'templates' and @webmention_io.config['templates'].has_key? template
-        template_file = @webmention_io.config['templates'][template]
+      if WebmentionIO.config.has_key? 'templates' and WebmentionIO.config['templates'].has_key? template
+        # WebmentionIO.log 'info', "Using custom #{template} template"
+        template_file = WebmentionIO.config['templates'][template]
       else
+        # WebmentionIO.log 'info', "Using default #{template} template"
         template_file = File.join(File.dirname(File.expand_path(__FILE__)), "../../../templates/#{template}.html")
       end
 
+      # WebmentionIO.log 'info', "Template file: #{template_file}"
       handler = File.open(template_file, 'rb')
       @template = handler.read
+      # WebmentionIO.log 'info', "template: #{@template}"
     end
-    
+
     def set_data(data)
       @data = { 'webmentions' => data }
     end
 
     def extract_type( type, webmentions )
-      if ! @types.include? type
-        @webmention_io.log 'warn', "#{type} are not extractable"
-        return {}
+      # WebmentionIO.log 'info', "Looking for #{type}"
+      keep = {}
+      if ! WebmentionIO.types.include? type
+        WebmentionIO.log 'warn', "#{type} are not extractable"
+      else
+        type = type.to_singular
+        # WebmentionIO.log 'info', "Searching #{webmentions.length} webmentions for type==#{type}"
+        if webmentions.is_a? Hash
+          webmentions = webmentions.values
+        end
+        webmentions.each do |webmention|
+          keep[webmention['id']] = webmention if webmention['type'] == type
+        end
       end
-      type = type.to_singular
-      return webmentions.keep_if { |webmention| webmention['type'] == type }
-    end
-
-    def get_webmentions_as_array( hash )
-      return hash.values
+      keep
     end
 
     def sort_webmentions( webmentions )
@@ -78,42 +82,48 @@ module Jekyll
       uri = args.shift
       uri = lookup(context, uri)
 
-      # puts "#{@cached_webmentions.length} URIs mentioned"
       if @cached_webmentions.has_key? uri
-        # puts "#{@cached_webmentions[uri].length} webmentions for #{uri}"
+        all_webmentions =  @cached_webmentions[uri].clone
+        # WebmentionIO.log 'info', "#{all_webmentions.length} total webmentions for #{uri}"
         if args.length > 0
-          # puts 'Multiple types requested'
+          # WebmentionIO.log 'info', "Requesting only #{args.inspect}"
           webmentions = {}
           args.each do |type|
-            # puts "Merging in #{type}"
-            extracted = extract_type( type, @cached_webmentions[uri] )
-            # puts extracted.inspect
-            webmentions.merge( extracted )
-          end          
+            extracted = extract_type( type, all_webmentions )
+            # WebmentionIO.log 'info', "Merging in #{extracted.length} #{type}"
+            webmentions = webmentions.merge( extracted )
+          end
         else
-          # puts 'Grabbing ’em all'
-          webmentions = @cached_webmentions[uri]
+          # WebmentionIO.log 'info', 'Grabbing all webmentions'
+          webmentions = all_webmentions
         end
 
-        webmentions = get_webmentions_as_array( webmentions )
-        
+        if webmentions.is_a? Hash
+          webmentions = webmentions.values
+        end
+
         webmentions = sort_webmentions( webmentions )
         
         set_data( webmentions )
       end
       
+      args = nil
+
       if @template and @data
+        # WebmentionIO.log 'info', "Preparing to render\n\n#{@data.inspect}\n\ninto\n\n#{@template}"
         template = Liquid::Template.parse(@template, :error_mode => :strict)
-        template.render(@data, { strict_variables: true, strict_filters: true })
+        html = template.render(@data, { strict_variables: true, strict_filters: true })
         template.errors.each do |error|
-          @webmention_io.log 'error', error
-        end        
+          WebmentionIO.log 'error', error
+        end
+        # Clean up the output
+        HtmlBeautifier.beautify html.each_line.reject{|x| x.strip == ""}.join
       else
         if ! @template
-          @webmention_io.log 'warn', "#{self.class} No template provided"
+          WebmentionIO.log 'warn', "#{self.class} No template provided"
         end
         if ! @data
-          @webmention_io.log 'warn', "#{self.class} No data provided"
+          WebmentionIO.log 'warn', "#{self.class} No data provided"
         end
         ""
       end

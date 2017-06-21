@@ -2,7 +2,7 @@
 	{% if webmentions.size > 0 %}
 		<ol class="webmentions__list">
 			{% for webmention in webmentions %}
-				<li id="webmention-{{ webmention.id }}" class="webmentions__item">
+				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmentions__item--{{ webmention.type }}">
 					<article class="h-cite
 						{{ webmention.classes }}
 						{% unless webmention.author %}webmention--no-author{% endunless %}
@@ -22,9 +22,9 @@
 
             <div class="webmention__content p-content">
               {% if webmention.content %}
-								{{ webmention.content | markdownify }}
+								{{ webmention.content }}
 							{% else %}
-                {{ webmention.title | markdownify }}
+                {{ webmention.title }}
               {% endif %}
             </div>
             

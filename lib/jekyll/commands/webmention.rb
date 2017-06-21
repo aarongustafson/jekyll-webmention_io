@@ -11,17 +11,15 @@ module Jekyll
       end
 
       def self.process( args=[], options={} )
-				@webmention_io = WebmentionIO.new
-
-        # Jekyll.logger.adjust_verbosity(options)
+				# Jekyll.logger.adjust_verbosity(options)
 				# options = configuration_from_options(options)
 				# site = Jekyll::Site.new(options)
 
 				# site.reset
 				# site.read
 
-				cached_outgoing = @webmention_io.get_cache_file_path 'outgoing'
-				cached_sent = @webmention_io.get_cache_file_path 'sent'
+				cached_outgoing = WebmentionIO.get_cache_file_path 'outgoing'
+				cached_sent     = WebmentionIO.get_cache_file_path 'sent'
 				if File.exists?(cached_outgoing)
 					if File.exists?(cached_sent)
 						sent = open(cached_sent) { |f| YAML.load(f) }
@@ -38,11 +36,11 @@ module Jekyll
 								if target.index( "//" ) == 0
 									target  = "http:#{target}"
 								end
-								endpoint = @webmention_io.get_webmention_endpoint( target )
+								endpoint = WebmentionIO.get_webmention_endpoint( target )
 								if endpoint
 									endpoint.scan(/href="([^"]+)"/) do |endpoint_url|
 										endpoint_url = endpoint_url[0]
-										@webmention_io.webmention( source, target, endpoint )
+										WebmentionIO.webmention( source, target, endpoint )
 									end
 									sent[source].push( target )
 								end

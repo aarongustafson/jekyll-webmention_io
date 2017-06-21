@@ -5,14 +5,15 @@
 #  this liquid plugin insert a webmentions into your Octopress or Jekill blog
 #  using http://webmention.io/ and the following syntax:
 #
-#    {% webmentions post.url [ likes | posts | replies | reposts ]*  %}
+#    {% webmentions post.url [ likes | links | posts | replies | reposts ]*  %}
 #   
 module Jekyll
   class WebmentionsTag < WebmentionTag
   
     def initialize(tagName, text, tokens)
       super
-      set_template('webmentions')
+      @text = text
+      set_template 'webmentions'
     end
 
   end

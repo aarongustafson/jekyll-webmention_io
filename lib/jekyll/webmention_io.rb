@@ -15,41 +15,53 @@ require 'string_inflection'
 
 module Jekyll
   class WebmentionIO
-    attr_reader :jekyll_config, :config
+    
+    @logger_prefix = '[jekyll-webmention_io]'
 
-    def initialize()
-      @logger_prefix = '[jekyll-webmention_io]'
-
-      # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
-      @jekyll_config = Jekyll.configuration({})
-      @config = @jekyll_config['webmentions']
-      
-      @api_url = 'https://webmention.io/api'
-      @api_endpoint = @api_url
-      @api_suffix = ''
-      
-      # Set up the cache folder & files
-      cache_folder = @config['cache_folder'] || '.cache'
-      Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
-      file_prefix = ''
-      if ! cache_folder.include? 'webmention'
-        file_prefix = 'webmention_io_'
-      end
-      @cache_files = {
-        'incoming' => "#{cache_folder}/#{file_prefix}received.yml",
-        'outgoing' => "#{cache_folder}/#{file_prefix}queued.yml",
-        'sent'     => "#{cache_folder}/#{file_prefix}sent.yml",
-        'bad_uris' => "#{cache_folder}/#{file_prefix}bad_uris.yml"
-      }
-      @cache_files.each do |key, file|
-        if ! File.exists?(file)
-          File.open(file, 'w') { |f| YAML.dump({}, f) }
-        end
+    # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
+    @jekyll_config = Jekyll.configuration({})
+    @config = @jekyll_config['webmentions']
+    
+    @api_url = 'https://webmention.io/api'
+    @api_endpoint = @api_url
+    @api_suffix = ''
+    
+    # Set up the cache folder & files
+    cache_folder = @config['cache_folder'] || '.cache'
+    Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
+    file_prefix = ''
+    if ! cache_folder.include? 'webmention'
+      file_prefix = 'webmention_io_'
+    end
+    @cache_files = {
+      'incoming' => "#{cache_folder}/#{file_prefix}received.yml",
+      'outgoing' => "#{cache_folder}/#{file_prefix}queued.yml",
+      'sent'     => "#{cache_folder}/#{file_prefix}sent.yml",
+      'bad_uris' => "#{cache_folder}/#{file_prefix}bad_uris.yml"
+    }
+    @cache_files.each do |key, file|
+      if ! File.exists?(file)
+        File.open(file, 'w') { |f| YAML.dump({}, f) }
       end
     end
+    
+    @types = ['likes','links','posts','replies','reposts']
 
-    # Cache access
-    def get_cache_file_path( key )
+    # Attributes
+    def self.config
+      @config
+    end
+    def self.jekyll_config
+      @jekyll_config
+    end
+    def self.cache_files
+      @cache_files
+    end
+    def self.types
+      @types
+    end
+    
+    def self.get_cache_file_path( key )
       path = false
       if @cache_files.has_key? key
         path = @cache_files[key]
@@ -58,21 +70,21 @@ module Jekyll
     end
 
     # API helpers
-    def uri_params_for(api_params)
-      api_params.keys.sort.map do |k|
-        "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
-      end.join('&')
-    end
+    #def uri_params_for(api_params)
+    #  api_params.keys.sort.map do |k|
+    #    "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
+    #  end.join('&')
+    #end
 
-    def set_api_endpoint(path)
+    def self.set_api_endpoint(path)
       @api_endpoint = "#{@api_url}/#{path}"
     end
     
-    def set_api_suffix(suffix)
+    def self.set_api_suffix(suffix)
       @api_suffix = suffix
     end
 
-    def get_response(api_params)
+    def self.get_response(api_params)
       api_params << @api_suffix
       source = get_uri_source(@api_endpoint + "?#{api_params}")
       if source
@@ -82,35 +94,35 @@ module Jekyll
       end
     end
     
-    def get_webmention_endpoint( uri )
+    def self.get_webmention_endpoint( uri )
       log 'info', "Looking for webmention endpoint at #{uri}"
       return `curl -s --location "#{uri}" | grep 'rel="webmention"'`
     end
 
-    def webmention( source, target, endpoint )
+    def self.webmention( source, target, endpoint )
       log 'info', "Sending webmention of #{source} to #{endpoint}"
       return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
     end
 
     # Utilities
-    def key_exists(hash, test_key)
-      if hash.is_a? Hash 
-        hash.each do |key, value|
-          if test_key == key
-            return true
-          # nest
-          elsif value.is_a? Hash
-            if key_exists value, test_key
-              return true
-            end
-          end
-        end
-      end
-      return false
-    end
+    # def key_exists(hash, test_key)
+    #   if hash.is_a? Hash 
+    #     hash.each do |key, value|
+    #       if test_key == key
+    #         return true
+    #       # nest
+    #       elsif value.is_a? Hash
+    #         if key_exists value, test_key
+    #           return true
+    #         end
+    #       end
+    #     end
+    #   end
+    #   return false
+    # end
     
     # Connections
-    def is_uri_ok( uri )
+    def self.is_uri_ok( uri )
       uri = URI.parse(URI.encode(uri))
       now = Time.now.to_s
       bad_uris = open(@cache_files['bad_uris']) { |f| YAML.load(f) }
@@ -126,15 +138,14 @@ module Jekyll
     end
 
     # Cache bad URLs for a bit
-    def uri_is_not_ok( uri )
+    def self.uri_is_not_ok( uri )
       cache_file = @cache_files['bad_uris']
       bad_uris = open(cache_file) { |f| YAML.load(f) }
       bad_uris[uri.host] = Time.now.to_s
       File.open(cache_file, 'w') { |f| YAML.dump(bad_uris, f) }
     end
     
-    def get_uri_source(uri, redirect_limit = 10, original_uri = false)
-      # puts "Getting the source of #{uri}"
+    def self.get_uri_source(uri, redirect_limit = 10, original_uri = false)
       original_uri = original_uri || uri
       if ! is_uri_ok(uri)
         return false
@@ -161,10 +172,8 @@ module Jekyll
           when Net::HTTPSuccess then
             return response.body.force_encoding('UTF-8')
           when Net::HTTPRedirection then
-            # puts "Location redirect to #{response['location']}"
             redirect_to = URI.parse(URI.encode(response['location']))
             redirect_to = redirect_to.relative? ? "#{uri.scheme}://#{uri.host}" + redirect_to.to_s : redirect_to.to_s
-            # puts "redirecting to #{redirect_to}"
             return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
           else
             uri_is_not_ok(uri)
@@ -179,7 +188,7 @@ module Jekyll
       end
     end
 
-    def log( type, message )
+    def self.log( type, message )
       Jekyll.logger.method(type).call( "#{@logger_prefix} #{message}" )
     end
 
