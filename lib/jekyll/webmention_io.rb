@@ -11,6 +11,7 @@ require 'json'
 require 'net/http'
 require 'uri'
 require 'openssl'
+require 'string_inflection'
 
 module Jekyll
   class WebmentionIO
@@ -19,6 +20,7 @@ module Jekyll
     def initialize()
       @logger_prefix = '[jekyll-webmention_io]'
 
+      # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
       @jekyll_config = Jekyll.configuration({})
       @config = @jekyll_config['webmentions']
       
@@ -87,16 +89,6 @@ module Jekyll
       log 'info', "Sending webmention of #{source} to #{endpoint_url}"
       return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint_url}`
     end
-
-    # def lookup(context, name)
-    #   lookup = context
-
-    #   name.split(".").each do |value|
-    #     lookup = lookup[value]
-    #   end
-
-    #   lookup
-    # end
 
     # Utilities
     def key_exists(hash, test_key)

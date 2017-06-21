@@ -23,7 +23,7 @@
             <div class="webmention__content p-content">
               {% if webmention.type=='like' %}
                 {{ " shared this." | prepend:webmention.author.name | markdownify }}
-              {% elseif if webmention.type=='repost' and webmention.source=='twitter' %}
+              {% elsif if webmention.type=='repost' and webmention.source=='twitter' %}
                 {{ " liked this." | prepend:webmention.author.name | markdownify }}
               {% else %}
                 {{ webmention.title | markdownify }}

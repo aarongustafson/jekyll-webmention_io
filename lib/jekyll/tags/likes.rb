@@ -12,20 +12,12 @@ module Jekyll
 
     def initialize(tagName, text, tokens)
       super
-      
       set_template('likes')
+    end
 
-      # Get the URL
-      args = @text.split(/\s+/).map(&:strip)
-      url = args.first
-
-      # Set the data
-      if @cached_webmentions.has_key? url
-        set_data({
-          'webmentions' => get_webmentions_by_type( url, 'likes' )
-        })
-      end
-
+    def set_data(data)
+      webmentions = extract_type 'likes', data
+      @data = { 'webmentions' => webmentions }
     end
 
   end

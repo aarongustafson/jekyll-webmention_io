@@ -38,7 +38,7 @@ module Jekyll
 				# execute the API
       	api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
       	response = @webmention_io.get_response(api_params)
-      	@webmention_io.log 'info', response.inspect
+      	# @webmention_io.log 'info', response.inspect
 				
 				process_webmentions( post.url, response )
       end # posts loop
@@ -71,11 +71,11 @@ module Jekyll
       return targets
     end
 
-		def process_webmentions( url, response )
+		def process_webmentions( post_url, response )
 
 			# Get cached webmentions
-			if @cached_webmentions.has_key? url
-				webmentions = @cached_webmentions[url]
+			if @cached_webmentions.has_key? post_url
+				webmentions = @cached_webmentions[post_url]
 			else
 				webmentions = {}
 			end
@@ -121,22 +121,22 @@ module Jekyll
         	elsif link['verified_date']
           	pubdate = Time.parse(link['verified_date'])
         	end
-					the_date = pubdate.strftime('%s')
+					#the_date = pubdate.strftime('%s')
 
 	        # Make sure we have the date
-        	if ! webmentions.has_key? the_date
-          	webmentions[the_date] = {}
-        	end
+        	# if ! webmentions.has_key? the_date
+          # 	webmentions[the_date] = {}
+        	# end
 
         	# Make sure we have the webmention
         	# puts "#{target} - #{the_date} - #{id}"
-        	if ! webmentions[the_date].has_key? id
+        	# if ! webmentions[the_date].has_key? id
+					if ! webmentions.has_key? id
 						
 						# Scaffold the webmention
 						webmention = {
 							'id'			=> id,
 							'url'			=> url,
-							'content' => link['data']['content'],
 							'source'	=> source,
 							'pubdate' => pubdate,
 							'raw'			=> link
@@ -166,9 +166,9 @@ module Jekyll
 						end # if no type
 						webmention['type'] = type
 
-						# Get the title from Webmention.io or the source URL
-						title = link['data']['name']
-						if ! title and ( type == 'reply' or type == 'post' )
+						# Posts
+						title = false
+						if type == 'post'
 
 							html_source = @webmention_io.get_uri_source( url )
               if ! html_source
@@ -199,9 +199,17 @@ module Jekyll
 						end # if no title
 						webmention['title'] = title
 
+						# Everything else
+						content = link['data']['content']
+						if ! content && type != 'post'
+							content = link['activity']['sentence_html']
+						end
+						webmention['content'] = content
+
 						# Add it to the list
-						@webmention_io.log 'info', webmention.inspect
-						webmentions[the_date][id] = webmention
+						# @webmention_io.log 'info', webmention.inspect
+						# webmentions[the_date][id] = webmention
+						webmentions[id] = webmention
 
 					end # if ID does not exist
 				
@@ -209,7 +217,7 @@ module Jekyll
 
 			end # if response
 
-			@cached_webmentions[url] = webmentions
+			@cached_webmentions[post_url] = webmentions
 
 		end # process_webmentions
 

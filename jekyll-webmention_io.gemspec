@@ -32,4 +32,6 @@ EOF
                     Dir.glob('templates/*')
 
   s.require_paths = ['.']
+
+  s.add_runtime_dependency 'string_inflection', ['>= 0.1.2']
 end

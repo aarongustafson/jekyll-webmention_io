@@ -12,24 +12,11 @@ module Jekyll
 
     def initialize(tagName, text, tokens)
       super
-      
       set_template('count')
+    end
 
-      # Get the URL
-      args = @text.split(/\s+/).map(&:strip)
-      url = args.first
-
-      # Set the data
-      if @cached_webmentions.has_key? url
-        count = 0
-        @cached_webmentions[url].each do |date, webmentions|
-          size = size + webmentions.length
-        end
-        set_data({
-          'count' => count
-        })
-      end
-
+    def set_data(data)
+      @data = { 'count' => data.length }
     end
 
   end
