@@ -212,7 +212,7 @@ module Jekyll
 							# cleanup
               title = title.gsub(%r{</?[^>]+?>}, '')
 						end # if no title
-						webmention['title'] = markdownify( title )
+						webmention['title'] = markdownify( title ) if title
 
 						# Everything else
 						content = link['data']['content']

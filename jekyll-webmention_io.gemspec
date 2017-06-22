@@ -28,15 +28,19 @@ EOF
   
   s.platform      = Gem::Platform::RUBY
 
-  s.files         = Dir.glob('lib/**/*') +
-                    Dir.glob('assets/*') + 
-                    Dir.glob('templates/*')
+  s.files         = %W(Rakefile Gemfile README.md LICENSE) +
+                    Dir.glob('lib/**/*') +
+                    Dir.glob('assets/**/*') + 
+                    Dir.glob('templates/**/*')
 
   s.require_paths = ['.']
 
+  s.add_runtime_dependency "jekyll", ">= 2.0", "< 4.0"
+  s.add_runtime_dependency "json", "~> 2.0"
+  s.add_runtime_dependency "http", "~> 2.0"
+  s.add_runtime_dependency "openssl", "~> 2.0"
   s.add_runtime_dependency 'string_inflection', '~> 0.1'
   s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
-  s.add_runtime_dependency "jekyll", ">= 3.0", "< 4.0"
 
   s.add_development_dependency "rake", "~> 12.0"
   s.add_development_dependency "rubocop", "~> 0.48"

@@ -2,7 +2,7 @@
 	{% if webmentions.size > 0 %}
 		<ol class="webmentions__list">
 			{% for webmention in webmentions %}
-				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmentions__item--{{ webmention.type }}">
+				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
 					{{ webmention.content }}
 					<div class="webmention__meta">
 						{% if webmention.author %}

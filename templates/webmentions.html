@@ -2,9 +2,8 @@
 	{% if webmentions.size > 0 %}
 		<ol class="webmentions__list">
 			{% for webmention in webmentions %}
-				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmentions__item--{{ webmention.type }}">
-					<article class="h-cite
-						{{ webmention.classes }}
+				<li id="webmention-{{ webmention.id }}" class="webmentions__item">
+					<article class="h-cite webmention webmention--{{ webmention.type }}
 						{% unless webmention.author %}webmention--no-author{% endunless %}
 						{% unless webmention.author.photo %}webmention--no-photo{% endunless %}
 						{% if webmention.is_tweet == true %}webmention--author-starts{% endif %}
