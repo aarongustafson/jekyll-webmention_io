@@ -12,6 +12,7 @@ module Jekyll
     priority :high
     
     def generate(site)
+			WebmentionIO.log 'info', 'Beginning to gather webmentions of your posts. This may take a while.'
 			
 			WebmentionIO.set_api_endpoint('mentions')
       # add an arbitrarily high perPage to trump pagination
@@ -52,7 +53,8 @@ module Jekyll
       end # posts loop
 
       File.open(cache_file, 'w') { |f| YAML.dump(@cached_webmentions, f) }
-    
+			
+			WebmentionIO.log 'info', 'Webmentions have been gathered and cached.'
 		end # generate
 
     def get_webmention_target_urls(site, post)
@@ -69,10 +71,10 @@ module Jekyll
 			
 			# Domain changed?
 			if WebmentionIO.config.has_key? 'legacy_domains'
-				WebmentionIO.log 'info', 'adding legacy URIs'
+				# WebmentionIO.log 'info', 'adding legacy URIs'
 				WebmentionIO.config['legacy_domains'].each do |domain|
 					legacy = uri.sub site.config['url'], domain
-					WebmentionIO.log 'info', "adding URI #{legacy}"
+					# WebmentionIO.log 'info', "adding URI #{legacy}"
 					targets.push(legacy)
 				end
 			end

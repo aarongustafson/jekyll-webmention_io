@@ -127,7 +127,7 @@ module Jekyll
       now = Time.now.to_s
       bad_uris = open(@cache_files['bad_uris']) { |f| YAML.load(f) }
       if bad_uris.key? uri.host
-        last_checked = DateTime.parse( bad_urls[uri.host] )
+        last_checked = DateTime.parse( bad_uris[uri.host] )
         cache_bad_uris_for = @config['cache_bad_uris_for'] || 1 # in days
         recheck_at = last_checked.next_day(cache_bad_uris_for).to_s
         if recheck_at > now
@@ -163,7 +163,7 @@ module Jekyll
         begin
           request = Net::HTTP::Get.new(uri.request_uri)
           response = http.request(request)
-        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError, OpenSSL::SSL::SSLError => e
           log 'warn', "Got an error checking #{original_uri}: #{e}"
           uri_is_not_ok(uri)
           return false
