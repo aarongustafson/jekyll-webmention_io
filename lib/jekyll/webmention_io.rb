@@ -5,7 +5,7 @@
 #  this liquid plugin insert a webmentions into your Octopress or Jekill blog
 #  using http://webmention.io/ and the following syntax:
 #   
-require 'jekyll/webmention_io/version'
+require_relative 'webmention_io/version'
 
 require 'json'
 require 'net/http'
