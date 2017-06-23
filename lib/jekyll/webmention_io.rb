@@ -18,34 +18,36 @@ module Jekyll
     
     @logger_prefix = '[jekyll-webmention_io]'
 
-    # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
-    @jekyll_config = Jekyll.configuration({})
-    @config = @jekyll_config['webmentions']
-    
     @api_url = 'https://webmention.io/api'
     @api_endpoint = @api_url
     @api_suffix = ''
     
-    # Set up the cache folder & files
-    cache_folder = @config['cache_folder'] || '.cache'
-    Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
-    file_prefix = ''
-    if ! cache_folder.include? 'webmention'
-      file_prefix = 'webmention_io_'
-    end
-    @cache_files = {
-      'incoming' => "#{cache_folder}/#{file_prefix}received.yml",
-      'outgoing' => "#{cache_folder}/#{file_prefix}queued.yml",
-      'sent'     => "#{cache_folder}/#{file_prefix}sent.yml",
-      'bad_uris' => "#{cache_folder}/#{file_prefix}bad_uris.yml"
-    }
-    @cache_files.each do |key, file|
-      if ! File.exists?(file)
-        File.open(file, 'w') { |f| YAML.dump({}, f) }
+    @types = ['likes','links','posts','replies','reposts']
+
+    def self.bootstrap()
+      # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
+      @jekyll_config = Jekyll::configuration({})
+      @config = @jekyll_config['webmentions'] || {}
+      
+      # Set up the cache folder & files
+      cache_folder = @config['cache_folder'] || '.cache'
+      Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
+      file_prefix = ''
+      if ! cache_folder.include? 'webmention'
+        file_prefix = 'webmention_io_'
+      end
+      @cache_files = {
+        'incoming' => "#{cache_folder}/#{file_prefix}received.yml",
+        'outgoing' => "#{cache_folder}/#{file_prefix}queued.yml",
+        'sent'     => "#{cache_folder}/#{file_prefix}sent.yml",
+        'bad_uris' => "#{cache_folder}/#{file_prefix}bad_uris.yml"
+      }
+      @cache_files.each do |key, file|
+        if ! File.exists?(file)
+          File.open(file, 'w') { |f| YAML.dump({}, f) }
+        end
       end
     end
-    
-    @types = ['likes','links','posts','replies','reposts']
 
     # Attributes
     def self.config

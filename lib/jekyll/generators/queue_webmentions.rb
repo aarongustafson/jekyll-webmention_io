@@ -30,7 +30,7 @@ module Jekyll
 			cache_file = Jekyll::WebmentionIO::get_cache_file_path 'outgoing'
       File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
 
-			log 'info', 'Webmentions have been gathered and cached.'
+			Jekyll::WebmentionIO::log 'info', 'Webmentions have been gathered and cached.'
     end
 
     def get_mentioned_uris(post)
