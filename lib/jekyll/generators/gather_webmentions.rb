@@ -12,13 +12,13 @@ module Jekyll
     priority :high
     
     def generate(site)
-			WebmentionIO.log 'info', 'Beginning to gather webmentions of your posts. This may take a while.'
+			Jekyll::WebmentionIO::log 'info', 'Beginning to gather webmentions of your posts. This may take a while.'
 			
-			WebmentionIO.set_api_endpoint('mentions')
+			Jekyll::WebmentionIO::set_api_endpoint('mentions')
       # add an arbitrarily high perPage to trump pagination
-      WebmentionIO.set_api_suffix('&perPage=9999')
+      Jekyll::WebmentionIO::set_api_suffix('&perPage=9999')
 
-			cache_file = WebmentionIO.get_cache_file_path 'incoming'
+			cache_file = Jekyll::WebmentionIO::get_cache_file_path 'incoming'
 			if File.exists?(cache_file)
         @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       else
@@ -46,7 +46,7 @@ module Jekyll
         
 				# execute the API
       	api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
-      	response = WebmentionIO.get_response(api_params)
+      	response = Jekyll::WebmentionIO::get_response(api_params)
       	# @webmention_io.log 'info', response.inspect
 				
 				process_webmentions( post.url, response )
@@ -54,7 +54,7 @@ module Jekyll
 
       File.open(cache_file, 'w') { |f| YAML.dump(@cached_webmentions, f) }
 			
-			WebmentionIO.log 'info', 'Webmentions have been gathered and cached.'
+			Jekyll::WebmentionIO::log 'info', 'Webmentions have been gathered and cached.'
 		end # generate
 
     def get_webmention_target_urls(site, post)
@@ -70,11 +70,11 @@ module Jekyll
 			end
 			
 			# Domain changed?
-			if WebmentionIO.config.has_key? 'legacy_domains'
-				# WebmentionIO.log 'info', 'adding legacy URIs'
-				WebmentionIO.config['legacy_domains'].each do |domain|
+			if Jekyll::WebmentionIO::config.has_key? 'legacy_domains'
+				# Jekyll::WebmentionIO::log 'info', 'adding legacy URIs'
+				Jekyll::WebmentionIO::config['legacy_domains'].each do |domain|
 					legacy = uri.sub site.config['url'], domain
-					# WebmentionIO.log 'info', "adding URI #{legacy}"
+					# Jekyll::WebmentionIO::log 'info', "adding URI #{legacy}"
 					targets.push(legacy)
 				end
 			end
@@ -185,7 +185,7 @@ module Jekyll
 						title = false
 						if type == 'post'
 
-							html_source = WebmentionIO.get_uri_source( uri )
+							html_source = Jekyll::WebmentionIO::get_uri_source( uri )
               if ! html_source
                 next
               end

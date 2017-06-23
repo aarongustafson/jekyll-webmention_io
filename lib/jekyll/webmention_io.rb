@@ -14,7 +14,7 @@ require 'openssl'
 require 'string_inflection'
 
 module Jekyll
-  class WebmentionIO
+  module WebmentionIO
     
     @logger_prefix = '[jekyll-webmention_io]'
 

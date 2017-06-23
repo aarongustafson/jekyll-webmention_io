@@ -8,19 +8,21 @@
 #    {% webmention_count post.url [ likes | links | posts | replies | reposts ]*   %}
 #   
 module Jekyll
-  class WebmentionCountTag < WebmentionTag
+  module WebmentionIO
+    class WebmentionCountTag < Jekyll::WebmentionIO::WebmentionTag
 
-    def initialize(tagName, text, tokens)
-      super
-      @text = text
-      set_template 'count'
+      def initialize(tagName, text, tokens)
+        super
+        @text = text
+        set_template 'count'
+      end
+
+      def set_data(data)
+        @data = { 'count' => data.length }
+      end
+
     end
-
-    def set_data(data)
-      @data = { 'count' => data.length }
-    end
-
   end
 end
 
-Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionCountTag)
+Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionIO::WebmentionCountTag)

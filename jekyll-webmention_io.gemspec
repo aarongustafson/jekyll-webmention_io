@@ -4,7 +4,7 @@ require File.expand_path("../lib/jekyll/webmention_io/version", __FILE__)
 
 Gem::Specification.new do |s|
   s.name          = 'jekyll-webmention_io'
-  s.version       = WebmentionIO::VERSION
+  s.version       = Jekyll::WebmentionIO::VERSION
   s.license       = 'MIT'
   s.authors       = ['Aaron Gustafson']
   s.email         = ['aaron@easy-designs.net']
@@ -27,13 +27,14 @@ EOF
   
   s.platform      = Gem::Platform::RUBY
 
-  s.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r!^(test|spec|features)/!) }
+  s.files         = `git ls-files app lib`.split("\n")
 
-  s.require_paths = ['.']
+  s.require_paths = ['lib']
 
   s.add_runtime_dependency 'jekyll', '>= 2.0', '< 4.0'
   s.add_runtime_dependency 'json', '~> 2.0'
   s.add_runtime_dependency 'http', '~> 2.0'
+  s.add_runtime_dependency 'openssl', '~> 2.0'
   s.add_runtime_dependency 'string_inflection', '~> 0.1'
   s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
 
