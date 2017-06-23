@@ -1,7 +1,6 @@
 # encoding: utf-8
 
-$:.unshift File.expand_path('../lib', __FILE__)
-require 'jekyll/webmention_io/version'
+require File.expand_path("../lib/jekyll/webmention_io/version", __FILE__)
 
 Gem::Specification.new do |s|
   s.name          = 'jekyll-webmention_io'
