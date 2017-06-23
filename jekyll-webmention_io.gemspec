@@ -28,10 +28,7 @@ EOF
   
   s.platform      = Gem::Platform::RUBY
 
-  s.files         = %W(Rakefile Gemfile README.md LICENSE) +
-                    Dir.glob('lib/**/*') +
-                    Dir.glob('assets/**/*') + 
-                    Dir.glob('templates/**/*')
+  s.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r!^(test|spec|features)/!) }
 
   s.require_paths = ['.']
 
@@ -41,8 +38,9 @@ EOF
   s.add_runtime_dependency 'string_inflection', '~> 0.1'
   s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
 
-  s.add_development_dependency 'rake', '~> 12.0'
-  s.add_development_dependency 'rubocop', '~> 0.48'
-
-  s.extensions = 'ext/mkrf_conf.rb'
+  s.add_development_dependency "bundler", "~> 1.14"
+  s.add_development_dependency "rake", "~> 12.0"
+  s.add_development_dependency "rspec", "~> 3.5"
+  s.add_development_dependency "html-proofer", "~> 3.6"
+  s.add_development_dependency "rubocop", "~> 0.48"
 end
