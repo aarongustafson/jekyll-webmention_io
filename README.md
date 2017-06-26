@@ -63,6 +63,12 @@ webmentions:
     webmentions: _includes/webmentions/webmentions.html
 ```
 
+## Pausing Lookups
+
+Looking up webmentions is a time-consuming process and can really increase your build times. We are [looking into options for throttling lookups based on page age](https://github.com/aarongustafson/jekyll-webmention_io/issues/31), but in the meantime you can "pause" lookups by setting `webmentions.pause_lookups` to `true`.
+
+It’s worth noting this will only pause the lookup end of things. Any existing webmentions cached locally will still be used.
+
 ## Picking up Redirects
 
 If you’ve ever changed the path to your posts, you may have used [the `jekyll-redirect-from` gem](https://github.com/jekyll/jekyll-redirect-from). `jekyll-webmention_io` will look for a `redirect_from` key in your YAML front matter and automatically include that original URL in any requests for webmentions so none get left behind.

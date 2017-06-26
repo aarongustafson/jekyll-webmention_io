@@ -12,6 +12,11 @@ module Jekyll
     priority :low
     
     def generate(site)
+			if site.config['webmentions']['pause_lookups'] == true
+				Jekyll::WebmentionIO::log 'info', 'Webmention lookups are currently paused.'
+				return
+			end
+
 			Jekyll::WebmentionIO::log 'info', 'Beginning to gather webmentions you’ve made. This may take a while.'
 
       webmentions = {}
