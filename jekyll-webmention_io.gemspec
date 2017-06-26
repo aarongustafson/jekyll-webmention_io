@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
 
   s.summary       = 'A Jekyll plugin for sending & receiving webmentions via Webmention.io.'
   s.description   = <<-EOF
-This Gem includes a full suite of tools for managing webmentions in Jekyll:
+This Gem includes a suite of tools for managing webmentions in Jekyll:
 
 * Tags - render webmention info into your templates:
 ** All webmentions

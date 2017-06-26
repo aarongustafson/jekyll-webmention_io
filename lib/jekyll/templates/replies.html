@@ -6,7 +6,7 @@
 					{{ webmention.content }}
 					<div class="webmention__meta">
 						{% if webmention.author %}
-							<a class="u-url" href="{{ webmention.author.url }}">
+							<a class="webmention__author h-card u-url" href="{{ webmention.author.url }}">
 								{% if webmention.author.photo %}
 									<img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
 								{% endif %}
