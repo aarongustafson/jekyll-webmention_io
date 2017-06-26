@@ -1,8 +1,8 @@
-<div class="webmentions webmentions--reposts">
+<div class="webmentions webmentions--likes">
 	{% if webmentions.size > 0 %}
 		<ol class="webmentions__list">
 			{% for webmention in webmentions %}
-				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmentions__item--{{ webmention.type }}">
+				<li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
 					<div class="webmention__author p-author h-card">
 						<a class="u-url" href="{{ webmention.author.url }}">
 							<img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
@@ -12,6 +12,6 @@
 			{% endfor %}
 		</ol>
 	{% else %}
-		<p class="webmentions__not-found">No reposts were found.</p>
+		<p class="webmentions__not-found">No likes were found.</p>
 	{% endif %}
 </div>

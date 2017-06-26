@@ -1,11 +1,10 @@
 # encoding: utf-8
 
-$:.unshift File.expand_path('../lib', __FILE__)
-require 'jekyll/webmention_io/version'
+require File.expand_path("../lib/jekyll/webmention_io/version", __FILE__)
 
 Gem::Specification.new do |s|
   s.name          = 'jekyll-webmention_io'
-  s.version       = WebmentionIO::VERSION
+  s.version       = Jekyll::WebmentionIO::VERSION
   s.license       = 'MIT'
   s.authors       = ['Aaron Gustafson']
   s.email         = ['aaron@easy-designs.net']
@@ -28,16 +27,20 @@ EOF
   
   s.platform      = Gem::Platform::RUBY
 
-  s.files         = Dir.glob('lib/**/*') +
-                    Dir.glob('assets/*') + 
-                    Dir.glob('templates/*')
+  s.files         = `git ls-files app lib`.split("\n")
 
-  s.require_paths = ['.']
+  s.require_paths = ['lib']
 
+  s.add_runtime_dependency 'jekyll', '>= 2.0', '< 4.0'
+  s.add_runtime_dependency 'json', '~> 2.0'
+  s.add_runtime_dependency 'http', '~> 2.0'
+  s.add_runtime_dependency 'openssl', '~> 2.0'
   s.add_runtime_dependency 'string_inflection', '~> 0.1'
   s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
-  s.add_runtime_dependency "jekyll", ">= 3.0", "< 4.0"
 
+  s.add_development_dependency "bundler", "~> 1.14"
   s.add_development_dependency "rake", "~> 12.0"
+  s.add_development_dependency "rspec", "~> 3.5"
+  s.add_development_dependency "html-proofer", "~> 3.6"
   s.add_development_dependency "rubocop", "~> 0.48"
 end

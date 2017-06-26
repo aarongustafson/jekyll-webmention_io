@@ -1,3 +1,5 @@
-module WebmentionIO
-  VERSION = "2.0.3.next1"
+module Jekyll
+  module WebmentionIO
+    VERSION = "2.0.9"
+  end
 end

@@ -12,7 +12,7 @@ module Jekyll
     priority :low
     
     def generate(site)
-			WebmentionIO.log 'info', 'Beginning to gather webmentions you’ve made. This may take a while.'
+			Jekyll::WebmentionIO::log 'info', 'Beginning to gather webmentions you’ve made. This may take a while.'
 
       webmentions = {}
       
@@ -27,10 +27,10 @@ module Jekyll
         webmentions[uri] = get_mentioned_uris(post)
       end
 
-			cache_file = WebmentionIO.get_cache_file_path 'outgoing'
+			cache_file = Jekyll::WebmentionIO::get_cache_file_path 'outgoing'
       File.open(cache_file, 'w') { |f| YAML.dump(webmentions, f) }
 
-			WebmentionIO.log 'info', 'Webmentions have been gathered and cached.'
+			Jekyll::WebmentionIO::log 'info', 'Webmentions have been gathered and cached.'
     end
 
     def get_mentioned_uris(post)

@@ -8,20 +8,22 @@
 #    {% webmention_replies post.url %}
 #   
 module Jekyll
-  class WebmentionRepliesTag < WebmentionTag
+  module WebmentionIO
+    class WebmentionRepliesTag < Jekyll::WebmentionIO::WebmentionTag
 
-    def initialize(tagName, text, tokens)
-      super
-      @text = text
-      set_template 'replies'
+      def initialize(tagName, text, tokens)
+        super
+        @text = text
+        set_template 'replies'
+      end
+
+      def set_data(data)
+        webmentions = extract_type 'replies', data
+        @data = { 'webmentions' => webmentions.values }
+      end
+
     end
-
-    def set_data(data)
-      webmentions = extract_type 'replies', data
-      @data = { 'webmentions' => webmentions.values }
-    end
-
   end
 end
 
-Liquid::Template.register_tag('webmention_replies', Jekyll::WebmentionRepliesTag)
+Liquid::Template.register_tag('webmention_replies', Jekyll::WebmentionIO::WebmentionRepliesTag)
