@@ -27,7 +27,7 @@ module Jekyll
     @api_suffix = ''
     
     # Set up the cache folder & files
-    cache_folder = @config['cache_folder'] || '.cache'
+    cache_folder = @config['cache_folder'] || '.jekyll-cache'
     Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
     file_prefix = ''
     if ! cache_folder.include? 'webmention'
