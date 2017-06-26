@@ -73,27 +73,27 @@ The various tag options provided by this gem are focused around display of infor
 
 ### `webmention_count`
 
-Displays a count of webmentions for the current `post.url`:
+Displays a count of webmentions for the current `page.url`:
 
-	{% webmention_count post.url %}
+	{% webmention_count page.url %}
 	
 The output will be a number.
 
 You can optionally filter this number by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
-	{% webmention_count post.url posts replies %}
+	{% webmention_count page.url posts replies %}
 
 ### `webmentions`
 
-You can get a complete list of webmentions for a given `post.url` using the following liquid tag:
+You can get a complete list of webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmentions post.url %}
+	{% webmentions page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
 You can optionally filter this number by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
-	{% webmentions post.url posts replies %}
+	{% webmentions page.url posts replies %}
 
 #### Default template info
 
@@ -125,9 +125,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 ### `webmention_likes`
 
-You can get a complete list of "like" webmentions for a given `post.url` using the following liquid tag:
+You can get a complete list of "like" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_likes post.url %}
+	{% webmention_likes page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -151,9 +151,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 ### `webmention_links`
 
-You can get a complete list of "link" webmentions for a given `post.url` using the following liquid tag:
+You can get a complete list of "link" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_links post.url %}
+	{% webmention_links page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -179,9 +179,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 ### `webmention_posts`
 
-You can get a complete list of "posts" webmentions for a given `post.url` using the following liquid tag:
+You can get a complete list of "posts" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_posts post.url %}
+	{% webmention_posts page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -205,9 +205,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 ### `webmention_replies`
 
-You can get a complete list of "reply" webmentions for a given `post.url` using the following liquid tag:
+You can get a complete list of "reply" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_replies post.url %}
+	{% webmention_replies page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -236,9 +236,9 @@ If you go with the default template, here’s a rundown of elements and class na
 	
 ### `webmention_reposts`
 
-You can get a complete list of "repost" webmentions for a given `post.url` using the following liquid tag:
+You can get a complete list of "repost" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_reposts post.url %}
+	{% webmention_reposts page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
