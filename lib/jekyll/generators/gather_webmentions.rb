@@ -70,8 +70,15 @@ module Jekyll
 			# Redirection?
 			redirected = false
 			if post.data.has_key? 'redirect_from'
-				redirected = uri.sub post.url, post.data['redirect_from']
-				targets.push( redirected )
+				if post.data['redirect_from'].is_a? String
+					redirected = uri.sub post.url, post.data['redirect_from']
+					targets.push( redirected )
+				elsif post.data['redirect_from'].is_a? Array
+					post.data['redirect_from'].each do |redirect|
+						redirected = uri.sub post.url, redirect
+						targets.push( redirected )
+					end					
+				end
 			end
 			
 			# Domain changed?
