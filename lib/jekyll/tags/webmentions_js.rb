@@ -18,7 +18,7 @@ module Jekyll
           js_types.push "'#{type}': '#{type.to_singular}'"
         end
         js << js_types.join(',')
-        js << '};'
+        js << '};</script>'
         
         templates = ''
         template_files = Jekyll::WebmentionIO::types + ['count', 'webmentions']
