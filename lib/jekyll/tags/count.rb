@@ -17,8 +17,8 @@ module Jekyll
         set_template 'count'
       end
 
-      def set_data(data)
-        @data = { 'count' => data.length }
+      def set_data( data, types )
+        @data = { 'count' => data.length, 'types' => types }
       end
 
     end

@@ -17,7 +17,7 @@ module Jekyll
         set_template 'replies'
       end
 
-      def set_data(data)
+      def set_data( data, types )
         webmentions = extract_type 'replies', data
         @data = { 'webmentions' => webmentions.values }
       end

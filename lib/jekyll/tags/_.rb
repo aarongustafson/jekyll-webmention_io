@@ -49,8 +49,8 @@ module Jekyll
         # Jekyll::WebmentionIO::log 'info', "template: #{@template}"
       end
 
-      def set_data(data)
-        @data = { 'webmentions' => data }
+      def set_data( data, types )
+        @data = { 'webmentions' => data, 'types' => types }
       end
 
       def extract_type( type, webmentions )
@@ -83,6 +83,9 @@ module Jekyll
         uri = args.shift
         uri = lookup(context, uri)
 
+        # capture the types in case JS needs them
+        types = []
+
         if @cached_webmentions.has_key? uri
           all_webmentions =  @cached_webmentions[uri].clone
           # Jekyll::WebmentionIO::log 'info', "#{all_webmentions.length} total webmentions for #{uri}"
@@ -90,6 +93,7 @@ module Jekyll
             # Jekyll::WebmentionIO::log 'info', "Requesting only #{args.inspect}"
             webmentions = {}
             args.each do |type|
+              types.push type
               extracted = extract_type( type, all_webmentions )
               # Jekyll::WebmentionIO::log 'info', "Merging in #{extracted.length} #{type}"
               webmentions = webmentions.merge( extracted )
@@ -105,7 +109,7 @@ module Jekyll
 
           webmentions = sort_webmentions( webmentions )
           
-          set_data( webmentions )
+          set_data( webmentions, types )
         end
         
         args = nil

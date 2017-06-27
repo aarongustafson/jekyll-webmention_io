@@ -1,4 +1,4 @@
-<div class="webmentions">
+<div class="webmentions"{% if types %} data-webmention-types="{{ types | join: ',' }}"{% endif %}>
 	{% if webmentions.size > 0 %}
 		<ol class="webmentions__list">
 			{% for webmention in webmentions %}

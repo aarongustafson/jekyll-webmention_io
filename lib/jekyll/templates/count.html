@@ -1,1 +1,1 @@
-<span class="webmention-count">{{ count }}</span>
+<span class="webmention-count"{% if types %} data-webmention-types="{{ types | join: ',' }}"{% endif %}>{{ count }}</span>
