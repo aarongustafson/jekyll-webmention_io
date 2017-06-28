@@ -3,7 +3,9 @@
     <ol class="webmentions__list">
       {% for webmention in webmentions %}
         <li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
-          {{ webmention.content }}
+          <div class="webmention__content p-content">
+            {{ webmention.content }}
+          </div>
           <div class="webmention__meta">
             {% if webmention.author %}
               <a class="webmention__author h-card u-url" href="{{ webmention.author.url }}">
