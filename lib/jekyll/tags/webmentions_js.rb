@@ -10,6 +10,13 @@ module Jekyll
     using StringInflection
     class WebmentionJSTag < Liquid::Tag
       def render(context)
+        site = context.registers[:site]
+
+        # JS can be turned off too
+        if site.config['webmentions']['js'] == false
+          return
+        end
+
         # Configuration porting
         js = '<script>'
         js << 'if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }'
@@ -22,7 +29,6 @@ module Jekyll
         js << '};</script>'
 
         # JS file
-        site = context.registers[:site]
         js_folder = 'js'
         if site.config['webmentions']['js'] and site.config['webmentions']['js']['destination']
           js_folder = site.config['webmentions']['js']['destination']
