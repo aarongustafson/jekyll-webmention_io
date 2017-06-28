@@ -10,6 +10,7 @@ module Jekyll
     using StringInflection
     class WebmentionJSTag < Liquid::Tag
       def render(context)
+        # Configuration porting
         js = '<script>'
         js << 'if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }'
         js << 'window.JekyllWebmentionIO.types = { '
@@ -19,6 +20,15 @@ module Jekyll
         end
         js << js_types.join(',')
         js << '};</script>'
+
+        # JS file
+        site = context.registers[:site]
+        js_folder = 'js'
+        if site.config['webmentions']['js'] and site.config['webmentions']['js']['destination']
+          js_folder = site.config['webmentions']['js']['destination']
+        end
+        js_file_path = "#{site.config['baseurl']}/#{js_folder}/JekyllWebmentionIO.js"
+        js << "<script src=\"#{js_file_path}\" async></script>"
         
         templates = ''
         template_files = Jekyll::WebmentionIO::types + ['count', 'webmentions']
