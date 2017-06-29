@@ -10,8 +10,8 @@ module Jekyll
     class WebmentionHeadTag < Liquid::Tag
       def render(context)
         head = ''
-        head << '<link rel="dns-prefetch" href="//webmention.io">'
-        head << '<link rel="preconnect" href="//webmention.io">'
+        head << '<link rel="dns-prefetch" href="https://webmention.io">'
+        head << '<link rel="preconnect" href="https://webmention.io">'
         head << '<link rel="preconnect" href="ws://webmention.io:8080">'
         
         page = context['page']
