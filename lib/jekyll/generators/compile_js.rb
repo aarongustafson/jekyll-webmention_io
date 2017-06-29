@@ -46,7 +46,7 @@ module Jekyll
           js_types.push "'#{type}': '#{type.to_singular}'"
         end
         types_js << js_types.join(',')
-        types_js << '}(this, this.JekyllWebmentionIO));'
+        types_js << '};(this, this.JekyllWebmentionIO));'
         javascript << types_js
         
         unless config['uglify'] == false
