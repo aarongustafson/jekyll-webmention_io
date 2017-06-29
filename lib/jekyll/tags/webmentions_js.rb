@@ -7,7 +7,6 @@
 
 module Jekyll
   module WebmentionIO
-    using StringInflection
     class WebmentionJSTag < Liquid::Tag
       def render(context)
         site = context.registers[:site]

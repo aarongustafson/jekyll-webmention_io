@@ -9,6 +9,7 @@ require 'uglifier'
 
 module Jekyll
   module WebmentionIO
+    using StringInflection
     class CompileJS < Generator
       
       safe true
