@@ -16,13 +16,19 @@ module Jekyll
           return
         end
 
+        config = {
+          'destination' => "js",
+          'uglify'      => true
+        }
+        site_config = site.config['webmentions']['js'] || {}        
+        config = config.merge(site_config)
+
         # JS file
-        js_folder = 'js'
-        if site.config['webmentions']['js'] and site.config['webmentions']['js']['destination']
-          js_folder = site.config['webmentions']['js']['destination']
+        js = ''
+        unless config['deploy'] == false
+          js_file_path = "#{site.config['baseurl']}/#{config['destination']}/JekyllWebmentionIO.js"
+          js << "<script src=\"#{js_file_path}\" async></script>"
         end
-        js_file_path = "#{site.config['baseurl']}/#{js_folder}/JekyllWebmentionIO.js"
-        js << "<script src=\"#{js_file_path}\" async></script>"
         
         templates = ''
         template_files = Jekyll::WebmentionIO::types + ['count', 'webmentions']

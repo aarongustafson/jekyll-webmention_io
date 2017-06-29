@@ -38,16 +38,17 @@ module Jekyll
         end
         
         # Dump in types
-        types_js = ';(function(window,JekyllWebmentionIO){'
-        types_js << 'if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }'
-        types_js << 'JekyllWebmentionIO.types = { '
         js_types = []
         Jekyll::WebmentionIO::types.each do |type|
           js_types.push "'#{type}': '#{type.to_singular}'"
         end
-        types_js << js_types.join(',')
-        types_js << '};(this, this.JekyllWebmentionIO));'
-        javascript << types_js
+        types_js = <<-EOF
+          ;(function(window,JekyllWebmentionIO){
+            if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }
+            JekyllWebmentionIO.types = { TYPES };
+          }(this, this.JekyllWebmentionIO));
+        EOF
+        javascript << types_js.sub( /TYPES/, js_types.join(',') )
         
         unless config['uglify'] == false
           uglify_config = {
