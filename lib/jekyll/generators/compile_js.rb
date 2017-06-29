@@ -36,6 +36,18 @@ module Jekyll
           javascript << File.read(handler)
         end
         
+        # Dump in types
+        types_js = ';(function(window,JekyllWebmentionIO){'
+        types_js << 'if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }'
+        types_js << 'JekyllWebmentionIO.types = { '
+        js_types = []
+        Jekyll::WebmentionIO::types.each do |type|
+          js_types.push "'#{type}': '#{type.to_singular}'"
+        end
+        types_js << js_types.join(',')
+        types_js << '}(this, this.JekyllWebmentionIO));'
+        javascript << types_js
+        
         unless config['uglify'] == false
           uglify_config = {
             :harmony => true
@@ -49,11 +61,11 @@ module Jekyll
         file_name = 'JekyllWebmentionIO.js'
         File.open("#{source_file_destination}/#{file_name}", 'w') { |f| f.write( javascript ) }
 
-        # Make sure Jekyll picks it up too
-        js_file = StaticFile.new(site, site.config['source'], config['destination'], file_name)
-        site.static_files << js_file
-
-        Jekyll::WebmentionIO::log 'info', "JavaScript has been written into #{config['destination']}/#{file_name}."
+        unless config['deploy'] == false
+          # Make sure Jekyll picks it up too
+          js_file = StaticFile.new(site, site.config['source'], config['destination'], file_name)
+          site.static_files << js_file
+        end
       end
     end
   end

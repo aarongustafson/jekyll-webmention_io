@@ -17,17 +17,6 @@ module Jekyll
           return
         end
 
-        # Configuration porting
-        js = '<script>'
-        js << 'if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }'
-        js << 'window.JekyllWebmentionIO.types = { '
-        js_types = []
-        Jekyll::WebmentionIO::types.each do |type|
-          js_types.push "'#{type}': '#{type.to_singular}'"
-        end
-        js << js_types.join(',')
-        js << '};</script>'
-
         # JS file
         js_folder = 'js'
         if site.config['webmentions']['js'] and site.config['webmentions']['js']['destination']
