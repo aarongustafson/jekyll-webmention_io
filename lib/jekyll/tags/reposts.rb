@@ -17,7 +17,7 @@ module Jekyll
         set_template 'reposts'
       end
 
-      def set_data(data)
+      def set_data( data, types )
         webmentions = extract_type 'reposts', data
         @data = { 'webmentions' => webmentions.values }
       end
