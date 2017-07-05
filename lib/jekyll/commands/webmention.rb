@@ -31,11 +31,10 @@ module Jekyll
                 end
                 endpoint = Jekyll::WebmentionIO::get_webmention_endpoint( target )
                 if endpoint
-                  endpoint.scan(/href="([^"]+)"/) do |endpoint_url|
-                    endpoint_url = endpoint_url[0]
-                    Jekyll::WebmentionIO::webmention( source, target, endpoint )
+                  response = Jekyll::WebmentionIO::webmention( source, target, endpoint, true )
+                  if response
+                    sent[source].push( target )
                   end
-                  sent[source].push( target )
                 end
               end
             end

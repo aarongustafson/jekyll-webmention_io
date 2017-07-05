@@ -12,6 +12,7 @@ require 'net/http'
 require 'uri'
 require 'openssl'
 require 'string_inflection'
+require 'webmention'
 
 module Jekyll
   module WebmentionIO
@@ -98,12 +99,17 @@ module Jekyll
     
     def self.get_webmention_endpoint( uri )
       log 'info', "Looking for webmention endpoint at #{uri}"
-      return `curl -s --location "#{uri}" | grep 'rel="webmention"'`
+      endpoint = Webmention::Client.supports_webmention?( uri )
+      if ! endpoint
+        log 'info', "No webmention endpoint at #{uri}"
+      end
+      endpoint
     end
 
     def self.webmention( source, target, endpoint )
       log 'info', "Sending webmention of #{source} to #{endpoint}"
-      return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
+      #return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
+      return Webmention::Client.send_mention( endpoint, source, target )
     end
 
     # Utilities
