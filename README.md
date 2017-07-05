@@ -2,7 +2,7 @@
 
 This Gem includes a suite of tools for managing webmentions in Jekyll:
 
-* **[Tags](#tags)** - render webmention info into your templates:
+* **[Tags](#tags)**
   * [Count of webmentions](#webmention_count) (filterable)
   * [All webmentions](#webmentions) (filterable)
   * [Likes](#webmention_likes)
@@ -10,6 +10,8 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
   * [Posts](#webmention_posts)
   * [Replies](#webmention_replies)
   * [Reposts](#webmention_reposts)
+  * [Contents for the `head` of your pages](#webmentions_head)
+  * [JavaScript enhancements](#javascript_enhancements)
 * **[Commands](#commands)** - Send webmentions you’ve made
 * **[Generators](#generators)** - Collect webmentions from Webmention.io and gather sites you’ve mentioned
 
@@ -33,11 +35,13 @@ This gem will work well out of the box, but is configurable in a number of ways.
 * `cache_bad_uris_for` - In order to reduce unnecessary requests to servers that aren’t responding, this gem will keep track of them and avoid making new requests to them for 1 day. If you’d like to adjust this up or down, you can use this configuration value. It expects a number corresponding to the number of days you want to wait before trying the domain again.
 * `legacy_domains` - If you’ve relocated your site from another URL or moved from to HTTPS from HTTP, you can use this configuration option to specify additional domains to append your `page.url` to. It expects an array.
 * `templates` - If you would like to roll your own templates, you totally can. You will need to assign a hash of the template paths to use for loading each one.
+* `username` - Your [webmention.io](https://webmention.io) username (for use in the `link` tags in your head)
 
 ### Simple Example:
 
 ```yml
 webmentions:
+  username: YOUR_USERNAME
   # Use my own cache folder
   cache_folder: .cache
   # skip bad URLs for 5 days
@@ -52,6 +56,7 @@ webmentions:
 
 ```yml
 webmentions:
+  username: YOUR_USERNAME
   cache_folder: .cache
   cache_bad_uris_for: 5
   legacy_domains:
@@ -270,12 +275,23 @@ If you go with the default template, here’s a rundown of elements and class na
   * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
 * `webmentions__not-found` - The "no results" message shown if no mentions are found (`p`)
 
+### `webmentions_head`
+
+To insert bits and bobs that will help webmention-enable your site, you’ll want to include this in the `head` of your pages. If you include a `username` in your [configuration](#configuration), it will automatically generate the `link` elements necessary to notify webmention clients of the [webmention.io](https://webmention.io) endpoint where webmentions should be sent. It will also drop in information about any [redirects in play](#picking-up-redirects) for the current page and insert [Client Hints](http://httpwg.org/http-extensions/client-hints.html) that will make the [JavaScript enhancements](#javascript-enhancements) faster.
+
+```html
+<head>
+  …
+  {% webmentions_head %}
+</head>
+```
+
 ## Commands
 
 Webmentions are not automatically sent when building your Jekyll project as that may not always be desirable. That said, this gem does automatically collect mentions made in your posts. It caches them and makes them available to you to send using the following command:
 
 ```
-jekyll webmention
+$> jekyll webmention
 ```
 
 ## Generators
@@ -295,17 +311,6 @@ Because static websites are, well, static, it’s possible webmentions might hav
 Include this tag before your post layout’s `</body>` and the plugin will render in a `script` tag pointing to the `JekyllWebmentionIO.js` file and generate `template` tags corresponding to the various Liquid templates (default or custom) being used to render your webmentions.
 
 We are using [liquid.js](https://github.com/mattmccray/liquid.js), a JavaScript port of Liquid by [Matt McCray](https://github.com/mattmccray/), to render these webmentions.
-
-If you’d like to improve perfomance and/or you have active [redirects in play](#picking-up-redirects), you should also add the following tag to the `head` of your pages:
-
-```html
-<head>
-  …
-  {% webmentions_head %}
-</head>
-```
-
-This will render in [Client Hints](http://httpwg.org/http-extensions/client-hints.html) for webmention.io that will speed up the connection a little. It will also look for any `redirect_from` YAML front matter and inject a `meta` element referencing those URIs so the JavaScript can include them in the request.
 
 ### The JavaScript file
 
