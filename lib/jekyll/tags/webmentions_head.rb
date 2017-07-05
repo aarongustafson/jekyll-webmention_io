@@ -25,6 +25,12 @@ module Jekyll
           head << "<meta property=\"webmention:redirected_from\" content=\"#{redirect}\">"
         end
 
+        config = site.config['webmentions']
+        if config.has_key? 'username'
+          head << "<link rel=\"pingback\" href=\"https://webmention.io/#{config['username']}/xmlrpc\">"
+          head << "<link rel=\"webmention\" href=\"https://webmention.io/#{config['username']}/webmention\">"
+        end
+
         head
       end
     end
