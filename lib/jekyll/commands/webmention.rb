@@ -31,7 +31,7 @@ module Jekyll
                 end
                 endpoint = Jekyll::WebmentionIO::get_webmention_endpoint( target )
                 if endpoint
-                  response = Jekyll::WebmentionIO::webmention( source, target, endpoint, true )
+                  response = Jekyll::WebmentionIO::webmention( source, target, endpoint )
                   if response
                     sent[source].push( target )
                   end

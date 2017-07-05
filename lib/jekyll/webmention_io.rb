@@ -107,9 +107,9 @@ module Jekyll
     end
 
     def self.webmention( source, target, endpoint )
-      log 'info', "Sending webmention of #{source} to #{endpoint}"
+      log 'info', "Sending webmention of #{target} in #{source} to #{endpoint}"
       #return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      return Webmention::Client.send_mention( endpoint, source, target )
+      return Webmention::Client.send_mention( endpoint, source, target, true )
     end
 
     # Utilities
