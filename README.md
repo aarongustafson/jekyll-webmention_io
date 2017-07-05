@@ -11,7 +11,7 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
   * [Replies](#webmention_replies)
   * [Reposts](#webmention_reposts)
   * [Contents for the `head` of your pages](#webmentions_head)
-  * [JavaScript enhancements](#javascript_enhancements)
+  * [JavaScript enhancements](#javascript-enhancements)
 * **[Commands](#commands)** - Send webmentions you’ve made
 * **[Generators](#generators)** - Collect webmentions from Webmention.io and gather sites you’ve mentioned
 
