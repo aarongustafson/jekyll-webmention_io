@@ -1,3 +1,5 @@
+require 'json'
+
 module Jekyll
   module Commands
     class WebmentionCommand < Command
@@ -12,20 +14,11 @@ module Jekyll
 
       def self.process( args=[], options={} )
         cached_outgoing = Jekyll::WebmentionIO::get_cache_file_path 'outgoing'
-        cached_sent     = Jekyll::WebmentionIO::get_cache_file_path 'sent'
         if File.exists?(cached_outgoing)
-          if File.exists?(cached_sent)
-            sent = open(cached_sent) { |f| YAML.load(f) }
-          else
-            sent = {}
-          end  # file exists (sent)
           outgoing = open(cached_outgoing) { |f| YAML.load(f) }
-          outgoing.each_pair do |source, targets|
-            if ! sent[source] or ! sent[source].kind_of? Array
-              sent[source] = Array.new
-            end
-            targets.each do |target|
-              if target and ! sent[source].find_index( target )
+          outgoing.each do |source, targets|
+            targets.each do |target, response|
+              if response === false
                 if target.index( "//" ) == 0
                   target  = "http:#{target}"
                 end
@@ -33,13 +26,13 @@ module Jekyll
                 if endpoint
                   response = Jekyll::WebmentionIO::webmention( source, target, endpoint )
                   if response
-                    sent[source].push( target )
+                    outgoing[source][target] = JSON.parse response.body
                   end
                 end
               end
             end
           end
-          File.open(cached_sent, 'w') { |f| YAML.dump(sent, f) }
+          File.open(cached_outgoing, 'w') { |f| YAML.dump(outgoing, f) }
         end # file exists (outgoing)
       end # def process
     end # WebmentionCommand
