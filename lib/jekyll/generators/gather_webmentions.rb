@@ -24,11 +24,7 @@ module Jekyll
       Jekyll::WebmentionIO::set_api_suffix('&perPage=9999')
 
       cache_file = Jekyll::WebmentionIO::get_cache_file_path 'incoming'
-      if File.exists?(cache_file)
-        @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
-      else
-        @cached_webmentions = {}
-      end
+      @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       
       if Jekyll::VERSION >= "3.0.0"
         posts = site.posts.docs
@@ -48,11 +44,19 @@ module Jekyll
       posts.each do |post|
         # Gather the URLs
         targets = get_webmention_target_urls(site, post)
+
+        # Get the last id we have in the hash
+        since_id = false
+        if @cached_webmentions.has_key? post.url
+          past_webmentions = @cached_webmentions[post.url]
+          since_id = past_webmentions[past_webmentions.keys.last]['raw']['id']
+        end
         
         # execute the API
         api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
+        api_params << "&since_id=#{since_id}" if since_id
         response = Jekyll::WebmentionIO::get_response(api_params)
-        # @webmention_io.log 'info', response.inspect
+        # Jekyll::WebmentionIO::log 'info', response.inspect
         
         process_webmentions( post.url, response )
       end # posts loop
@@ -157,8 +161,8 @@ module Jekyll
           # 	webmentions[the_date] = {}
           # end
 
-          # Make sure we have the webmention
-          if ! webmentions.has_key? id
+          # Make sure we don’t have the webmention
+          unless webmentions.has_key? id
             
             # Scaffold the webmention
             webmention = {
@@ -237,7 +241,7 @@ module Jekyll
             # @webmention_io.log 'info', webmention.inspect
             webmentions[id] = webmention
 
-          end # if ID does not exist
+          end # Make sure we don’t have the webmention
         
         end # each link
 
