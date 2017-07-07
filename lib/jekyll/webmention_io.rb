@@ -103,18 +103,24 @@ module Jekyll
     end
     
     def self.get_webmention_endpoint( uri )
-      log 'info', "Looking for webmention endpoint at #{uri}"
+      # log 'info', "Looking for webmention endpoint at #{uri}"
       endpoint = Webmention::Client.supports_webmention?( uri )
-      if ! endpoint
-        log 'info', "No webmention endpoint at #{uri}"
-      end
+      # if ! endpoint
+      #   log 'info', "No webmention endpoint at #{uri}"
+      # end
       endpoint
     end
 
     def self.webmention( source, target, endpoint )
-      log 'info', "Sending webmention of #{target} in #{source} to #{endpoint}"
+      log 'info', "Sending webmention of #{target} in #{source}"
       #return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      return Webmention::Client.send_mention( endpoint, source, target, true )
+      response = Webmention::Client.send_mention( endpoint, source, target, true )
+      if response
+        log 'info', "Webmention successful!"
+      else
+        log 'info', "Webmention failed, but will remain queued for next time"
+      end
+      response
     end
 
     # Utilities
