@@ -1,0 +1,3 @@
+dependency_source: gemspec_file
+brakeman:
+  enabled: false
