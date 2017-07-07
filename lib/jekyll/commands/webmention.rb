@@ -13,6 +13,10 @@ module Jekyll
       end
 
       def self.process( args=[], options={} )
+        if File.exists? "#{Jekyll::WebmentionIO::cache_folder}/#{Jekyll::WebmentionIO::file_prefix}sent.yml"
+          Jekyll::WebmentionIO::log 'error', 'Your outgoing webmentions queue needs to be upgraded. Please re-build your project.'
+        end
+        count = 0
         cached_outgoing = Jekyll::WebmentionIO::get_cache_file_path 'outgoing'
         if File.exists?(cached_outgoing)
           outgoing = open(cached_outgoing) { |f| YAML.load(f) }
@@ -27,12 +31,16 @@ module Jekyll
                   response = Jekyll::WebmentionIO::webmention( source, target, endpoint )
                   if response
                     outgoing[source][target] = JSON.parse response.body
+                    count += 1
                   end
                 end
               end
             end
           end
-          File.open(cached_outgoing, 'w') { |f| YAML.dump(outgoing, f) }
+          if count > 0
+            File.open(cached_outgoing, 'w') { |f| YAML.dump(outgoing, f) }
+          end
+          Jekyll::WebmentionIO::log 'info', "#{count} webmentions sent."
         end # file exists (outgoing)
       end # def process
     end # WebmentionCommand
