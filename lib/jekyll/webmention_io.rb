@@ -31,17 +31,16 @@ module Jekyll
       @config = @jekyll_config['webmentions'] || {}
       
       # Set up the cache folder & files
-      cache_folder = @config['cache_folder'] || '.jekyll-cache'
-      Dir.mkdir(cache_folder) unless File.exists?(cache_folder)
-      file_prefix = ''
-      if ! cache_folder.include? 'webmention'
-        file_prefix = 'webmention_io_'
+      @cache_folder = @config['cache_folder'] || '.jekyll-cache'
+      Dir.mkdir(@cache_folder) unless File.exists?(@cache_folder)
+      @file_prefix = ''
+      if ! @cache_folder.include? 'webmention'
+        @file_prefix = 'webmention_io_'
       end
       @cache_files = {
-        'incoming' => "#{cache_folder}/#{file_prefix}received.yml",
-        'outgoing' => "#{cache_folder}/#{file_prefix}queued.yml",
-        'sent'     => "#{cache_folder}/#{file_prefix}sent.yml",
-        'bad_uris' => "#{cache_folder}/#{file_prefix}bad_uris.yml"
+        'incoming' => "#{@cache_folder}/#{@file_prefix}received.yml",
+        'outgoing' => "#{@cache_folder}/#{@file_prefix}outgoing.yml",
+        'bad_uris' => "#{@cache_folder}/#{@file_prefix}bad_uris.yml"
       }
       @cache_files.each do |key, file|
         if ! File.exists?(file)
@@ -59,6 +58,12 @@ module Jekyll
     end
     def self.cache_files
       @cache_files
+    end
+    def self.cache_folder
+      @cache_folder
+    end
+    def self.file_prefix
+      @file_prefix
     end
     def self.types
       @types
@@ -98,18 +103,24 @@ module Jekyll
     end
     
     def self.get_webmention_endpoint( uri )
-      log 'info', "Looking for webmention endpoint at #{uri}"
+      # log 'info', "Looking for webmention endpoint at #{uri}"
       endpoint = Webmention::Client.supports_webmention?( uri )
-      if ! endpoint
-        log 'info', "No webmention endpoint at #{uri}"
-      end
+      # if ! endpoint
+      #   log 'info', "No webmention endpoint at #{uri}"
+      # end
       endpoint
     end
 
     def self.webmention( source, target, endpoint )
-      log 'info', "Sending webmention of #{target} in #{source} to #{endpoint}"
+      log 'info', "Sending webmention of #{target} in #{source}"
       #return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      return Webmention::Client.send_mention( endpoint, source, target, true )
+      response = Webmention::Client.send_mention( endpoint, source, target, true )
+      if response
+        log 'info', "Webmention successful!"
+      else
+        log 'info', "Webmention failed, but will remain queued for next time"
+      end
+      response
     end
 
     # Utilities
