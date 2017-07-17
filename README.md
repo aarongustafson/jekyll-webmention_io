@@ -17,6 +17,19 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
 
 There are also a few [JavaScript enhancement features](#javascript-enhancements) available.
 
+## Quickstart
+
+If you just want to get up and running quickly, here’s the rundown of what you need to do:
+
+1. Add `gem 'jekyll-webmention_io'` to your `Gemfile`
+2. Add the plugin to `gems` section of your `_config.yml`
+3. Run `bundle install`
+4. Add the [`{% webmentions_head %}`](#webmentions_head) tag to the `head` of your site
+5. Add the [`{% webmentions %}`](#webmentions) tag to the layout for your posts where you want webmentions displayed
+6. (Optional) Add the [`{% webmentions_js %}`](#javascript-enhancements) tag to the bottom of your posts template (before the `</body>` tag)
+
+If you want to customize your install, read on…
+
 ## Webmention support
 
 All inbound webmentions are collected. The following are able to be distilled and handled separately::
