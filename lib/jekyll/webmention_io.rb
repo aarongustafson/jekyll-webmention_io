@@ -221,6 +221,7 @@ end
 Dir[File.dirname(__FILE__) + '/generators/*.rb'].each do |file|
   require file
 end
+require "#{File.dirname(__FILE__)}/tags/_.rb"
 Dir[File.dirname(__FILE__) + '/tags/*.rb'].each do |file|
-  require file
+  require file unless file.include? '_.rb'
 end
