@@ -44,7 +44,7 @@ module Jekyll
           handler = File.open(template_file, 'rb')
           template_contents = handler.read
 
-          templates << "<template id=\"webmention-#{template}\">#{template_contents}</template>"
+          templates << "<template style=\"display:none\" id=\"webmention-#{template}\">#{template_contents}</template>"
         end
         
         "#{js}\n#{templates}"

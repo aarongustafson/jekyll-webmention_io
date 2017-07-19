@@ -49,7 +49,9 @@ module Jekyll
         since_id = false
         if @cached_webmentions.has_key? post.url
           past_webmentions = @cached_webmentions[post.url]
-          since_id = past_webmentions[past_webmentions.keys.last]['raw']['id']
+          if past_webmentions && past_webmentions.keys && past_webmentions[past_webmentions.keys.last]
+            since_id = past_webmentions[past_webmentions.keys.last]['raw']['id']
+          end
         end
         
         # execute the API
