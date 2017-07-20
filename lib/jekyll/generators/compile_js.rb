@@ -9,6 +9,12 @@ require 'uglifier'
 
 module Jekyll
   module WebmentionIO
+    class JavaScriptFile < StaticFile
+      def destination_rel_dir
+        Jekyll::WebmentionIO::config['js']['destination'] || '/js/'
+      end
+    end
+
     using StringInflection
     class CompileJS < Generator
       
@@ -57,15 +63,14 @@ module Jekyll
           javascript = Uglifier.new(uglify_config).compile(javascript)
         end
 
-        # Generate the file in the source folder
-        source_file_destination = "#{site.config['source']}/#{config['destination']}"
-        Dir.mkdir( source_file_destination ) unless File.exists?( source_file_destination )
+        # Generate the file
         file_name = 'JekyllWebmentionIO.js'
+        source_file_destination = ( config['source'] == false ?  Dir.mktmpdir : "#{site.config['source']}/#{config['destination']}" )
+        puts source_file_destination
+        Dir.mkdir( source_file_destination ) unless File.exists?( source_file_destination )
         File.open("#{source_file_destination}/#{file_name}", 'w') { |f| f.write( javascript ) }
-
         unless config['deploy'] == false
-          # Make sure Jekyll picks it up too
-          js_file = StaticFile.new(site, site.config['source'], config['destination'], file_name)
+          js_file = Jekyll::WebmentionIO::JavaScriptFile.new(site, source_file_destination, '', file_name)
           site.static_files << js_file
         end
       end
