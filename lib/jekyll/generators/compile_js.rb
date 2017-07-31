@@ -11,7 +11,12 @@ module Jekyll
   module WebmentionIO
     class JavaScriptFile < StaticFile
       def destination_rel_dir
-        Jekyll::WebmentionIO::config['js']['destination'] || '/js/'
+        config = {
+          'destination' => 'js'
+        }
+        js_config = Jekyll::WebmentionIO::config['js'] || {}
+        config = config.merge(js_config)
+        config['destination']
       end
     end
 
@@ -28,7 +33,7 @@ module Jekyll
         end
 
         config = {
-          'destination' => "js",
+          'destination' => 'js',
           'uglify'      => true
         }
         site_config = site.config['webmentions']['js'] || {}
@@ -66,7 +71,6 @@ module Jekyll
         # Generate the file
         file_name = 'JekyllWebmentionIO.js'
         source_file_destination = ( config['source'] == false ?  Dir.mktmpdir : "#{site.config['source']}/#{config['destination']}" )
-        puts source_file_destination
         Dir.mkdir( source_file_destination ) unless File.exists?( source_file_destination )
         File.open("#{source_file_destination}/#{file_name}", 'w') { |f| f.write( javascript ) }
         unless config['deploy'] == false
