@@ -24,7 +24,7 @@ module Jekyll
 
       def lookup(context, name)
         lookup = context
-        name.split(".").each do |value|
+        name&.split('.')&.each do |value|
           lookup = lookup[value]
         end
         lookup
@@ -117,7 +117,7 @@ module Jekyll
         if @template and @data
           # Jekyll::WebmentionIO::log 'info', "Preparing to render\n\n#{@data.inspect}\n\ninto\n\n#{@template}"
           template = Liquid::Template.parse(@template, :error_mode => :strict)
-          html = template.render(@data, { strict_variables: true, strict_filters: true })
+          html = template.render(@data, { strict_variables: false, strict_filters: true })
           template.errors.each do |error|
             Jekyll::WebmentionIO::log 'error', error
           end
