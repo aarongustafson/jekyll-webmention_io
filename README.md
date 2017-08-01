@@ -119,7 +119,7 @@ You can get a complete list of webmentions for a given `page.url` using the foll
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-You can optionally filter this number by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
+You can optionally filter this list by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
 	{% webmentions page.url posts replies %}
 
