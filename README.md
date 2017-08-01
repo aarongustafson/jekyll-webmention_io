@@ -327,7 +327,7 @@ We are using [liquid.js](https://github.com/mattmccray/liquid.js), a JavaScript 
 
 ### The JavaScript file
 
-By default, this gem will render a new file, `JekyllWebmentionIO.js`, into the `js` directory in your source folder. The file will be compressed using [a Ruby port of Uglify](https://github.com/lautis/uglifier). This file will also get added to your deployment build (even on the first run). For most use cases, this apprach plus the `webmentions_js` Liquid tag will be perfectly adequate, but if you need more control, there are a few configuration options available. All are nested in `webmentions.js`:
+By default, this gem will render a new file, `JekyllWebmentionIO.js`, into the `js` directory in your source folder. The file will be compressed using [a Ruby port of Uglify](https://github.com/lautis/uglifier). This file will also get added to your deployment build (even on the first run). For most use cases, this approach plus the `webmentions_js` Liquid tag will be perfectly adequate, but if you need more control, there are a few configuration options available. All are nested in `webmentions.js`:
 
 * `deploy` - If you would rather manage the deployment of this JavaScript file independently, add this property and set it to `false`. The file will not be added to your site build. If you do this, you will likely also want to set the `destination` to a directory Jekyll excludes.
 * `destination` - Where you want the file to be put within your site’s source folder. If you don’t explicitly name a location, the file will be placed in `SOURCE_FOLDER/js`.
