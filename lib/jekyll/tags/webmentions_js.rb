@@ -12,15 +12,16 @@ module Jekyll
         site = context.registers[:site]
 
         # JS can be turned off too
-        if site.config['webmentions']['js'] == false
-          return
+        if site.config.dig( 'webmentions', 'js' ) == false
+          Jekyll::WebmentionIO::log 'info', 'JavaScript output is disabled, so the {% webmentions_js %} tag is being skipped'
+          return ''
         end
 
         config = {
-          'destination' => "js",
+          'destination' => 'js',
           'uglify'      => true
         }
-        site_config = site.config['webmentions']['js'] || {}        
+        site_config = site.config.dig( 'webmentions', 'js' ) || {}        
         config = config.merge(site_config)
 
         # JS file
@@ -33,7 +34,7 @@ module Jekyll
         templates = ''
         template_files = Jekyll::WebmentionIO::types + ['count', 'webmentions']
         template_files.each do |template|
-          if Jekyll::WebmentionIO::config.has_key? 'templates' and Jekyll::WebmentionIO::config['templates'].has_key? template
+          if Jekyll::WebmentionIO::config.dig( 'templates', template )
             # Jekyll::WebmentionIO::log 'info', "Using custom #{template} template"
             template_file = Jekyll::WebmentionIO::config['templates'][template]
           else
