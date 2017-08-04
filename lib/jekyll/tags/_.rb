@@ -35,7 +35,7 @@ module Jekyll
         
         Jekyll::WebmentionIO::log 'error', "#{template} is not supported" if ! supported_templates.include? template
 
-        if Jekyll::WebmentionIO::config.has_key? 'templates' and Jekyll::WebmentionIO::config['templates'].has_key? template
+        if Jekyll::WebmentionIO::config.dig( 'templates', template )
           # Jekyll::WebmentionIO::log 'info', "Using custom #{template} template"
           template_file = Jekyll::WebmentionIO::config['templates'][template]
         else
