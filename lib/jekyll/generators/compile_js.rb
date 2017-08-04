@@ -27,7 +27,7 @@ module Jekyll
       priority :low
       
       def generate(site)
-        if site.config['webmentions']['js'] == false
+        if site.config.dig( 'webmentions', 'js' ) == false
           Jekyll::WebmentionIO::log 'info', 'Skipping JavaScript inclusion.'
           return
         end
@@ -36,7 +36,7 @@ module Jekyll
           'destination' => 'js',
           'uglify'      => true
         }
-        site_config = site.config['webmentions']['js'] || {}
+        site_config = site.config.dig( 'webmentions', 'js' ) || {}
         
         config = config.merge(site_config)
         
