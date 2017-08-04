@@ -12,7 +12,7 @@ module Jekyll
     priority :low
     
     def generate(site)
-      if site.config['webmentions']['pause_lookups'] == true
+      if site.config.dig( 'webmentions', 'pause_lookups' ) == true
         Jekyll::WebmentionIO::log 'info', 'Webmention lookups are currently paused.'
         return
       end
@@ -62,7 +62,7 @@ module Jekyll
       outgoing_webmentions.each do |source_url, webmentions|
         collection = {}
         webmentions.each do |target_url|
-          if sent_webmentions.has_key? source_url and sent_webmentions[source_url].include? target_url
+          if sent_webmentions.dig( source_url, target_url )
             collection[target_url] = ""
           else
             collection[target_url] = false
