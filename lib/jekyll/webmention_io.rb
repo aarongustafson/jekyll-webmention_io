@@ -123,6 +123,20 @@ module Jekyll
       response
     end
 
+    def self.get_template_contents( template )
+      if Jekyll::WebmentionIO::config.dig( 'templates', template )
+          # Jekyll::WebmentionIO::log 'info', "Using custom #{template} template"
+          template_file = Jekyll::WebmentionIO::config['templates'][template]
+        else
+          # Jekyll::WebmentionIO::log 'info', "Using default #{template} template"
+          template_file = File.join(File.dirname(File.expand_path(__FILE__)), "templates/#{template}.html")
+        end
+        puts template_file
+        # Jekyll::WebmentionIO::log 'info', "Template file: #{template_file}"
+        handler = File.open(template_file, 'rb')
+        handler.read
+    end
+
     # Utilities
     # def key_exists(hash, test_key)
     #   if hash.is_a? Hash 

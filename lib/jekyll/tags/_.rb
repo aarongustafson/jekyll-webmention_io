@@ -31,21 +31,9 @@ module Jekyll
       end
       
       def set_template( template )
-        supported_templates = Jekyll::WebmentionIO::types + ['count', 'webmentions']
-        
+        supported_templates = Jekyll::WebmentionIO::types + ['count', 'webmentions']        
         Jekyll::WebmentionIO::log 'error', "#{template} is not supported" if ! supported_templates.include? template
-
-        if Jekyll::WebmentionIO::config.dig( 'templates', template )
-          # Jekyll::WebmentionIO::log 'info', "Using custom #{template} template"
-          template_file = Jekyll::WebmentionIO::config['templates'][template]
-        else
-          # Jekyll::WebmentionIO::log 'info', "Using default #{template} template"
-          template_file = File.join(File.dirname(File.expand_path(__FILE__)), "../templates/#{template}.html")
-        end
-
-        # Jekyll::WebmentionIO::log 'info', "Template file: #{template_file}"
-        handler = File.open(template_file, 'rb')
-        @template = handler.read
+        @template = Jekyll::WebmentionIO::get_template_contents( template )
         # Jekyll::WebmentionIO::log 'info', "template: #{@template}"
       end
 
