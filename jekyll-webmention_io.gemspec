@@ -15,12 +15,16 @@ Gem::Specification.new do |s|
   s.description   = <<-EOF
 This Gem includes a suite of tools for managing webmentions in Jekyll:
 
-* Tags - render webmention info into your templates:
-** All webmentions
-** Count of webmentions
-** Likes
-** Replies
-** Reposts
+* Tags
+  * Count of webmentions (filterable)
+  * All webmentions (filterable)
+  * Likes
+  * Links
+  * Posts
+  * Replies
+  * Reposts
+  * Contents for the `head` of your pages
+  * JavaScript enhancements
 * Commands - Send webmentions you’ve made
 * Generators - Collect webmentions from Webmention.io and gather sites you’ve mentioned
 EOF
