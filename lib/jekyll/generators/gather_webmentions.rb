@@ -12,7 +12,7 @@ module Jekyll
     priority :high
     
     def generate(site)
-      if site.config['webmentions']['pause_lookups'] == true
+      if site.config.dig( 'webmentions', 'pause_lookups' ) == true
         Jekyll::WebmentionIO::log 'info', 'Webmention lookups are currently paused.'
         return
       end
@@ -49,7 +49,7 @@ module Jekyll
         since_id = false
         if @cached_webmentions.has_key? post.url
           past_webmentions = @cached_webmentions[post.url]
-          if past_webmentions && past_webmentions.keys && past_webmentions[past_webmentions.keys.last]
+          if past_webmentions.dig( past_webmentions&.keys&.last )
             since_id = past_webmentions[past_webmentions.keys.last]['raw']['id']
           end
         end
