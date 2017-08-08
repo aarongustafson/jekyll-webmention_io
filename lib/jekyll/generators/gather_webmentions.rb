@@ -233,10 +233,9 @@ module Jekyll
             webmention['title'] = markdownify( title ) if title
 
             # Everything else
-            if ! ['post', 'reply', 'link'].include? type
-              content = link['activity']['sentence_html']
-            else
-              content = link['data']['content']
+            content = link['activity']['sentence_html']
+            if ['post', 'reply', 'link'].include? type
+              content = link['data']['content'] unless link['data']['content'].empty?
             end
             webmention['content'] = markdownify( content )
 
