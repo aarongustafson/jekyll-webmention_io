@@ -131,7 +131,6 @@ module Jekyll
           # Jekyll::WebmentionIO::log 'info', "Using default #{template} template"
           template_file = File.join(File.dirname(File.expand_path(__FILE__)), "templates/#{template}.html")
         end
-        puts template_file
         # Jekyll::WebmentionIO::log 'info', "Template file: #{template_file}"
         handler = File.open(template_file, 'rb')
         handler.read
