@@ -26,3 +26,4 @@ module Jekyll
 end
 
 Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionIO::WebmentionCountTag)
+Liquid::Template.register_tag('webmentions_count', Jekyll::WebmentionIO::WebmentionCountTag)
