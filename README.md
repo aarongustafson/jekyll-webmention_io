@@ -21,7 +21,7 @@ There are also a few [JavaScript enhancement features](#javascript-enhancements)
 
 If you just want to get up and running quickly, here’s the rundown of what you need to do:
 
-1. Add `gem 'jekyll-webmention_io'` to your `Gemfile`
+1. Add `gem 'jekyll-webmention_io'` to the `:jekyll_plugins` group in your `Gemfile`
 2. Run `bundle install`
 3. Add the [`{% webmentions_head %}`](#webmentions_head) tag to the `head` of your site
 4. Add the [`{% webmentions %}`](#webmentions) tag to the layout for your posts where you want webmentions displayed
