@@ -324,6 +324,13 @@ Include this tag before your post layout’s `</body>` and the plugin will rende
 
 We are using [liquid.js](https://github.com/mattmccray/liquid.js), a JavaScript port of Liquid by [Matt McCray](https://github.com/mattmccray/), to render these webmentions.
 
+If you use [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), you need to add these values:
+
+```
+script-src https://webmention.io
+connect-src ws://webmention.io:8080
+```
+
 ### The JavaScript file
 
 By default, this gem will render a new file, `JekyllWebmentionIO.js`, into the `js` directory in your source folder. The file will be compressed using [a Ruby port of Uglify](https://github.com/lautis/uglifier). This file will also get added to your deployment build (even on the first run). For most use cases, this approach plus the `webmentions_js` Liquid tag will be perfectly adequate, but if you need more control, there are a few configuration options available. All are nested in `webmentions.js`:
