@@ -104,10 +104,15 @@ module Jekyll
     
     def self.get_webmention_endpoint( uri )
       # log 'info', "Looking for webmention endpoint at #{uri}"
-      endpoint = Webmention::Client.supports_webmention?( uri )
-      # if ! endpoint
-      #   log 'info', "No webmention endpoint at #{uri}"
-      # end
+      begin
+        endpoint = Webmention::Client.supports_webmention?( uri )
+        # if ! endpoint
+        #   log 'info', "No webmention endpoint at #{uri}"
+        # end
+      rescue => e
+        log 'info', "Endpoint lookup failed for #{uri}: #{e.message}"
+        endpoint = false
+      end
       endpoint
     end
 
