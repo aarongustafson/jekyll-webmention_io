@@ -101,7 +101,63 @@ module Jekyll
         ""
       end
     end
-    
+
+    # allowed throttles: last_week, last_month, last_year, older
+    # allowed values:  daily, weekly, monthly, yearly, every X days|weeks|months|years
+    def self.post_should_be_throttled?( item_date, last_webmention_date )
+      throttles = @config.dig( 'throttle_lookups' )
+      if throttles && item_date && last_webmention_date
+        age = get_timeframe_from_date( item_date )
+        throttle = throttles.dig( age )
+        if throttle && get_date_from_string( throttle ) >= last_webmention_date
+          log 'info', "Throttling this post as #{last_webmention_date} is more recent than #{get_date_from_string( throttle )} and this post is in the #{throttle} category"
+          return true
+        end
+      end
+      return false      
+    end
+    def get_timeframe_from_date( date )
+      timeframes = {
+        'last_week'  => 'weekly',
+        'last_month' => 'monthly',
+        'last_year'  => 'yearly'
+      }
+      timeframe = nil
+      timeframes.each do |key, value|
+        if date > get_date_from_string( value )
+          timeframe = key
+          break
+        end
+      end
+      if ! timeframe
+        timeframe = 'older'
+      end
+      return timeframe
+    end
+    # supported: daily, weekly, monthly, yearly, every X days|weeks|months|years
+    def get_date_from_string( text )
+      today = Date.today
+      pattern = /every\s(?:(\d+)\s)?(day|week|month|year)s?/
+      matches = text.match( pattern )
+      if ! matches
+        if text == 'daily'
+          text = 'every 1 day'
+        else
+          text = 'every 1 ' + text.sub( 'ly', '' )
+        end
+        matches = text.match( pattern )
+      end
+      n = matches[1] ? matches[1].to_i : 1
+      unit = matches[2]
+      # weeks aren't natively supported in Ruby
+      if unit == 'week'
+        n = n * 7
+        unit = 'day'
+      end
+      # dynamic method call
+      return today.send "prev_#{unit}", n
+    end
+
     def self.get_webmention_endpoint( uri )
       # log 'info', "Looking for webmention endpoint at #{uri}"
       endpoint = Webmention::Client.supports_webmention?( uri )

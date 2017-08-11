@@ -42,18 +42,25 @@ module Jekyll
       end
         
       posts.each do |post|
+        # get the last webmention
+        last_webmention = @cached_webmentions.dig( post.url,  @cached_webmentions.dig( post.url )&.keys&.last )
+        puts last_webmention.inspect
+
+        # should we throttle?
+        if last_webmention && Jekyll::WebmentionIO::post_should_be_throttled?( post.date, last_webmention.dig( 'raw', 'verified_date' ) )
+          Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"    
+          next
+        end
+
+        # past_webmentions.dig( past_webmentions&.keys&.last )
+        # past_webmentions[past_webmentions.keys.last]['raw']['verified_date']
+
+        # Get the last id we have in the hash
+        since_id = last_webmention ? last_webmention.dig( 'raw', 'id' ) : false
+        
         # Gather the URLs
         targets = get_webmention_target_urls(site, post)
 
-        # Get the last id we have in the hash
-        since_id = false
-        if @cached_webmentions.has_key? post.url
-          past_webmentions = @cached_webmentions[post.url]
-          if past_webmentions.dig( past_webmentions&.keys&.last )
-            since_id = past_webmentions[past_webmentions.keys.last]['raw']['id']
-          end
-        end
-        
         # execute the API
         api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
         api_params << "&since_id=#{since_id}" if since_id
