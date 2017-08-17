@@ -160,10 +160,15 @@ module Jekyll
 
     def self.get_webmention_endpoint( uri )
       # log 'info', "Looking for webmention endpoint at #{uri}"
-      endpoint = Webmention::Client.supports_webmention?( uri )
-      # if ! endpoint
-      #   log 'info', "No webmention endpoint at #{uri}"
-      # end
+      begin
+        endpoint = Webmention::Client.supports_webmention?( uri )
+        if ! endpoint
+          log 'info', "Could not find a webmention endpoint at #{uri}"
+        end
+      rescue => e
+        log 'info', "Endpoint lookup failed for #{uri}: #{e.message}"
+        endpoint = false
+      end
       endpoint
     end
 
@@ -191,23 +196,6 @@ module Jekyll
         handler = File.open(template_file, 'rb')
         handler.read
     end
-
-    # Utilities
-    # def key_exists(hash, test_key)
-    #   if hash.is_a? Hash 
-    #     hash.each do |key, value|
-    #       if test_key == key
-    #         return true
-    #       # nest
-    #       elsif value.is_a? Hash
-    #         if key_exists value, test_key
-    #           return true
-    #         end
-    #       end
-    #     end
-    #   end
-    #   return false
-    # end
     
     # Connections
     def self.is_uri_ok( uri )

@@ -21,7 +21,7 @@ There are also a few [JavaScript enhancement features](#javascript-enhancements)
 
 If you just want to get up and running quickly, here’s the rundown of what you need to do:
 
-1. Add `gem 'jekyll-webmention_io'` to your `Gemfile`
+1. Add `gem 'jekyll-webmention_io'` to the `:jekyll_plugins` group in your `Gemfile`
 2. Run `bundle install`
 3. Add the [`{% webmentions_head %}`](#webmentions_head) tag to the `head` of your site
 4. Add the [`{% webmentions %}`](#webmentions) tag to the layout for your posts where you want webmentions displayed
@@ -323,6 +323,13 @@ Because static websites are, well, static, it’s possible webmentions might hav
 Include this tag before your post layout’s `</body>` and the plugin will render in a `script` tag pointing to the `JekyllWebmentionIO.js` file and generate `template` tags corresponding to the various Liquid templates (default or custom) being used to render your webmentions.
 
 We are using [liquid.js](https://github.com/mattmccray/liquid.js), a JavaScript port of Liquid by [Matt McCray](https://github.com/mattmccray/), to render these webmentions.
+
+If you use [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), you need to add these values:
+
+```
+script-src https://webmention.io
+connect-src ws://webmention.io:8080
+```
 
 ### The JavaScript file
 
