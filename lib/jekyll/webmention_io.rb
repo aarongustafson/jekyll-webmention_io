@@ -140,23 +140,6 @@ module Jekyll
         handler = File.open(template_file, 'rb')
         handler.read
     end
-
-    # Utilities
-    # def key_exists(hash, test_key)
-    #   if hash.is_a? Hash 
-    #     hash.each do |key, value|
-    #       if test_key == key
-    #         return true
-    #       # nest
-    #       elsif value.is_a? Hash
-    #         if key_exists value, test_key
-    #           return true
-    #         end
-    #       end
-    #     end
-    #   end
-    #   return false
-    # end
     
     # Connections
     def self.is_uri_ok( uri )
