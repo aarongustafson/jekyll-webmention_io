@@ -44,11 +44,10 @@ module Jekyll
       posts.each do |post|
         # get the last webmention
         last_webmention = @cached_webmentions.dig( post.url,  @cached_webmentions.dig( post.url )&.keys&.last )
-        puts last_webmention.inspect
-
+        
         # should we throttle?
-        if last_webmention && Jekyll::WebmentionIO::post_should_be_throttled?( post.date, last_webmention.dig( 'raw', 'verified_date' ) )
-          Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"    
+        if last_webmention && Jekyll::WebmentionIO::post_should_be_throttled?( post, post.date, last_webmention.dig( 'raw', 'verified_date' ) )
+          # Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"    
           next
         end
 
