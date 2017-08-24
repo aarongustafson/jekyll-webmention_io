@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-$:.unshift File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
 require 'jekyll/webmention_io/version'
 
 Gem::Specification.new do |s|
@@ -25,24 +25,24 @@ This Gem includes a full suite of tools for managing webmentions in Jekyll:
 * Commands - Send webmentions you’ve made
 * Generators - Collect webmentions from Webmention.io and gather sites you’ve mentioned
 EOF
-  
+
   s.platform      = Gem::Platform::RUBY
 
-  s.files         = %W(Rakefile Gemfile README.md LICENSE) +
+  s.files         = %w[Rakefile Gemfile README.md LICENSE] +
                     Dir.glob('lib/**/*') +
-                    Dir.glob('assets/**/*') + 
+                    Dir.glob('assets/**/*') +
                     Dir.glob('templates/**/*')
 
   s.require_paths = ['.']
 
   s.add_runtime_dependency 'jekyll', '>= 2.0', '< 4.0'
-  s.add_runtime_dependency 'json', '~> 2.0'
-  s.add_runtime_dependency 'http', '~> 2.0'
-  s.add_runtime_dependency 'string_inflection', '~> 0.1'
-  s.add_runtime_dependency 'htmlbeautifier', '~> 1.1'
+  s.add_runtime_dependency 'json'
+  s.add_runtime_dependency 'http'
+  s.add_runtime_dependency 'string_inflection'
+  s.add_runtime_dependency 'htmlbeautifier'
 
-  s.add_development_dependency 'rake', '~> 12.0'
-  s.add_development_dependency 'rubocop', '~> 0.48'
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'rubocop', '~> 0.4'
 
   s.extensions = 'ext/mkrf_conf.rb'
 end
