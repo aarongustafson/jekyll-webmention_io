@@ -1,4 +1,4 @@
-require 'jekyll'
-require 'jekyll/webmention_io'
+require "jekyll"
+require "jekyll/webmention_io"
 
-Jekyll::WebmentionIO::bootstrap();
+Jekyll::WebmentionIO.bootstrap

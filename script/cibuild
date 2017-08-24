@@ -3,5 +3,5 @@
 set -ex
 
 bundle exec rake spec
-bundle exec rubocop -S -D
+script/fmt
 bundle exec gem build jekyll-webmention_io.gemspec
