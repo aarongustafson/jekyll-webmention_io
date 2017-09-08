@@ -184,12 +184,14 @@ module Jekyll
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
       response = Webmention::Client.send_mention(endpoint, source, target, true)
-      if response
+      status = response.dig('parsed_response', 'data', 'status').to_s
+      if status == '200'
         log "info", "Webmention successful!"
+        return response.response.body
       else
         log "info", "Webmention failed, but will remain queued for next time"
+        false
       end
-      response
     end
 
     def self.get_template_contents(template)

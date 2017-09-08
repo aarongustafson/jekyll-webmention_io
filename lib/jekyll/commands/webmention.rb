@@ -30,7 +30,12 @@ module Jekyll
               next unless endpoint
               response = Jekyll::WebmentionIO.webmention(source, target, endpoint)
               if response
-                outgoing[source][target] = JSON.parse response.body
+                begin
+                  response = JSON.parse response
+                rescue JSON::ParserError => e  
+                  response = ''
+                end 
+                outgoing[source][target] = response
                 count += 1
               end
             end
