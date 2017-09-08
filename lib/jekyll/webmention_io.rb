@@ -206,7 +206,7 @@ module Jekyll
     end
 
     # Connections
-    def self.is_uri_ok(uri)
+    def self.uri_ok?(uri)
       uri = URI.parse(URI.encode(uri))
       now = Time.now.to_s
       bad_uris = open(@cache_files["bad_uris"]) { |f| YAML.safe_load(f) }
@@ -231,7 +231,7 @@ module Jekyll
 
     def self.get_uri_source(uri, redirect_limit = 10, original_uri = false)
       original_uri ||= uri
-      unless is_uri_ok(uri)
+      unless uri_ok?(uri)
         return false
       end
       if redirect_limit > 0
