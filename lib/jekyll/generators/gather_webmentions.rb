@@ -64,7 +64,7 @@ module Jekyll
         api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
         api_params << "&since_id=#{since_id}" if since_id
         response = Jekyll::WebmentionIO::get_response(api_params)
-        # Jekyll::WebmentionIO::log 'info', response.inspect
+        # Jekyll::WebmentionIO::log "info", response.inspect
         
         process_webmentions( post.url, response )
       end # posts loop

@@ -225,6 +225,10 @@ module Jekyll
 
     # Cache bad URLs for a bit
     def self.uri_is_not_ok(uri)
+      # Never cache webmention.io in here
+      if uri.host == 'webmention.io'
+        return
+      end
       cache_file = @cache_files["bad_uris"]
       bad_uris = open(cache_file) { |f| YAML.safe_load(f) }
       bad_uris[uri.host] = Time.now.to_s
