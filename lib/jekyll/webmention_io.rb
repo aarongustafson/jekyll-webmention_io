@@ -114,7 +114,7 @@ module Jekyll
       if throttles && item_date && last_webmention_date
         age = get_timeframe_from_date(item_date)
         throttle = throttles.dig(age)
-        if throttle && get_date_from_string(throttle) >= Date.parse(last_webmention_date)
+        if throttle && Date.parse(last_webmention_date) >= get_date_from_string(throttle)
           log "info", "Throttling #{post.data["title"]} (Only checking it #{throttle})"
           return true
         end
