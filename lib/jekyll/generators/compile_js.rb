@@ -39,7 +39,7 @@ module Jekyll
 
         config = config.merge(site_config)
 
-        source = File.join(File.dirname(File.expand_path(__FILE__)), "../assets/")
+        source = File.expand_path("../assets/", __dir__)
 
         javascript = ""
         Dir["#{source}/*.js"].each do |file|

@@ -200,8 +200,8 @@ module Jekyll
         template_file = Jekyll::WebmentionIO.config["templates"][template]
       else
         # Jekyll::WebmentionIO::log 'info', "Using default #{template} template"
-        template_file = File.join(File.dirname(File.expand_path(__FILE__)), "templates/#{template}.html")
-        end
+        template_file = File.expand_path("templates/#{template}.html", __dir__)
+      end
       # Jekyll::WebmentionIO::log 'info', "Template file: #{template_file}"
       handler = File.open(template_file, "rb")
       handler.read
@@ -286,13 +286,13 @@ module Jekyll
 end
 
 # Load all the bits
-Dir[File.dirname(__FILE__) + "/commands/*.rb"].each do |file|
+Dir[File.expand_path("commands/*.rb", __dir__)].each do |file|
   require file
 end
-Dir[File.dirname(__FILE__) + "/generators/*.rb"].each do |file|
+Dir[File.expand_path("generators/*.rb", __dir__)].each do |file|
   require file
 end
-require "#{File.dirname(__FILE__)}/tags/_.rb"
-Dir[File.dirname(__FILE__) + "/tags/*.rb"].each do |file|
+require "#{__dir__}/tags/_.rb"
+Dir[File.expand_path("tags/*.rb", __dir__)].each do |file|
   require file unless file.include? "_.rb"
 end
