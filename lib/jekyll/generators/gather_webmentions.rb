@@ -1,16 +1,16 @@
 #  (c) Aaron Gustafson
-#  https://github.com/aarongustafson/jekyll-webmention_io 
+#  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
-#  
+#
 #  This generator gathers webmentions of your pages
 #
 
 module Jekyll
   class GatherWebmentions < Generator
-    
+
     safe true
     priority :high
-    
+
     def generate(site)
       if site.config.dig( 'webmentions', 'pause_lookups' ) == true
         Jekyll::WebmentionIO::log 'info', 'Webmention lookups are currently paused.'
@@ -18,14 +18,14 @@ module Jekyll
       end
 
       Jekyll::WebmentionIO::log 'info', 'Beginning to gather webmentions of your posts. This may take a while.'
-      
+
       Jekyll::WebmentionIO::set_api_endpoint('mentions')
       # add an arbitrarily high perPage to trump pagination
       Jekyll::WebmentionIO::set_api_suffix('&perPage=9999')
 
       cache_file = Jekyll::WebmentionIO::get_cache_file_path 'incoming'
       @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
-      
+
       if Jekyll::VERSION >= "3.0.0"
         posts = site.posts.docs
       else
@@ -40,14 +40,14 @@ module Jekyll
       else
         @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
       end
-        
+
       posts.each do |post|
         # get the last webmention
         last_webmention = @cached_webmentions.dig( post.url,  @cached_webmentions.dig( post.url )&.keys&.last )
-        
+
         # should we throttle?
         if last_webmention && Jekyll::WebmentionIO::post_should_be_throttled?( post, post.date, last_webmention.dig( 'raw', 'verified_date' ) )
-          # Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"    
+          # Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"
           next
         end
 
@@ -56,7 +56,7 @@ module Jekyll
 
         # Get the last id we have in the hash
         since_id = last_webmention ? last_webmention.dig( 'raw', 'id' ) : false
-        
+
         # Gather the URLs
         targets = get_webmention_target_urls(site, post)
 
@@ -65,12 +65,12 @@ module Jekyll
         api_params << "&since_id=#{since_id}" if since_id
         response = Jekyll::WebmentionIO::get_response(api_params)
         # Jekyll::WebmentionIO::log "info", response.inspect
-        
+
         process_webmentions( post.url, response )
       end # posts loop
 
       File.open(cache_file, 'w') { |f| YAML.dump(@cached_webmentions, f) }
-      
+
       Jekyll::WebmentionIO::log 'info', 'Webmentions have been gathered and cached.'
     end # generate
 
@@ -78,7 +78,7 @@ module Jekyll
       targets = []
       uri = "#{site.config['url']}#{post.url}"
       targets.push( uri )
-      
+
       # Redirection?
       redirected = false
       if post.data.has_key? 'redirect_from'
@@ -89,10 +89,10 @@ module Jekyll
           post.data['redirect_from'].each do |redirect|
             redirected = uri.sub post.url, redirect
             targets.push( redirected )
-          end					
+          end
         end
       end
-      
+
       # Domain changed?
       if Jekyll::WebmentionIO::config.has_key? 'legacy_domains'
         # Jekyll::WebmentionIO::log 'info', 'adding legacy URIs'
@@ -123,9 +123,9 @@ module Jekyll
       end
 
       if response and response['links']
-        
+
         response['links'].reverse_each do |link|
-          
+
           uri = link['data']['url'] || link['source']
 
           # set the source
@@ -135,7 +135,7 @@ module Jekyll
           elsif uri.include? '/googleplus/'
             source = 'googleplus'
           end
-          
+
           # set an id
           id = link['id'].to_s
           if source == 'twitter' and ! uri.include? '#favorited-by'
@@ -155,7 +155,7 @@ module Jekyll
           #target = URI::parse( link['target'] )
           #target.fragment = target.query = nil
           #target = target.to_s
-        
+
           pubdate = link['data']['published_ts']
           if pubdate
             pubdate = Time.at(pubdate)
@@ -171,7 +171,7 @@ module Jekyll
 
           # Make sure we don’t have the webmention
           unless webmentions.has_key? id
-            
+
             # Scaffold the webmention
             webmention = {
               'id'			=> id,
@@ -213,7 +213,7 @@ module Jekyll
               if ! html_source
                 next
               end
-              
+
               if ! html_source.valid_encoding?
                 html_source = html_source.encode('UTF-16be', :invalid=>:replace, :replace=>"?").encode('UTF-8')
               end
@@ -232,7 +232,7 @@ module Jekyll
                   title = 'No title available'
                 end
               end
-              
+
               # cleanup
               title = title.gsub(%r{</?[^>]+?>}, '')
             end # if no title
@@ -240,7 +240,7 @@ module Jekyll
 
             # Everything else
             content = link['activity']['sentence_html']
-            if ['post', 'reply', 'link'].include? type
+            if ['post', 'rsvp', 'reply', 'link'].include? type
               content = link['data']['content'] if link.dig( 'data', 'content' )
             end
             webmention['content'] = markdownify( content )
@@ -250,7 +250,7 @@ module Jekyll
             webmentions[id] = webmention
 
           end # Make sure we don’t have the webmention
-        
+
         end # each link
 
       end # if response
