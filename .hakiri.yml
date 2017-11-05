@@ -1,0 +1,4 @@
+app_path: .
+dependency_source: gemfile_file
+brakeman:
+  enabled: false

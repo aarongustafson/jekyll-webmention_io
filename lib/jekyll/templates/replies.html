@@ -1,0 +1,31 @@
+<div class="webmentions webmentions--replies">
+  {% if webmentions.size > 0 %}
+    <ol class="webmentions__list">
+      {% for webmention in webmentions %}
+        <li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
+          <div class="webmention__content p-content">
+            {{ webmention.content }}
+          </div>
+          <div class="webmention__meta">
+            {% if webmention.author %}
+              <a class="webmention__author h-card u-url" href="{{ webmention.author.url }}">
+                {% if webmention.author.photo %}
+                  <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
+                {% endif %}
+                <b class="p-name">{{ webmention.author.name }}</b>
+              </a>
+            {% endif %}
+            {% if webmention.pubdate and webmention.author %}on{% endif %}
+            {% if webmention.pubdate %}
+              <a class="webmention__source u-url" href="{{ webmention.url }}">
+                <time class="webmention__pubdate dt-published" datetime="{{ webmention.pubdate | date: '%FT%T%:z' }}">{{ webmention.pubdate | date: '%d %B %Y' }}</time>
+              </a>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="webmentions__not-found">No webmentions were found.</p>
+  {% endif %}
+</div>

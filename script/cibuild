@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -ex
+
+bundle exec rake spec
+script/fmt
+bundle exec gem build jekyll-webmention_io.gemspec

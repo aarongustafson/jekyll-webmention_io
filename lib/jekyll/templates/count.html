@@ -1,0 +1,2 @@
+{% capture webmention_types %}{{ types | join: ',' }}{% endcapture %}
+<span class="webmention-count"{% unless webmention_types=="" %} data-webmention-types="{{ webmention_types }}"{% endunless %}>{{ count }}</span>
