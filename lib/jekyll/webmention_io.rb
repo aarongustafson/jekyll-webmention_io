@@ -246,7 +246,6 @@ module Jekyll
         http.read_timeout = 10
         if uri.scheme == "https"
           http.use_ssl = true
-          http.ssl_version = :TLSv1
           http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
           http.verify_mode = OpenSSL::SSL::VERIFY_PEER
         end
