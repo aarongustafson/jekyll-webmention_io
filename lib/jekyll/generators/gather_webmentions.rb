@@ -27,9 +27,14 @@ module Jekyll
       @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       
       if Jekyll::VERSION >= "3.0.0"
-        posts = site.posts.docs
+        posts = site.posts.docs.clone
       else
-        posts = site.posts
+        posts = site.posts.clone
+      end
+
+      if site.config.dig( 'webmentions', 'pages' ) == true
+        Jekyll::WebmentionIO::log 'info', 'Including site pages.'
+        posts.concat site.pages.clone
       end
 
       # post Jekyll commit 0c0aea3
@@ -40,15 +45,17 @@ module Jekyll
       else
         @converter = site.getConverterImpl(::Jekyll::Converters::Markdown)
       end
-        
+
       posts.each do |post|
         # get the last webmention
         last_webmention = @cached_webmentions.dig( post.url,  @cached_webmentions.dig( post.url )&.keys&.last )
-        
+
         # should we throttle?
-        if last_webmention && Jekyll::WebmentionIO::post_should_be_throttled?( post, post.date, last_webmention.dig( 'raw', 'verified_date' ) )
-          # Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"    
-          next
+        if post.respond_to? 'date' # Some docs have no date
+          if last_webmention && Jekyll::WebmentionIO::post_should_be_throttled?( post, post.date, last_webmention.dig( 'raw', 'verified_date' ) )
+            # Jekyll::WebmentionIO::log 'info', "Throttling #{post.url}"    
+            next
+          end
         end
 
         # past_webmentions.dig( past_webmentions&.keys&.last )
