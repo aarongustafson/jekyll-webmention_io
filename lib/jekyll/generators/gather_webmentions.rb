@@ -26,11 +26,11 @@ module Jekyll
       cache_file = Jekyll::WebmentionIO::get_cache_file_path 'incoming'
       @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
       
-      if Jekyll::VERSION >= "3.0.0"
-        posts = site.posts.docs.clone
-      else
-        posts = site.posts.clone
-      end
+      posts = if Jekyll::VERSION >= "3.0.0"
+                site.posts.docs.clone
+              else
+                site.posts.clone
+              end
 
       if site.config.dig( 'webmentions', 'pages' ) == true
         Jekyll::WebmentionIO::log 'info', 'Including site pages.'
@@ -83,7 +83,8 @@ module Jekyll
 
     def get_webmention_target_urls(site, post)
       targets = []
-      uri = "#{site.config['url']}#{post.url}"
+      base_uri = site.config["url"].chomp('/')
+      uri = "#{base_uri}#{post.url}"
       targets.push( uri )
       
       # Redirection?

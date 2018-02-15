@@ -24,13 +24,19 @@ module Jekyll
       webmentions = open(cache_file) { |f| YAML.safe_load(f) }
 
       posts = if Jekyll::VERSION >= "3.0.0"
-                site.posts.docs
+                site.posts.docs.clone
               else
-                site.posts
+                site.posts.clone
               end
 
+      if site.config.dig( 'webmentions', 'pages' ) == true
+        Jekyll::WebmentionIO::log 'info', 'Including site pages.'
+        posts.concat site.pages.clone
+      end
+
+      base_uri = site.config["url"].chomp('/')
       posts.each do |post|
-        uri = "#{site.config["url"]}#{post.url}"
+        uri = "#{base_uri}#{post.url}"
         mentions = get_mentioned_uris(post)
         if webmentions.key? uri
           mentions.each do |mentioned_uri, response|
