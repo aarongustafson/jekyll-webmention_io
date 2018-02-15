@@ -222,7 +222,7 @@ module Jekyll
     def self.uri_ok?(uri)
       uri = URI.parse(URI.encode(uri))
       now = Time.now.to_s
-      bad_uris = open(@cache_files["bad_uris"]) { |f| YAML.safe_load(f) }
+      bad_uris = open(@cache_files["bad_uris"]) { |f| YAML.load(f) }
       if bad_uris.key? uri.host
         last_checked = DateTime.parse(bad_uris[uri.host])
         cache_bad_uris_for = @config["cache_bad_uris_for"] || 1 # in days
@@ -241,7 +241,7 @@ module Jekyll
         return
       end
       cache_file = @cache_files["bad_uris"]
-      bad_uris = open(cache_file) { |f| YAML.safe_load(f) }
+      bad_uris = open(cache_file) { |f| YAML.load(f) }
       bad_uris[uri.host] = Time.now.to_s
       File.open(cache_file, "w") { |f| YAML.dump(bad_uris, f) }
     end

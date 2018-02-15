@@ -18,7 +18,7 @@ module Jekyll
         super
         cache_file = Jekyll::WebmentionIO.get_cache_file_path "incoming"
         @cached_webmentions = if File.exist? cache_file
-                                open(cache_file) { |f| YAML.safe_load(f) }
+                                open(cache_file) { |f| YAML.load(f) }
                               else
                                 {}
                               end

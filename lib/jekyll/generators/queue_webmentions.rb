@@ -23,7 +23,7 @@ module Jekyll
       upgrade_outgoing_webmention_cache
 
       cache_file = Jekyll::WebmentionIO.get_cache_file_path "outgoing"
-      webmentions = open(cache_file) { |f| YAML.safe_load(f) }
+      webmentions = open(cache_file) { |f| YAML.load(f) }
 
       posts = if Jekyll::VERSION >= "3.0.0"
                 site.posts.docs.clone
@@ -63,8 +63,8 @@ module Jekyll
       unless File.exist? old_sent_file
         return
       end
-      sent_webmentions = open(old_sent_file) { |f| YAML.safe_load(f) }
-      outgoing_webmentions = open(old_outgoing_file) { |f| YAML.safe_load(f) }
+      sent_webmentions = open(old_sent_file) { |f| YAML.load(f) }
+      outgoing_webmentions = open(old_outgoing_file) { |f| YAML.load(f) }
       merged = {}
       outgoing_webmentions.each do |source_url, webmentions|
         collection = {}

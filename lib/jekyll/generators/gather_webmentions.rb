@@ -7,6 +7,8 @@
 #  This generator gathers webmentions of your pages
 #
 
+require "time"
+
 module Jekyll
   class GatherWebmentions < Generator
     safe true
@@ -25,7 +27,7 @@ module Jekyll
       Jekyll::WebmentionIO.set_api_suffix("&perPage=9999")
 
       cache_file = Jekyll::WebmentionIO.get_cache_file_path "incoming"
-      @cached_webmentions = open(cache_file) { |f| YAML.safe_load(f) }
+      @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
 
       posts = if Jekyll::VERSION >= "3.0.0"
                 site.posts.docs.clone
