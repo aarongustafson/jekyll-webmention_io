@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# frozen_string_literal: false
 
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
