@@ -1,5 +1,6 @@
 # encoding: utf-8
 # gem bump jekyll-webmention_io -v patch -p -t -r
+
 require File.expand_path("lib/jekyll/webmention_io/version", __dir__)
 
 Gem::Specification.new do |s|
@@ -30,9 +31,7 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
 EOF
 
   s.platform      = Gem::Platform::RUBY
-
   s.files         = `git ls-files app lib`.split("\n")
-
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency "jekyll", ">= 2.0", "< 4.0"

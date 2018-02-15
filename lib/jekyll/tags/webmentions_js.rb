@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT

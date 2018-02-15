@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
@@ -10,7 +12,7 @@
 module Jekyll
   module WebmentionIO
     class WebmentionRepostsTag < Jekyll::WebmentionIO::WebmentionTag
-      def initialize(tagName, text, tokens)
+      def initialize(tag_name, text, tokens)
         super
         @text = text
         set_template "reposts"

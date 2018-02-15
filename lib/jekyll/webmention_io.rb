@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
@@ -25,6 +27,11 @@ module Jekyll
 
     @types = %w(likes links posts replies reposts)
 
+    EXCEPTIONS = [  SocketError, Timeout::Error, Errno::EINVAL,
+                    Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
+                    Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError,
+                    Net::ProtocolError, OpenSSL::SSL::SSLError, ].freeze
+
     def self.bootstrap
       # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
       @jekyll_config = Jekyll.configuration({})
@@ -48,6 +55,11 @@ module Jekyll
         end
       end
     end
+
+    # class << self
+    #   attr_reader :types
+    #   attr_accessor :api_endpoint, :api_suffix
+    # end
 
     # Attributes
     def self.config
@@ -145,7 +157,7 @@ module Jekyll
     # supported: daily, weekly, monthly, yearly, every X days|weeks|months|years
     def self.get_date_from_string(text)
       today = Date.today
-      pattern = %r!every\s(?:(\d+)\s)?(day|week|month|year)s?!
+      pattern = /every\s(?:(\d+)\s)?(day|week|month|year)s?/
       matches = text.match(pattern)
       unless matches
         text = if text == "daily"
@@ -184,8 +196,8 @@ module Jekyll
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
       response = Webmention::Client.send_mention(endpoint, source, target, true)
-      status = response.dig('parsed_response', 'data', 'status').to_s
-      if status == '200'
+      status = response.dig("parsed_response", "data", "status").to_s
+      if status == "200"
         log "info", "Webmention successful!"
         return response.response.body
       else
@@ -195,14 +207,13 @@ module Jekyll
     end
 
     def self.get_template_contents(template)
-      if Jekyll::WebmentionIO.config.dig("templates", template)
-        # Jekyll::WebmentionIO::log 'info', "Using custom #{template} template"
-        template_file = Jekyll::WebmentionIO.config["templates"][template]
-      else
-        # Jekyll::WebmentionIO::log 'info', "Using default #{template} template"
-        template_file = File.expand_path("templates/#{template}.html", __dir__)
-      end
-      # Jekyll::WebmentionIO::log 'info', "Template file: #{template_file}"
+      template_file = if Jekyll::WebmentionIO.config.dig("templates", template)
+                        # Jekyll::WebmentionIO.log 'info', "Using custom #{template} template"
+                        Jekyll::WebmentionIO.config["templates"][template]
+                      else
+                        File.expand_path("templates/#{template}.html", __dir__)
+                      end
+      # Jekyll::WebmentionIO.log 'info', "Template file: #{template_file}"
       handler = File.open(template_file, "rb")
       handler.read
     end
@@ -226,7 +237,7 @@ module Jekyll
     # Cache bad URLs for a bit
     def self.uri_is_not_ok(uri)
       # Never cache webmention.io in here
-      if uri.host == 'webmention.io'
+      if uri.host == "webmention.io"
         return
       end
       cache_file = @cache_files["bad_uris"]
@@ -240,7 +251,7 @@ module Jekyll
       unless uri_ok?(uri)
         return false
       end
-      if redirect_limit > 0
+      if redirect_limit.positive?
         uri = URI.parse(URI.encode(uri))
         http = Net::HTTP.new(uri.host, uri.port)
         http.read_timeout = 10
@@ -252,7 +263,7 @@ module Jekyll
         begin
           request = Net::HTTP::Get.new(uri.request_uri)
           response = http.request(request)
-        rescue SocketError, Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError, OpenSSL::SSL::SSLError => e
+        rescue *EXCEPTIONS => e
           log "warn", "Got an error checking #{original_uri}: #{e}"
           uri_is_not_ok(uri)
           return false

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "json"
 
 module Jekyll
@@ -22,25 +24,24 @@ module Jekyll
           outgoing = open(cached_outgoing) { |f| YAML.safe_load(f) }
           outgoing.each do |source, targets|
             targets.each do |target, response|
-              next unless response === false
-              if target.index("//") == 0
+              next unless response == false
+              if target.index("//").zero?
                 target = "http:#{target}"
               end
               endpoint = Jekyll::WebmentionIO.get_webmention_endpoint(target)
               next unless endpoint
               response = Jekyll::WebmentionIO.webmention(source, target, endpoint)
-              if response
-                begin
-                  response = JSON.parse response
-                rescue JSON::ParserError => e  
-                  response = ''
-                end 
-                outgoing[source][target] = response
-                count += 1
+              next unless response
+              begin
+                response = JSON.parse response
+              rescue JSON::ParserError
+                response = ""
               end
+              outgoing[source][target] = response
+              count += 1
             end
           end
-          if count > 0
+          if count.positive?
             File.open(cached_outgoing, "w") { |f| YAML.dump(outgoing, f) }
           end
           Jekyll::WebmentionIO.log "info", "#{count} webmentions sent."

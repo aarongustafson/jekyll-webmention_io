@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
@@ -29,12 +31,12 @@ module Jekyll
                 site.posts.clone
               end
 
-      if site.config.dig( 'webmentions', 'pages' ) == true
-        Jekyll::WebmentionIO::log 'info', 'Including site pages.'
+      if site.config.dig("webmentions", "pages") == true
+        Jekyll::WebmentionIO.log "info", "Including site pages."
         posts.concat site.pages.clone
       end
 
-      base_uri = site.config["url"].chomp('/')
+      base_uri = site.config["url"].chomp("/")
       posts.each do |post|
         uri = "#{base_uri}#{post.url}"
         mentions = get_mentioned_uris(post)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
@@ -36,11 +38,8 @@ module Jekyll
           "uglify"      => true,
         }
         site_config = site.config.dig("webmentions", "js") || {}
-
         config = config.merge(site_config)
-
         source = File.expand_path("../assets/", __dir__)
-
         javascript = ""
         Dir["#{source}/*.js"].each do |file|
           handler = File.open(file, "rb")
@@ -58,7 +57,7 @@ module Jekyll
             JekyllWebmentionIO.types = { TYPES };
           }(this, this.JekyllWebmentionIO));
         EOF
-        javascript << types_js.sub(%r!TYPES!, js_types.join(","))
+        javascript << types_js.sub(/TYPES/, js_types.join(","))
 
         unless config["uglify"] == false
           uglify_config = {
