@@ -23,7 +23,7 @@ module Jekyll
         @type = determine_type
       end
 
-      def hash()
+      def to_hash()
         gather_content
 
         the_hash = {

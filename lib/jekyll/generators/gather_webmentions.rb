@@ -127,8 +127,8 @@ module Jekyll
           end
 
           # Add it to the list
-          # Jekyll::WebmentionIO.log "info", webmention.hash.inspect
-          webmentions[webmention.id] = webmention.hash
+          # Jekyll::WebmentionIO.log "info", webmention.to_hash.inspect
+          webmentions[webmention.id] = webmention.to_hash
         end # each link
       end # if response
       @cached_webmentions[post_uri] = webmentions
