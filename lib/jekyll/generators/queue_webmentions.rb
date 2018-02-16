@@ -99,6 +99,5 @@ module Jekyll
       File.delete old_sent_file, old_outgoing_file
       Jekyll::WebmentionIO.log "info", "Upgraded your sent webmentions cache."
     end
-
   end
 end
