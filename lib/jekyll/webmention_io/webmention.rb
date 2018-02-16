@@ -10,7 +10,6 @@
 module Jekyll
   module WebmentionIO
     class Webmention
-
       attr_reader :id, :hash
 
       def initialize(mention, site)
@@ -100,6 +99,7 @@ module Jekyll
       def determine_type
         type = @raw.dig("activity", "type")
         unless type
+          type = "post"
           if @source == "googleplus"
             type = if @uri.include? "/like/"
                      "like"
@@ -110,8 +110,6 @@ module Jekyll
                    else
                      "link"
                    end
-          else
-            type = "post"
           end
         end
         type
@@ -175,7 +173,6 @@ module Jekyll
 
         markdownify(content)
       end
-
     end
   end
 end

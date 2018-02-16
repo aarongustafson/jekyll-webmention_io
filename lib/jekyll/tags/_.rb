@@ -13,7 +13,6 @@ module Jekyll
   module WebmentionIO
     using StringInflection
     class WebmentionTag < Liquid::Tag
-
       def initialize(tag_name, text, tokens)
         super
         cache_file = Jekyll::WebmentionIO.get_cache_file_path "incoming"
