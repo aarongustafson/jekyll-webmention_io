@@ -15,7 +15,9 @@ module Jekyll
     priority :high
 
     def generate(site)
-      if site.config.dig("webmentions", "pause_lookups") == true
+      @site = site
+      
+      if @site.config.dig("webmentions", "pause_lookups") == true
         Jekyll::WebmentionIO.log "info", "Webmention lookups are currently paused."
         return
       end
@@ -30,21 +32,15 @@ module Jekyll
       @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
 
       posts = if Jekyll::VERSION >= "3.0.0"
-                site.posts.docs.clone
+                @site.posts.docs.clone
               else
-                site.posts.clone
+                @site.posts.clone
               end
 
-      if site.config.dig("webmentions", "pages") == true
+      if @site.config.dig("webmentions", "pages") == true
         Jekyll::WebmentionIO.log "info", "Including site pages."
-        posts.concat site.pages.clone
+        posts.concat @site.pages.clone
       end
-
-      @converter = if defined? site.find_converter_instance
-                     site.find_converter_instance(::Jekyll::Converters::Markdown)
-                   else
-                     site.getConverterImpl(::Jekyll::Converters::Markdown)
-                   end
 
       posts.each do |post|
         # get the last webmention
@@ -65,7 +61,7 @@ module Jekyll
         since_id = last_webmention ? last_webmention.dig("raw", "id") : false
 
         # Gather the URLs
-        targets = get_webmention_target_urls(site, post)
+        targets = get_webmention_target_urls(post)
 
         # execute the API
         api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
@@ -81,9 +77,9 @@ module Jekyll
       Jekyll::WebmentionIO.log "info", "Webmentions have been gathered and cached."
     end # generate
 
-    def get_webmention_target_urls(site, post)
+    def get_webmention_target_urls(post)
       targets = []
-      base_uri = site.config["url"].chomp("/")
+      base_uri = @site.config["url"].chomp("/")
       uri = "#{base_uri}#{post.url}"
       targets.push(uri)
 
@@ -105,20 +101,12 @@ module Jekyll
       if Jekyll::WebmentionIO.config.key? "legacy_domains"
         # Jekyll::WebmentionIO.log "info", "adding legacy URIs"
         Jekyll::WebmentionIO.config["legacy_domains"].each do |domain|
-          legacy = uri.sub site.config["url"], domain
+          legacy = uri.sub @site.config["url"], domain
           # Jekyll::WebmentionIO.log "info", "adding URI #{legacy}"
           targets.push(legacy)
         end
       end
       return targets
-    end
-
-    def markdownify(string)
-      string = @converter.convert(string.to_s)
-      unless string.start_with?("<p")
-        string = string.sub(/^<[^>]+>/, "<p>").sub(/<\/[^>]+>$/, "</p>")
-      end
-      string.strip
     end
 
     def process_webmentions(post_uri, response)
@@ -131,129 +119,16 @@ module Jekyll
 
       if response && response["links"]
         response["links"].reverse_each do |link|
-          uri = link["data"]["url"] || link["source"]
-
-          # set the source
-          source = false
-          if uri.include? "twitter.com/"
-            source = "twitter"
-          elsif uri.include? "/googleplus/"
-            source = "googleplus"
-          end
-
-          # set an id
-          id = link["id"].to_s
-          if source == "twitter" && !uri.include?("#favorited-by")
-            id = URI(uri).path.split("/").last.to_s
-          end
-          unless id
-            time = Time.now
-            id = time.strftime("%s").to_s
-          end
+          webmention = Jekyll::WebmentionIO::Webmention.new(link, @site)
 
           # Do we already have it?
-          if webmentions.key? id
+          if webmentions.key? webmention.id
             next
           end
-
-          # Get the mentioned URI, stripping fragments and query strings
-          # target = URI::parse( link['target'] )
-          # target.fragment = target.query = nil
-          # target = target.to_s
-
-          pubdate = link["data"]["published_ts"]
-          if pubdate
-            pubdate = Time.at(pubdate)
-          elsif link["verified_date"]
-            pubdate = Time.parse(link["verified_date"])
-          end
-          # the_date = pubdate.strftime("%s")
-
-          # Make sure we have the date
-          # if ! webmentions.key? the_date
-          # 	webmentions[the_date] = {}
-          # end
-
-          # Make sure we don't have the webmention
-          if webmentions.key? id
-            next
-          end
-
-          # Scaffold the webmention
-          webmention = {
-            "id"      => id,
-            "url"     => uri,
-            "source"  => source,
-            "pubdate" => pubdate,
-            "raw"     => link,
-          }
-
-          # Set the author
-          if link["data"].key? "author"
-            webmention["author"] = link["data"]["author"]
-          end
-
-          # Set the type
-          type = link["activity"]["type"]
-          unless type
-            if source == "googleplus"
-              type = if uri.include? "/like/"
-                       "like"
-                     elsif uri.include? "/repost/"
-                       "repost"
-                     elsif uri.include? "/comment/"
-                       "reply"
-                     else
-                       "link"
-                     end
-            else
-              type = "post"
-            end
-          end # if no type
-          webmention["type"] = type
-
-          # Posts
-          title = false
-          if type == "post"
-
-            html_source = Jekyll::WebmentionIO.get_uri_source(uri)
-            unless html_source
-              next
-            end
-
-            unless html_source.valid_encoding?
-              html_source = html_source.encode("UTF-16be", :invalid => :replace, :replace => "?").encode("UTF-8")
-            end
-
-            # Check the `title` first
-            matches = /<title>(.*)<\/title>/.match(html_source)
-            if matches
-              title = matches[1].strip
-            else
-              # Fall back to the first `h1`
-              matches = /<h1>(.*)<\/h1>/.match(html_source)
-              title = if matches
-                        matches[1].strip
-                      else
-                        title = "No title available"
-                      end
-            end
-
-            # cleanup
-            title = title.gsub(/<\/?[^>]+?>/, "")
-          end # if no title
-          webmention["title"] = markdownify(title) if title
-
-          # Everything else
-          content = link["activity"]["sentence_html"]
-          if %w(post reply link).include? type
-            content = link["data"]["content"] if link.dig("data", "content")
-          end
-          webmention["content"] = markdownify(content)
 
           # Add it to the list
-          # @webmention_io.log 'info', webmention.inspect
-          webmentions[id] = webmention
+          # Jekyll::WebmentionIO.log "info", webmention.hash.inspect
+          webmentions[webmention.id] = webmention.hash
         end # each link
       end # if response
       @cached_webmentions[post_uri] = webmentions
