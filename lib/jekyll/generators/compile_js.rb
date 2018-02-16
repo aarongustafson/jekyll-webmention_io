@@ -43,27 +43,20 @@ module Jekyll
         site_config = @site.config.dig("webmentions", "js") || {}
         config = config.merge(site_config)
 
-        source = File.expand_path("../assets/", __dir__)
         @source_file_destination = (config["source"] == false ? Dir.mktmpdir : "#{@site.config["source"]}/#{config["destination"]}")
 
         @javascript = ""
-        Dir["#{source}/*.js"].each do |file|
-          handler = File.open(file, "rb")
-          @javascript << File.read(handler)
-        end
 
-        # Dump in types
+        concatenate_asset_files
+
         add_webmention_types
 
         unless config["uglify"] == false
-          uglify_config = {
-            :harmony => true,
-          }
-          @javascript = Uglifier.new(uglify_config).compile(@javascript)
+          uglify
         end
 
-        # Generate the file
         create_js_file
+
         unless config["deploy"] == false
           deploy_js_file
         end
@@ -81,6 +74,21 @@ module Jekyll
           }(this, this.JekyllWebmentionIO));
         EOF
         @javascript << types_js.sub(/TYPES/, js_types.join(","))
+      end
+
+      private def concatenate_asset_files
+        source = File.expand_path("../assets/", __dir__)
+        Dir["#{source}/*.js"].each do |file|
+          handler = File.open(file, "rb")
+          @javascript << File.read(handler)
+        end
+      end
+
+      private def uglify
+        uglify_config = {
+          :harmony => true,
+        }
+        @javascript = Uglifier.new(uglify_config).compile(@javascript)
       end
 
       private def create_js_file

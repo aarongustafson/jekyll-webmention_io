@@ -57,12 +57,7 @@ module Jekyll
       end
     end
 
-    # class << self
-    #   attr_reader :types
-    #   attr_accessor :api_endpoint, :api_suffix
-    # end
-
-    # Attributes
+    # Getters
     def self.config
       @config
     end
@@ -87,6 +82,16 @@ module Jekyll
       @types
     end
 
+    # Setters
+    def self.api_path=(path)
+      @api_endpoint = "#{@api_url}/#{path}"
+    end
+
+    def self.api_suffix=(suffix)
+      @api_suffix = suffix
+    end
+
+    # Heplers
     def self.get_cache_file_path(key)
       path = false
       if @cache_files.key? key
@@ -121,14 +126,6 @@ module Jekyll
     #    "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
     #  end.join('&')
     # end
-
-    def self.set_api_endpoint(path)
-      @api_endpoint = "#{@api_url}/#{path}"
-    end
-
-    def self.set_api_suffix(suffix)
-      @api_suffix = suffix
-    end
 
     def self.get_response(api_params)
       api_params << @api_suffix

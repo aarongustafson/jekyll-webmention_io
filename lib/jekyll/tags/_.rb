@@ -31,7 +31,7 @@ module Jekyll
         lookup
       end
 
-      def set_template(template)
+      def template=(template)
         supported_templates = Jekyll::WebmentionIO.types + %w(count webmentions)
         Jekyll::WebmentionIO.log "error", "#{template} is not supported" unless supported_templates.include? template
         @template = Jekyll::WebmentionIO.get_template_contents(template)

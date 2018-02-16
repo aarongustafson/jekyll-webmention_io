@@ -15,7 +15,7 @@ module Jekyll
       def initialize(tag_name, text, tokens)
         super
         @text = text
-        set_template "reposts"
+        self.template = "reposts"
       end
 
       def set_data(data, _types)

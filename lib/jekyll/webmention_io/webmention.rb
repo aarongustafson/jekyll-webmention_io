@@ -131,7 +131,7 @@ module Jekyll
 
       def determine_title
         title = false
-        
+
         if @type == "post"
 
           html_source = Jekyll::WebmentionIO.get_uri_source(@uri)

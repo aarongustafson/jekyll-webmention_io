@@ -15,7 +15,7 @@ module Jekyll
       def initialize(tag_name, text, tokens)
         super
         @text = text
-        set_template "webmentions"
+        self.template = "webmentions"
       end
     end
   end

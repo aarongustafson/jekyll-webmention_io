@@ -24,3 +24,6 @@ Metrics/LineLength:
 Style/RegexpLiteral:
   EnforcedStyle: slashes
   AllowInnerSlashes: true
+
+Security/YAMLLoad:
+  Enabled: false
