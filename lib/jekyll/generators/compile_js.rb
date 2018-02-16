@@ -28,7 +28,10 @@ module Jekyll
       priority :low
 
       def generate(site)
-        if site.config.dig("webmentions", "js") == false
+        @site = site
+        @file_name = "JekyllWebmentionIO.js"
+
+        if @site.config.dig("webmentions", "js") == false
           Jekyll::WebmentionIO.log "info", "Skipping JavaScript inclusion."
           return
         end
@@ -37,16 +40,36 @@ module Jekyll
           "destination" => "js",
           "uglify"      => true,
         }
-        site_config = site.config.dig("webmentions", "js") || {}
+        site_config = @site.config.dig("webmentions", "js") || {}
         config = config.merge(site_config)
+
         source = File.expand_path("../assets/", __dir__)
-        javascript = ""
+        @source_file_destination = (config["source"] == false ? Dir.mktmpdir : "#{@site.config["source"]}/#{config["destination"]}")
+
+        @javascript = ""
         Dir["#{source}/*.js"].each do |file|
           handler = File.open(file, "rb")
-          javascript << File.read(handler)
+          @javascript << File.read(handler)
         end
 
         # Dump in types
+        add_webmention_types
+
+        unless config["uglify"] == false
+          uglify_config = {
+            :harmony => true,
+          }
+          @javascript = Uglifier.new(uglify_config).compile(@javascript)
+        end
+
+        # Generate the file
+        create_js_file
+        unless config["deploy"] == false
+          deploy_js_file
+        end
+      end
+
+      private def add_webmention_types
         js_types = []
         Jekyll::WebmentionIO.types.each do |type|
           js_types.push "'#{type}': '#{type.to_singular}'"
@@ -57,24 +80,17 @@ module Jekyll
             JekyllWebmentionIO.types = { TYPES };
           }(this, this.JekyllWebmentionIO));
         EOF
-        javascript << types_js.sub(/TYPES/, js_types.join(","))
+        @javascript << types_js.sub(/TYPES/, js_types.join(","))
+      end
 
-        unless config["uglify"] == false
-          uglify_config = {
-            :harmony => true,
-          }
-          javascript = Uglifier.new(uglify_config).compile(javascript)
-        end
+      private def create_js_file
+        Dir.mkdir(@source_file_destination) unless File.exist?(@source_file_destination)
+        File.open("#{@source_file_destination}/#{@file_name}", "w") { |f| f.write(@javascript) }
+      end
 
-        # Generate the file
-        file_name = "JekyllWebmentionIO.js"
-        source_file_destination = (config["source"] == false ? Dir.mktmpdir : "#{site.config["source"]}/#{config["destination"]}")
-        Dir.mkdir(source_file_destination) unless File.exist?(source_file_destination)
-        File.open("#{source_file_destination}/#{file_name}", "w") { |f| f.write(javascript) }
-        unless config["deploy"] == false
-          js_file = Jekyll::WebmentionIO::JavaScriptFile.new(site, source_file_destination, "", file_name)
-          site.static_files << js_file
-        end
+      private def deploy_js_file
+        js_file = Jekyll::WebmentionIO::JavaScriptFile.new(@site, @source_file_destination, "", @file_name)
+        @site.static_files << js_file
       end
     end
   end
