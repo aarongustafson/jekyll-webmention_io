@@ -13,7 +13,9 @@ module Jekyll
     priority :low
 
     def generate(site)
-      if site.config.dig("webmentions", "pause_lookups") == true
+      @site = site
+
+      if @site.config.dig("webmentions", "pause_lookups")
         Jekyll::WebmentionIO.log "info", "Webmention lookups are currently paused."
         return
       end
@@ -21,8 +23,6 @@ module Jekyll
       Jekyll::WebmentionIO.log "info", "Beginning to gather webmentions you’ve made. This may take a while."
 
       upgrade_outgoing_webmention_cache
-
-      webmentions = Jekyll::WebmentionIO.read_cached_webmentions "outgoing"
 
       posts = if Jekyll::VERSION >= "3.0.0"
                 site.posts.docs.clone
@@ -35,7 +35,16 @@ module Jekyll
         posts.concat site.pages.clone
       end
 
-      base_uri = site.config["url"].chomp("/")
+      gather_webmentions(posts)
+    end
+
+    private
+
+    def gather_webmentions(posts)
+      webmentions = Jekyll::WebmentionIO.read_cached_webmentions "outgoing"
+
+      base_uri = @site.config["url"].chomp("/")
+
       posts.each do |post|
         uri = "#{base_uri}#{post.url}"
         mentions = get_mentioned_uris(post)
@@ -51,6 +60,19 @@ module Jekyll
       end
 
       Jekyll::WebmentionIO.cache_webmentions "outgoing", webmentions
+    end
+
+    def get_mentioned_uris(post)
+      uris = {}
+      if post.data["in_reply_to"]
+        uris[post.data["in_reply_to"]] = false
+      end
+      post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
+        unless uris.key? match
+          uris[match] = false
+        end
+      end
+      return uris
     end
 
     def upgrade_outgoing_webmention_cache
@@ -78,17 +100,5 @@ module Jekyll
       Jekyll::WebmentionIO.log "info", "Upgraded your sent webmentions cache."
     end
 
-    def get_mentioned_uris(post)
-      uris = {}
-      if post.data["in_reply_to"]
-        uris[post.data["in_reply_to"]] = false
-      end
-      post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
-        unless uris.key? match
-          uris[match] = false
-        end
-      end
-      return uris
-    end
   end
 end
