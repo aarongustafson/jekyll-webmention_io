@@ -9,6 +9,9 @@ AllCops:
     - jekyll-webmention_io.gemspec
     - spec/**/*
 
+Metrics/AbcSize:
+  Max: 30
+
 Metrics/BlockLength:
   Max: 40
 

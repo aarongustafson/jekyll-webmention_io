@@ -22,8 +22,7 @@ module Jekyll
 
       upgrade_outgoing_webmention_cache
 
-      cache_file = Jekyll::WebmentionIO.get_cache_file_path "outgoing"
-      webmentions = open(cache_file) { |f| YAML.load(f) }
+      webmentions = Jekyll::WebmentionIO.read_cached_webmentions "outgoing"
 
       posts = if Jekyll::VERSION >= "3.0.0"
                 site.posts.docs.clone
@@ -51,10 +50,7 @@ module Jekyll
         end
       end
 
-      cache_file = Jekyll::WebmentionIO.get_cache_file_path "outgoing"
-      File.open(cache_file, "w") { |f| YAML.dump(webmentions, f) }
-
-      Jekyll::WebmentionIO.log "info", "Webmentions have been gathered and cached."
+      Jekyll::WebmentionIO.cache_webmentions "outgoing", webmentions
     end
 
     def upgrade_outgoing_webmention_cache
@@ -77,8 +73,7 @@ module Jekyll
         end
         merged[source_url] = collection
       end
-      cached_outgoing = Jekyll::WebmentionIO.get_cache_file_path "outgoing"
-      File.open(cached_outgoing, "w") { |f| YAML.dump(merged, f) }
+      Jekyll::WebmentionIO.cache_webmentions "outgoing", merged
       File.delete old_sent_file, old_outgoing_file
       Jekyll::WebmentionIO.log "info", "Upgraded your sent webmentions cache."
     end

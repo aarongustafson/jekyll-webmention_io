@@ -23,7 +23,7 @@ module Jekyll
         @type = determine_type
       end
 
-      def to_hash()
+      def to_hash
         gather_content
 
         the_hash = {
@@ -37,14 +37,14 @@ module Jekyll
         }
 
         the_hash["title"] = @title if @title
-        the_hash["content"] = @content || ''
+        the_hash["content"] = @content || ""
 
         the_hash
       end
 
       private
 
-      def gather_content()
+      def gather_content
         @pubdate = determine_pubdate
         @author = determine_author
         @title = determine_title
@@ -71,11 +71,11 @@ module Jekyll
         end
       end
 
-      def determine_uri()
+      def determine_uri
         @raw["data"]["url"] || @raw["source"]
       end
 
-      def determine_source()
+      def determine_source
         if @uri.include? "twitter.com/"
           "twitter"
         elsif @uri.include? "/googleplus/"
@@ -85,7 +85,7 @@ module Jekyll
         end
       end
 
-      def determine_id()
+      def determine_id
         id = @raw["id"].to_s
         if @source == "twitter" && !@uri.include?("#favorited-by")
           id = URI(@uri).path.split("/").last.to_s
@@ -97,19 +97,19 @@ module Jekyll
         id
       end
 
-      def determine_type()
+      def determine_type
         type = @raw.dig("activity", "type")
         unless type
           if @source == "googleplus"
             type = if @uri.include? "/like/"
-                      "like"
-                    elsif @uri.include? "/repost/"
-                      "repost"
-                    elsif @uri.include? "/comment/"
-                      "reply"
-                    else
-                      "link"
-                    end
+                     "like"
+                   elsif @uri.include? "/repost/"
+                     "repost"
+                   elsif @uri.include? "/comment/"
+                     "reply"
+                   else
+                     "link"
+                   end
           else
             type = "post"
           end
@@ -117,7 +117,7 @@ module Jekyll
         type
       end
 
-      def determine_pubdate()
+      def determine_pubdate
         pubdate = @raw.dig("data", "published_ts")
         if pubdate
           pubdate = Time.at(pubdate)
@@ -127,11 +127,11 @@ module Jekyll
         pubdate
       end
 
-      def determine_author()
+      def determine_author
         @raw.dig("data", "author")
       end
 
-      def determine_title()
+      def determine_title
         title = false
         
         if @type == "post"
@@ -166,7 +166,7 @@ module Jekyll
         markdownify(title)
       end
 
-      def determine_content()
+      def determine_content
         content = if %w(post reply link).include? @type
                     @raw.dig("data", "content")
                   else

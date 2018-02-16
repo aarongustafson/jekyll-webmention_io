@@ -95,6 +95,26 @@ module Jekyll
       return path
     end
 
+    def self.read_cached_webmentions(which)
+      unless %w(incoming outgoing).include? which
+        return {}
+      end
+
+      cache_file = get_cache_file_path which
+      cached_webmentions = open(cache_file) { |f| YAML.load(f) }
+
+      cached_webmentions
+    end
+
+    def self.cache_webmentions(which, webmentions)
+      if %w(incoming outgoing).include? which
+        cache_file = get_cache_file_path which
+        File.open(cache_file, "w") { |f| YAML.dump(webmentions, f) }
+
+        Jekyll::WebmentionIO.log "info", "#{which.capitalize} webmentions have been cached."
+      end
+    end
+
     # API helpers
     # def uri_params_for(api_params)
     #  api_params.keys.sort.map do |k|

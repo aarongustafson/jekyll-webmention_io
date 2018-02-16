@@ -16,7 +16,7 @@ module Jekyll
 
     def generate(site)
       @site = site
-      
+
       if @site.config.dig("webmentions", "pause_lookups") == true
         Jekyll::WebmentionIO.log "info", "Webmention lookups are currently paused."
         return
@@ -28,8 +28,7 @@ module Jekyll
       # add an arbitrarily high perPage to trump pagination
       Jekyll::WebmentionIO.set_api_suffix("&perPage=9999")
 
-      cache_file = Jekyll::WebmentionIO.get_cache_file_path "incoming"
-      @cached_webmentions = open(cache_file) { |f| YAML.load(f) }
+      @cached_webmentions = Jekyll::WebmentionIO.read_cached_webmentions "incoming"
 
       posts = if Jekyll::VERSION >= "3.0.0"
                 @site.posts.docs.clone
@@ -54,9 +53,6 @@ module Jekyll
           end
         end
 
-        # past_webmentions.dig( past_webmentions&.keys&.last )
-        # past_webmentions[past_webmentions.keys.last]['raw']['verified_date']
-
         # Get the last id we have in the hash
         since_id = last_webmention ? last_webmention.dig("raw", "id") : false
 
@@ -72,9 +68,7 @@ module Jekyll
         process_webmentions(post.url, response)
       end # posts loop
 
-      File.open(cache_file, "w") { |f| YAML.dump(@cached_webmentions, f) }
-
-      Jekyll::WebmentionIO.log "info", "Webmentions have been gathered and cached."
+      Jekyll::WebmentionIO.cache_webmentions "incoming", @cached_webmentions
     end # generate
 
     def get_webmention_target_urls(post)
