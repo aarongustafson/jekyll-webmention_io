@@ -50,7 +50,7 @@ module Jekyll
           Jekyll::WebmentionIO.log "warn", "#{type} are not extractable"
         else
           type = type.to_singular
-          Jekyll::WebmentionIO.log 'info', "Searching #{webmentions.length} webmentions for type==#{type}"
+          Jekyll::WebmentionIO.log "info", "Searching #{webmentions.length} webmentions for type==#{type}"
           if webmentions.is_a? Hash
             webmentions = webmentions.values
           end
@@ -76,19 +76,19 @@ module Jekyll
 
         if @cached_webmentions.key? uri
           all_webmentions = @cached_webmentions[uri].clone
-          Jekyll::WebmentionIO.log 'info', "#{all_webmentions.length} total webmentions for #{uri}"
+          Jekyll::WebmentionIO.log "info", "#{all_webmentions.length} total webmentions for #{uri}"
 
           if args.length.positive?
-            Jekyll::WebmentionIO.log 'info', "Requesting only #{args.inspect}"
+            Jekyll::WebmentionIO.log "info", "Requesting only #{args.inspect}"
             webmentions = {}
             args.each do |type|
               types.push type
               extracted = extract_type(type, all_webmentions)
-              Jekyll::WebmentionIO.log 'info', "Merging in #{extracted.length} #{type}"
+              Jekyll::WebmentionIO.log "info", "Merging in #{extracted.length} #{type}"
               webmentions = webmentions.merge(extracted)
             end
           else
-            Jekyll::WebmentionIO.log 'info', 'Grabbing all webmentions'
+            Jekyll::WebmentionIO.log "info", 'Grabbing all webmentions'
             webmentions = all_webmentions
           end
 
@@ -101,7 +101,7 @@ module Jekyll
         end
 
         if @template && @data
-          Jekyll::WebmentionIO.log 'info', "Preparing to render webmention info into the #{@template_name} template."
+          Jekyll::WebmentionIO.log "info", "Preparing to render webmention info into the #{@template_name} template."
           template = Liquid::Template.parse(@template, :error_mode => :strict)
           html = template.render(@data, { :strict_variables => false, :strict_filters => true })
           template.errors.each do |error|

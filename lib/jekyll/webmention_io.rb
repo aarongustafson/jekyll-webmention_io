@@ -199,7 +199,7 @@ module Jekyll
     end
 
     def self.get_webmention_endpoint(uri)
-      # log 'info', "Looking for webmention endpoint at #{uri}"
+      # log "info", "Looking for webmention endpoint at #{uri}"
       begin
         endpoint = Webmention::Client.supports_webmention?(uri)
         unless endpoint
@@ -228,12 +228,12 @@ module Jekyll
 
     def self.get_template_contents(template)
       template_file = if Jekyll::WebmentionIO.config.dig("templates", template)
-                        Jekyll::WebmentionIO.log 'info', "Using custom #{template} template"
+                        Jekyll::WebmentionIO.log "info", "Using custom #{template} template"
                         Jekyll::WebmentionIO.config["templates"][template]
                       else
                         File.expand_path("templates/#{template}.html", __dir__)
                       end
-      Jekyll::WebmentionIO.log 'info', "Template file: #{template_file}"
+      Jekyll::WebmentionIO.log "info", "Template file: #{template_file}"
       handler = File.open(template_file, "rb")
       handler.read
     end
