@@ -310,7 +310,7 @@ module Jekyll
 
     def self.log(type, message)
       debug = !!@config.dig("debug")
-      if debug || %w(error msg).include(type)
+      if debug || %w(error msg).include?(type)
         if type == "msg"
           type = "info"
         end
