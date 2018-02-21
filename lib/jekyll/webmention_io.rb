@@ -129,7 +129,9 @@ module Jekyll
 
     def self.get_response(api_params)
       api_params << @api_suffix
-      source = get_uri_source(@api_endpoint + "?#{api_params}")
+      url = "#{@api_endpoint}?#{api_params}"
+      Jekyll::WebmentionIO.log "info", "Sending request to #{url}."
+      source = get_uri_source(url)
       if source
         JSON.parse(source)
       else
@@ -226,12 +228,12 @@ module Jekyll
 
     def self.get_template_contents(template)
       template_file = if Jekyll::WebmentionIO.config.dig("templates", template)
-                        # Jekyll::WebmentionIO.log 'info', "Using custom #{template} template"
+                        Jekyll::WebmentionIO.log 'info', "Using custom #{template} template"
                         Jekyll::WebmentionIO.config["templates"][template]
                       else
                         File.expand_path("templates/#{template}.html", __dir__)
                       end
-      # Jekyll::WebmentionIO.log 'info', "Template file: #{template_file}"
+      Jekyll::WebmentionIO.log 'info', "Template file: #{template_file}"
       handler = File.open(template_file, "rb")
       handler.read
     end
@@ -308,7 +310,10 @@ module Jekyll
 
     def self.log(type, message)
       debug = !!@config.dig("debug")
-      if debug || %w(error msg).include? type
+      if debug || %w(error msg).include(type)
+        if type == "msg"
+          type = "info"
+        end
         Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
       end
     end

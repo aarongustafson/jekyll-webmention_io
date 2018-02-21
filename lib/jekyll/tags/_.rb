@@ -33,9 +33,10 @@ module Jekyll
 
       def template=(template)
         supported_templates = Jekyll::WebmentionIO.types + %w(count webmentions)
-        Jekyll::WebmentionIO.log "error", "#{template} is not supported" unless supported_templates.include? template
+        Jekyll::WebmentionIO.log "error", "#{template.capitalize} is not supported" unless supported_templates.include? template
+        @template_name = template
         @template = Jekyll::WebmentionIO.get_template_contents(template)
-        Jekyll::WebmentionIO.log "info", "template: #{@template}"
+        Jekyll::WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"
       end
 
       def set_data(data, types)
@@ -100,7 +101,7 @@ module Jekyll
         end
 
         if @template && @data
-          Jekyll::WebmentionIO.log 'info', "Preparing to render\n\n#{@data.inspect}\n\ninto\n\n#{@template}"
+          Jekyll::WebmentionIO.log 'info', "Preparing to render webmention info into the #{@template_name} template."
           template = Liquid::Template.parse(@template, :error_mode => :strict)
           html = template.render(@data, { :strict_variables => false, :strict_filters => true })
           template.errors.each do |error|

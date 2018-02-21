@@ -51,13 +51,15 @@ module Jekyll
     private
 
     def check_for_webmentions(post)
+      Jekyll::WebmentionIO.log "info", "Checking for webmentions of #{post.url}."
+
       # get the last webmention
       last_webmention = @cached_webmentions.dig(post.url, @cached_webmentions.dig(post.url)&.keys&.last)
 
       # should we throttle?
       if post.respond_to? "date" # Some docs have no date
         if last_webmention && Jekyll::WebmentionIO.post_should_be_throttled?(post, post.date, last_webmention.dig("raw", "verified_date"))
-          Jekyll::WebmentionIO.log 'info', "Throttling #{post.url}"
+          Jekyll::WebmentionIO.log 'info', "Throttling this post."
           return
         end
       end
@@ -70,8 +72,12 @@ module Jekyll
 
       # execute the API
       response = Jekyll::WebmentionIO.get_response assemble_api_params(targets, since_id)
-      Jekyll::WebmentionIO.log "info", "Collecting webmentions from webmention.io"
-      Jekyll::WebmentionIO.log "info", response.inspect
+      webmentions = response.dig("links")
+      if webmentions && !webmentions.empty?
+        Jekyll::WebmentionIO.log "info", "Here’s what we got back:\n\n#{response.inspect}\n\n"
+      else
+        Jekyll::WebmentionIO.log "info", "No webmentions found."
+      end
 
       cache_new_webmentions(post.url, response)
     end

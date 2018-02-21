@@ -33,6 +33,7 @@ module Jekyll
           js << "<script src=\"#{js_file_path}\" async></script>"
         end
 
+        Jekyll::WebmentionIO.log "info", "Gathering templates for JavaScript."
         templates = ""
         template_files = Jekyll::WebmentionIO.types + %w(count webmentions)
         template_files.each do |template|
