@@ -307,7 +307,10 @@ module Jekyll
     end
 
     def self.log(type, message)
-      Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
+      debug = !!@config.dig("debug")
+      if debug || type == "error"
+        Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
+      end
     end
 
   end
