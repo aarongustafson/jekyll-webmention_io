@@ -18,11 +18,11 @@ module Jekyll
       @site = site
 
       if @site.config.dig("webmentions", "pause_lookups") == true
-        Jekyll::WebmentionIO.log "info", "Webmention lookups are currently paused."
+        Jekyll::WebmentionIO.log "msg", "Webmention lookups are currently paused."
         return
       end
 
-      Jekyll::WebmentionIO.log "info", "Beginning to gather webmentions of your posts. This may take a while."
+      Jekyll::WebmentionIO.log "msg", "Beginning to gather webmentions of your posts. This may take a while."
 
       Jekyll::WebmentionIO.api_path = "mentions"
       # add an arbitrarily high perPage to trump pagination
@@ -57,7 +57,7 @@ module Jekyll
       # should we throttle?
       if post.respond_to? "date" # Some docs have no date
         if last_webmention && Jekyll::WebmentionIO.post_should_be_throttled?(post, post.date, last_webmention.dig("raw", "verified_date"))
-          # Jekyll::WebmentionIO.log 'info', "Throttling #{post.url}"
+          Jekyll::WebmentionIO.log 'info', "Throttling #{post.url}"
           return
         end
       end
@@ -70,7 +70,8 @@ module Jekyll
 
       # execute the API
       response = Jekyll::WebmentionIO.get_response assemble_api_params(targets, since_id)
-      # Jekyll::WebmentionIO.log "info", response.inspect
+      Jekyll::WebmentionIO.log "info", "Collecting webmentions from webmention.io"
+      Jekyll::WebmentionIO.log "info", response.inspect
 
       cache_new_webmentions(post.url, response)
     end
@@ -107,10 +108,10 @@ module Jekyll
 
     def gather_legacy_targets(uri, targets)
       if Jekyll::WebmentionIO.config.key? "legacy_domains"
-        # Jekyll::WebmentionIO.log "info", "adding legacy URIs"
+        Jekyll::WebmentionIO.log "info", "adding legacy URIs"
         Jekyll::WebmentionIO.config["legacy_domains"].each do |domain|
           legacy = uri.sub @site.config["url"], domain
-          # Jekyll::WebmentionIO.log "info", "adding URI #{legacy}"
+          Jekyll::WebmentionIO.log "info", "adding URI #{legacy}"
           targets.push(legacy)
         end
       end
@@ -140,7 +141,7 @@ module Jekyll
           end
 
           # Add it to the list
-          # Jekyll::WebmentionIO.log "info", webmention.to_hash.inspect
+          Jekyll::WebmentionIO.log "info", webmention.to_hash.inspect
           webmentions[webmention.id] = webmention.to_hash
         end # each link
       end # if response

@@ -116,7 +116,7 @@ module Jekyll
         cache_file = get_cache_file_path which
         File.open(cache_file, "w") { |f| YAML.dump(webmentions, f) }
 
-        Jekyll::WebmentionIO.log "info", "#{which.capitalize} webmentions have been cached."
+        Jekyll::WebmentionIO.log "msg", "#{which.capitalize} webmentions have been cached."
       end
     end
 
@@ -308,7 +308,7 @@ module Jekyll
 
     def self.log(type, message)
       debug = !!@config.dig("debug")
-      if debug || type == "error"
+      if debug || %w(error msg).include? type
         Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
       end
     end

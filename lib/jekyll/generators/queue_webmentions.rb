@@ -20,7 +20,7 @@ module Jekyll
         return
       end
 
-      Jekyll::WebmentionIO.log "info", "Beginning to gather webmentions you’ve made. This may take a while."
+      Jekyll::WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
 
       upgrade_outgoing_webmention_cache
 
@@ -97,7 +97,7 @@ module Jekyll
       end
       Jekyll::WebmentionIO.cache_webmentions "outgoing", merged
       File.delete old_sent_file, old_outgoing_file
-      Jekyll::WebmentionIO.log "info", "Upgraded your sent webmentions cache."
+      Jekyll::WebmentionIO.log "msg", "Upgraded your sent webmentions cache."
     end
   end
 end

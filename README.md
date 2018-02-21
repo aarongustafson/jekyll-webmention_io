@@ -14,6 +14,7 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
   * [JavaScript enhancements](#javascript-enhancements)
 * **[Commands](#commands)** - Send webmentions you’ve made
 * **[Generators](#generators)** - Collect webmentions from Webmention.io and gather sites you’ve mentioned
+* **[Debugging](#debugging)** - Print debugging info to the command line
 
 There are also a few [JavaScript enhancement features](#javascript-enhancements) available.
 
@@ -401,3 +402,12 @@ webmentions:
 ### Streaming Mentions
 
 Coming Soon!
+
+## Debugging
+
+To enable debugging, add `debug: true` tothe config:
+
+```yaml
+webmentions:
+  debug: true
+```
