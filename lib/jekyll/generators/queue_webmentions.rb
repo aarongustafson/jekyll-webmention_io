@@ -24,16 +24,7 @@ module Jekyll
 
       upgrade_outgoing_webmention_cache
 
-      posts = if Jekyll::VERSION >= "3.0.0"
-                site.posts.docs.clone
-              else
-                site.posts.clone
-              end
-
-      if site.config.dig("webmentions", "pages") == true
-        Jekyll::WebmentionIO.log "info", "Including site pages."
-        posts.concat site.pages.clone
-      end
+      posts = Jekyll::WebmentionIO.gather_documents(@site)
 
       gather_webmentions(posts)
     end

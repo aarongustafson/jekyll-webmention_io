@@ -30,17 +30,7 @@ module Jekyll
 
       @cached_webmentions = Jekyll::WebmentionIO.read_cached_webmentions "incoming"
 
-      posts = if Jekyll::VERSION >= "3.0.0"
-                @site.posts.docs.clone
-              else
-                @site.posts.clone
-              end
-
-      if @site.config.dig("webmentions", "pages") == true
-        Jekyll::WebmentionIO.log "info", "Including site pages."
-        posts.concat @site.pages.clone
-      end
-
+      posts = Jekyll::WebmentionIO.gather_documents(@site)
       posts.each do |post|
         check_for_webmentions(post)
       end

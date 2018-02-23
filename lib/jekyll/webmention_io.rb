@@ -120,6 +120,34 @@ module Jekyll
       end
     end
 
+    def self.gather_documents(site)
+      documents = if Jekyll::VERSION >= "3.0.0"
+                site.posts.docs.clone
+              else
+                site.posts.clone
+              end
+
+      if @config.dig("pages") == true
+        Jekyll::WebmentionIO.log "info", "Including site pages."
+        documents.concat site.pages.clone
+      end
+
+      collections = @config.dig("collections")
+      if collections
+        Jekyll::WebmentionIO.log "info", "Adding collections."
+        site.collections.each do |name, collection|
+          # skip _posts
+          next if name == "posts"
+
+          unless collections.is_a?(Array) && !collections.include?(name)
+            documents.concat collection.docs.clone
+          end
+        end
+      end
+
+      return documents
+    end
+
     # API helpers
     # def uri_params_for(api_params)
     #  api_params.keys.sort.map do |k|
