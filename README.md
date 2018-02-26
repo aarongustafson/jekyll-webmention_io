@@ -1,6 +1,6 @@
 # A Jekyll plugin for sending & receiving webmentions via Webmention.io.
 
-This Gem includes a suite of tools for managing webmentions in Jekyll:
+This gem includes a suite of tools for managing [webmentions](https://indieweb.org/Webmention) in Jekyll:
 
 * **[Tags](#tags)**
   * [Count of webmentions](#webmention_count) (filterable)
@@ -16,9 +16,14 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
   * [JavaScript enhancements](#javascript-enhancements)
 * **[Commands](#commands)** - Send webmentions you’ve made
 * **[Generators](#generators)** - Collect webmentions from Webmention.io and gather sites you’ve mentioned
-* **[Debugging](#debugging)** - Print debugging info to the command line
 
 There are also a few [JavaScript enhancement features](#javascript-enhancements) available.
+
+Other topics you might be interested in:
+
+* **[Configuration](#configuration)** - How to configure yoru installation
+* **[Performance Tuning](#performance-tuning-your-build)** - How to speed up (or at least manage) your build time
+* **[Debugging](#debugging)** - Print debugging info to the command line
 
 ## Quickstart
 
@@ -34,7 +39,7 @@ If you want to customize your install, read on…
 
 ## Webmention support
 
-All inbound webmentions of your posts are collected (see below for [info on adding pages & collections into the mix](#what’s-checked)). The following are able to be distilled and handled separately:
+All inbound webmentions of your posts are collected (see below for [info on adding pages & collections into the mix](#whats-checked)). The following are able to be distilled and handled separately:
 
 * bookmarks,
 * links,
