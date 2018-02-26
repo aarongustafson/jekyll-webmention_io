@@ -19,11 +19,13 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
 * Tags
   * Count of webmentions (filterable)
   * All webmentions (filterable)
+  * Bookmarks
   * Likes
   * Links
   * Posts
   * Replies
   * Reposts
+  * RSVPs
   * Contents for the `head` of your pages
   * JavaScript enhancements
 * Commands - Send webmentions you’ve made
