@@ -5,11 +5,13 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
 * **[Tags](#tags)**
   * [Count of webmentions](#webmention_count) (filterable)
   * [All webmentions](#webmentions) (filterable)
+  * [Bookmarks](#webmention_bookmarks)
   * [Likes](#webmention_likes)
   * [Links](#webmention_links)
   * [Posts](#webmention_posts)
   * [Replies](#webmention_replies)
   * [Reposts](#webmention_reposts)
+  * [RSVPs](#webmention_rsvps)
   * [Contents for the `head` of your pages](#webmentions_head)
   * [JavaScript enhancements](#javascript-enhancements)
 * **[Commands](#commands)** - Send webmentions you’ve made
@@ -182,6 +184,34 @@ If you go with the default template, here’s a rundown of elements and class na
   * `u-url` - [Citation Microformat](http://microformats.org/wiki/h-cite)
 * `webmentions__not-found` - The "no results" message shown if no mentions are found (`p`)
 
+### `webmention_bookmarks`
+
+You can get a complete list of "bookmark" webmentions for a given `page.url` using the following liquid tag:
+
+	{% webmention_bookmarks page.url %}
+
+The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
+
+#### Default template info
+
+If you go with the default template, here’s a rundown of elements and class names in use in the template:
+
+* `webmentions` - overall container (`div`)
+  * `webmentions--bookmarks` - Identifies this as only pertaining to "bookmarks"
+* `webmentions__list` - the list of webmentions (`ol`)
+* `webmentions__item` - the webmention container (`li`)
+  * `webmention`
+	* `webmention--bookmark`
+* `webmention__meta` - The webmention’s meta information container (`div`)
+* `webmention__author` - Author of the webmention (`a`)
+  * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
+  * `u-url` - [Person Microformat](http://microformats.org/wiki/h-card) (`a`)
+* `webmention__source` - The webmention permalink (`a`)
+  * `u-url` - [Citation Microformat](http://microformats.org/wiki/h-cite)
+* `webmention__pubdate` - The publication date (`time`)
+  * `dt-published` - [Citation Microformat](http://microformats.org/wiki/h-cite)
+* `webmentions__not-found` - The "no results" message shown if no mentions are found (`p`)
+
 ### `webmention_likes`
 
 You can get a complete list of "like" webmentions for a given `page.url` using the following liquid tag:
@@ -319,6 +349,33 @@ If you go with the default template, here’s a rundown of elements and class na
   * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
 * `webmentions__not-found` - The "no results" message shown if no mentions are found (`p`)
 
+### `webmention_rsvps`
+
+You can get a complete list of "RSVP" webmentions for a given `page.url` using the following liquid tag:
+
+	{% webmention_rsvps page.url %}
+
+The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
+
+#### Default template info
+
+If you go with the default template, here’s a rundown of elements and class names in use in the template:
+
+* `webmentions` - overall container (`div`)
+  * `webmentions--rsvps` - Identifies this as only pertaining to "RSVPs"
+* `webmentions__list` - the list of webmentions (`ol`)
+* `webmentions__item` - the webmention container (`li`)
+  * `webmention`
+	* `webmention--rsvp`
+* `webmention__author` - Author of the webmention (`div`)
+  * `p-author` - [Citation Microformat](http://microformats.org/wiki/h-cite)
+	* `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
+* `u-url` - [Person Microformat](http://microformats.org/wiki/h-card) (`a`)
+* `webmention__author__photo` - Author’s photo (`img`)
+  * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
+* `p-name` - Author’s name (`b`)
+* `webmentions__not-found` - The "no results" message shown if no mentions are found (`p`)
+
 ### `webmentions_head`
 
 To insert bits and bobs that will help webmention-enable your site, you’ll want to include this in the `head` of your pages. If you include a `username` in your [configuration](#configuration), it will automatically generate the `link` elements necessary to notify webmention clients of the [webmention.io](https://webmention.io) endpoint where webmentions should be sent. It will also drop in information about any [redirects in play](#picking-up-redirects) for the current page and insert [Client Hints](http://httpwg.org/http-extensions/client-hints.html) that will make the [JavaScript enhancements](#javascript-enhancements) faster.
@@ -405,7 +462,7 @@ Coming Soon!
 
 ## Debugging
 
-To enable debugging, add `debug: true` tothe config:
+To enable debugging, add `debug: true` to the config:
 
 ```yaml
 webmentions:
