@@ -122,10 +122,10 @@ module Jekyll
 
     def self.gather_documents(site)
       documents = if Jekyll::VERSION >= "3.0.0"
-                site.posts.docs.clone
-              else
-                site.posts.clone
-              end
+                    site.posts.docs.clone
+                  else
+                    site.posts.clone
+                  end
 
       if @config.dig("pages") == true
         Jekyll::WebmentionIO.log "info", "Including site pages."
@@ -147,13 +147,6 @@ module Jekyll
 
       return documents
     end
-
-    # API helpers
-    # def uri_params_for(api_params)
-    #  api_params.keys.sort.map do |k|
-    #    "#{CGI::escape(k)}=#{CGI::escape(api_params[k])}"
-    #  end.join('&')
-    # end
 
     def self.get_response(api_params)
       api_params << @api_suffix
@@ -267,55 +260,13 @@ module Jekyll
     end
 
     # Connections
-    def self.uri_ok?(uri)
-      uri = URI.parse(URI.encode(uri))
-      now = Time.now.to_s
-      bad_uris = open(@cache_files["bad_uris"]) { |f| YAML.load(f) }
-      if bad_uris.key? uri.host
-        last_checked = DateTime.parse(bad_uris[uri.host])
-        cache_bad_uris_for = @config["cache_bad_uris_for"] || 1 # in days
-        recheck_at = last_checked.next_day(cache_bad_uris_for).to_s
-        if recheck_at > now
-          return false
-        end
-      end
-      return true
-    end
-
-    # Cache bad URLs for a bit
-    def self.uri_is_not_ok(uri)
-      # Never cache webmention.io in here
-      if uri.host == "webmention.io"
-        return
-      end
-      cache_file = @cache_files["bad_uris"]
-      bad_uris = open(cache_file) { |f| YAML.load(f) }
-      bad_uris[uri.host] = Time.now.to_s
-      File.open(cache_file, "w") { |f| YAML.dump(bad_uris, f) }
-    end
-
     def self.get_uri_source(uri, redirect_limit = 10, original_uri = false)
       original_uri ||= uri
       unless uri_ok?(uri)
         return false
       end
       if redirect_limit.positive?
-        uri = URI.parse(URI.encode(uri))
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.read_timeout = 10
-        if uri.scheme == "https"
-          http.use_ssl = true
-          http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        end
-        begin
-          request = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(request)
-        rescue *EXCEPTIONS => e
-          log "warn", "Got an error checking #{original_uri}: #{e}"
-          uri_is_not_ok(uri)
-          return false
-        end
+        response = get_http_response(uri)
         case response
         when Net::HTTPSuccess then
           return response.body.force_encoding("UTF-8")
@@ -346,6 +297,54 @@ module Jekyll
       end
     end
 
+    private
+
+    def self.get_http_response(uri)
+      uri = URI.parse(URI.encode(uri))
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.read_timeout = 10
+      if uri.scheme == "https"
+        http.use_ssl = true
+        http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      end
+      begin
+        request = Net::HTTP::Get.new(uri.request_uri)
+        response = http.request(request)
+        return response
+      rescue *EXCEPTIONS => e
+        log "warn", "Got an error checking #{original_uri}: #{e}"
+        uri_is_not_ok(uri)
+        return false
+      end
+    end
+
+    # Cache bad URLs for a bit
+    def self.uri_is_not_ok(uri)
+      # Never cache webmention.io in here
+      if uri.host == "webmention.io"
+        return
+      end
+      cache_file = @cache_files["bad_uris"]
+      bad_uris = open(cache_file) { |f| YAML.load(f) }
+      bad_uris[uri.host] = Time.now.to_s
+      File.open(cache_file, "w") { |f| YAML.dump(bad_uris, f) }
+    end
+
+    def self.uri_ok?(uri)
+      uri = URI.parse(URI.encode(uri))
+      now = Time.now.to_s
+      bad_uris = open(@cache_files["bad_uris"]) { |f| YAML.load(f) }
+      if bad_uris.key? uri.host
+        last_checked = DateTime.parse(bad_uris[uri.host])
+        cache_bad_uris_for = @config["cache_bad_uris_for"] || 1 # in days
+        recheck_at = last_checked.next_day(cache_bad_uris_for).to_s
+        if recheck_at > now
+          return false
+        end
+      end
+      return true
+    end
   end
 end
 

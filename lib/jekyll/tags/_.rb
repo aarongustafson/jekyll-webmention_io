@@ -61,10 +61,6 @@ module Jekyll
         keep
       end
 
-      def sort_webmentions(webmentions)
-        return webmentions.sort_by { |webmention| webmention["pubdate"].to_i }
-      end
-
       def render(context)
         # Get the URI
         args = @text.split(/\s+/).map(&:strip)
@@ -88,7 +84,7 @@ module Jekyll
               webmentions = webmentions.merge(extracted)
             end
           else
-            Jekyll::WebmentionIO.log "info", 'Grabbing all webmentions'
+            Jekyll::WebmentionIO.log "info", "Grabbing all webmentions"
             webmentions = all_webmentions
           end
 
@@ -100,6 +96,12 @@ module Jekyll
           set_data(webmentions, types)
         end
 
+        render_into_template
+      end
+
+      private
+
+      def render_into_template
         if @template && @data
           Jekyll::WebmentionIO.log "info", "Preparing to render webmention info into the #{@template_name} template."
           template = Liquid::Template.parse(@template, :error_mode => :strict)
@@ -118,6 +120,10 @@ module Jekyll
           end
           ""
         end
+      end
+
+      def sort_webmentions(webmentions)
+        return webmentions.sort_by { |webmention| webmention["pubdate"].to_i }
       end
     end
   end
