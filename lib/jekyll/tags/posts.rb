@@ -11,7 +11,7 @@
 #
 module Jekyll
   module WebmentionIO
-    class WebmentionRepostsTag < Jekyll::WebmentionIO::WebmentionTag
+    class WebmentionPostsTag < Jekyll::WebmentionIO::WebmentionTag
       def initialize(tag_name, text, tokens)
         super
         @text = text
@@ -26,4 +26,4 @@ module Jekyll
   end
 end
 
-Liquid::Template.register_tag("webmention_posts", Jekyll::WebmentionIO::WebmentionRepostsTag)
+Liquid::Template.register_tag("webmention_posts", Jekyll::WebmentionIO::WebmentionPostsTag)
