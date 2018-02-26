@@ -116,6 +116,7 @@ module Jekyll
     def assemble_api_params(targets, since_id)
       api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
       api_params << "&since_id=#{since_id}" if since_id
+      api_params << "&sort-by=published"
       api_params
     end
 
