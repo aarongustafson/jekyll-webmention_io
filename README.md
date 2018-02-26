@@ -34,13 +34,15 @@ If you want to customize your install, read on…
 
 ## Webmention support
 
-All inbound webmentions are collected. The following are able to be distilled and handled separately::
+All inbound webmentions of your posts are collected (see below for [info on adding pages & collections into the mix](#what’s-checked)). The following are able to be distilled and handled separately:
 
+* bookmarks,
 * links,
 * likes,
 * posts,
-* replies, and
-* reposts.
+* replies,
+* reposts, and
+* RSVPs.
 
 ## Configuration
 
@@ -123,6 +125,32 @@ webmentions:
 ```
 
 It’s worth noting that throttling and pausing only apply to looking for new webmentions. Any existing webmentions that have already been gathered and cached will still be used to output the site.
+
+## What’s checked
+
+Given the tim-consuming nature of collecting and sending webmentions, by default this plugin will only look at your site’s posts (stuff in the `_posts` directory or what’s returned in `site.posts.docs`). In reality, there can be many more content types in a Jekyll site and you may want to include them with outgoing webmentions or look for inbound webmentions to them. You can customize your installation to include arbitrary pages and/or Jekyll Collections by altering your `_config.yml`. 
+
+Add pages by setting `pages` to `true`:
+
+```yml
+webmentions:
+  pages: true
+```
+
+You can add **all** collections by setting `collections` to `true`:
+
+```yml
+webmentions:
+  collections: true
+```
+
+Since you can have multiple collections and you may not want to apply the same logic to all of them, you can cherry-pick specific collections you’d like to include by setting the `collections` value to an array:
+
+```yml
+webmentions:
+  collections:
+    - links
+```
 
 ## Picking Up Redirects
 
