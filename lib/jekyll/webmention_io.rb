@@ -26,7 +26,7 @@ module Jekyll
     @api_endpoint = @api_url
     @api_suffix = ""
 
-    @types = %w(likes links posts replies reposts)
+    @types = %w(likes links posts replies reposts rsvps)
 
     EXCEPTIONS = [  SocketError, Timeout::Error, Errno::EINVAL,
                     Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
