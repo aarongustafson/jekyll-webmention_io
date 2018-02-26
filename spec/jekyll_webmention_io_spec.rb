@@ -10,6 +10,7 @@ describe Jekyll::WebmentionIO do
   let(:like)      { "webmention_likes" }
   let(:reply)     { "webmention_replies" }
   let(:repost)    { "webmention_reposts" }
+  let(:rsvp)      { "webmention_rsvps" }
   let(:url)       { "" }
   let(:o_all)     { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
   let(:o_count)   { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
