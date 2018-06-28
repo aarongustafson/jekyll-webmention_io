@@ -313,7 +313,7 @@ module Jekyll
         response = http.request(request)
         return response
       rescue *EXCEPTIONS => e
-        log "warn", "Got an error checking #{original_uri}: #{e}"
+        log "warn", "Got an error checking #{uri}: #{e}"
         uri_is_not_ok(uri)
         return false
       end
