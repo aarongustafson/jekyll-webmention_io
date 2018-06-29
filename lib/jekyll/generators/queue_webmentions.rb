@@ -15,6 +15,11 @@ module Jekyll
     def generate(site)
       @site = site
 
+      if @site.config.dig("url").include? 'localhost'
+        Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
+        return
+      end
+      
       if @site.config.dig("webmentions", "pause_lookups")
         Jekyll::WebmentionIO.log "info", "Webmention lookups are currently paused."
         return
