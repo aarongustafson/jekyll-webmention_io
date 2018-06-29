@@ -1,4 +1,4 @@
-# A Jekyll plugin for sending & receiving webmentions via Webmention.io.
+# A Jekyll plugin for sending & receiving webmentions via Webmention.io
 
 This gem includes a suite of tools for managing [webmentions](https://indieweb.org/Webmention) in Jekyll:
 
@@ -59,7 +59,7 @@ This gem will work well out of the box, but is configurable in a number of ways.
 * `templates` - If you would like to roll your own templates, you totally can. You will need to assign a hash of the template paths to use for loading each one.
 * `username` - Your [webmention.io](https://webmention.io) username (for use in the `link` tags in your head)
 
-### Simple Example:
+### Simple Example
 
 ```yml
 webmentions:
@@ -74,7 +74,7 @@ webmentions:
     - http://www.aaron-gustafson.com
 ```
 
-### Exhaustive Example:
+### Exhaustive Example
 
 ```yml
 webmentions:
@@ -109,7 +109,7 @@ Each of these accepts one of the following values:
 * weekly
 * monthly
 * yearly
-* every <digit> [ days | weeks | months | years]
+* every &lt;digit&gt; [ days | weeks | months | years]
 
 For instance, it might be sensible to look for webmentions daily for posts you’ve made in the last week, weekly for posts made in the last month, every 2 weeks for posts made in the last year, and monthly thereafter. To do that you’d set up the configuration like this:
 
@@ -133,7 +133,7 @@ It’s worth noting that throttling and pausing only apply to looking for new we
 
 ## What’s checked
 
-Given the tim-consuming nature of collecting and sending webmentions, by default this plugin will only look at your site’s posts (stuff in the `_posts` directory or what’s returned in `site.posts.docs`). In reality, there can be many more content types in a Jekyll site and you may want to include them with outgoing webmentions or look for inbound webmentions to them. You can customize your installation to include arbitrary pages and/or Jekyll Collections by altering your `_config.yml`. 
+Given the tim-consuming nature of collecting and sending webmentions, by default this plugin will only look at your site’s posts (stuff in the `_posts` directory or what’s returned in `site.posts.docs`). In reality, there can be many more content types in a Jekyll site and you may want to include them with outgoing webmentions or look for inbound webmentions to them. You can customize your installation to include arbitrary pages and/or Jekyll Collections by altering your `_config.yml`.
 
 Add pages by setting `pages` to `true`:
 
@@ -169,25 +169,25 @@ The various tag options provided by this gem are focused around display of infor
 
 Displays a count of webmentions for the current `page.url`:
 
-	{% webmention_count page.url %}
-	
+  {% webmention_count page.url %}
+  
 The output will be a number.
 
 You can optionally filter this number by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
-	{% webmention_count page.url posts replies %}
+  {% webmention_count page.url posts replies %}
 
 ### `webmentions`
 
 You can get a complete list of webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmentions page.url %}
+  {% webmentions page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
 You can optionally filter this list by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
-	{% webmentions page.url posts replies %}
+  {% webmentions page.url posts replies %}
 
 #### Default template info
 
@@ -197,14 +197,14 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
 * `webmention` - the webmention itself (`article`)
-	* `webmention--[type]` - modifier for the type
-	* `webmention--no-author` - added if there’s no author info available
-	* `webmention--no-photo` - added if there’s no photo of the author availble
-	* `webmention--author-starts` - variant for when the author’s name starts the content (as in a tweet interaction such as a favorite or retweet)
-	* `h-cite` - [Citation Microformat](http://microformats.org/wiki/h-cite)
+  * `webmention--[type]` - modifier for the type
+  * `webmention--no-author` - added if there’s no author info available
+  * `webmention--no-photo` - added if there’s no photo of the author availble
+  * `webmention--author-starts` - variant for when the author’s name starts the content (as in a tweet interaction such as a favorite or retweet)
+  * `h-cite` - [Citation Microformat](http://microformats.org/wiki/h-cite)
 * `webmention__author` - Author of the webmention (`div`)
   * `p-author` - [Citation Microformat](http://microformats.org/wiki/h-cite)
-	* `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
+  * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
 * `u-url` - [Person Microformat](http://microformats.org/wiki/h-card) (`a`)
 * `webmention__author__photo` - Author’s photo (`img`)
   * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -221,11 +221,11 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "bookmark" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_bookmarks page.url %}
+  {% webmention_bookmarks page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_bookmarks` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -234,7 +234,7 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--bookmark`
+  * `webmention--bookmark`
 * `webmention__meta` - The webmention’s meta information container (`div`)
 * `webmention__author` - Author of the webmention (`a`)
   * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -249,11 +249,11 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "like" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_likes page.url %}
+  {% webmention_likes page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_likes` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -262,10 +262,10 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--like`
+  * `webmention--like`
 * `webmention__author` - Author of the webmention (`div`)
   * `p-author` - [Citation Microformat](http://microformats.org/wiki/h-cite)
-	* `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
+  * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
 * `u-url` - [Person Microformat](http://microformats.org/wiki/h-card) (`a`)
 * `webmention__author__photo` - Author’s photo (`img`)
   * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -275,11 +275,11 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "link" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_links page.url %}
+  {% webmention_links page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_links` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -288,7 +288,7 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--like`
+  * `webmention--like`
 * `webmention__meta` - The webmention’s meta information container (`div`)
 * `webmention__author` - Author of the webmention (`a`)
   * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -303,11 +303,11 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "posts" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_posts page.url %}
+  {% webmention_posts page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_posts` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -316,9 +316,9 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--post`
+  * `webmention--post`
 * `webmention__title` - The title of the post (`a`)
-	* `webmention__source`
+  * `webmention__source`
   * `u-url` - [Citation Microformat](http://microformats.org/wiki/h-cite)
 * `webmention__meta` - The webmention’s meta information container (`div`)
 * `webmention__pubdate` - The publication date (`time`)
@@ -329,11 +329,11 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "reply" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_replies page.url %}
+  {% webmention_replies page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_replies` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -342,7 +342,7 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--reply`
+  * `webmention--reply`
 * `webmention__meta` - The webmention’s meta information container (`div`)
 * `webmention__author` - Author of the webmention (`a`)
   * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -355,16 +355,16 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmention__pubdate` - The publication date (`time`)
   * `dt-published` - [Citation Microformat](http://microformats.org/wiki/h-cite)
 * `webmentions__not-found` - The "no results" message shown if no mentions are found (`p`)
-	
+  
 ### `webmention_reposts`
 
 You can get a complete list of "repost" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_reposts page.url %}
+  {% webmention_reposts page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_reposts` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -373,10 +373,10 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--repost`
+  * `webmention--repost`
 * `webmention__author` - Author of the webmention (`div`)
   * `p-author` - [Citation Microformat](http://microformats.org/wiki/h-cite)
-	* `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
+  * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
 * `u-url` - [Person Microformat](http://microformats.org/wiki/h-card) (`a`)
 * `webmention__author__photo` - Author’s photo (`img`)
   * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -386,11 +386,11 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "RSVP" webmentions for a given `page.url` using the following liquid tag:
 
-	{% webmention_rsvps page.url %}
+  {% webmention_rsvps page.url %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
-#### Default template info
+#### `webmention_rsvps` template info
 
 If you go with the default template, here’s a rundown of elements and class names in use in the template:
 
@@ -399,10 +399,10 @@ If you go with the default template, here’s a rundown of elements and class na
 * `webmentions__list` - the list of webmentions (`ol`)
 * `webmentions__item` - the webmention container (`li`)
   * `webmention`
-	* `webmention--rsvp`
+  * `webmention--rsvp`
 * `webmention__author` - Author of the webmention (`div`)
   * `p-author` - [Citation Microformat](http://microformats.org/wiki/h-cite)
-	* `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
+  * `h-card` - [Person Microformat](http://microformats.org/wiki/h-card)
 * `u-url` - [Person Microformat](http://microformats.org/wiki/h-card) (`a`)
 * `webmention__author__photo` - Author’s photo (`img`)
   * `u-photo` - [Person Microformat](http://microformats.org/wiki/h-card)
@@ -424,7 +424,7 @@ To insert bits and bobs that will help webmention-enable your site, you’ll wan
 
 Webmentions are not automatically sent when building your Jekyll project as that may not always be desirable. That said, this gem does automatically collect mentions made in your posts. It caches them and makes them available to you to send using the following command:
 
-```
+```sh
 $> jekyll webmention
 ```
 
@@ -448,7 +448,7 @@ We are using [liquid.js](https://github.com/mattmccray/liquid.js), a JavaScript 
 
 If you use [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP), you need to add these values:
 
-```
+```sh
 script-src https://webmention.io
 connect-src ws://webmention.io:8080
 ```
