@@ -57,8 +57,10 @@ module Jekyll
       # get the last webmention
       last_lookup = if @lookups[post.url]
                       @lookups[post.url]
-                    else
+                    elsif last_webmention
                       Date.parse last_webmention.dig("raw", "verified_date")
+                    else
+                      nil
                     end
 
       # should we throttle?
