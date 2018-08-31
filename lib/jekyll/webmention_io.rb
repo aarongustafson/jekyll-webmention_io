@@ -49,6 +49,7 @@ module Jekyll
         "incoming" => "#{@cache_folder}/#{@file_prefix}received.yml",
         "outgoing" => "#{@cache_folder}/#{@file_prefix}outgoing.yml",
         "bad_uris" => "#{@cache_folder}/#{@file_prefix}bad_uris.yml",
+        "lookups"  => "#{@cache_folder}/#{@file_prefix}lookups.yml"
       }
       @cache_files.each do |_key, file|
         unless File.exist?(file)
@@ -160,14 +161,27 @@ module Jekyll
       end
     end
 
+    def self.read_lookup_dates()
+      cache_file = get_cache_file_path "lookups"
+      lookups = open(cache_file) { |f| YAML.load(f) }
+      lookups
+    end
+
+    def self.cache_lookup_dates(lookups)
+      cache_file = get_cache_file_path "lookups"
+      File.open(cache_file, "w") { |f| YAML.dump(lookups, f) }
+
+      Jekyll::WebmentionIO.log "msg", "Lookups have been cached."
+    end
+
     # allowed throttles: last_week, last_month, last_year, older
     # allowed values:  daily, weekly, monthly, yearly, every X days|weeks|months|years
-    def self.post_should_be_throttled?(post, item_date, last_webmention_date)
+    def self.post_should_be_throttled?(post, item_date, last_lookup)
       throttles = @config.dig("throttle_lookups")
-      if throttles && item_date && last_webmention_date
+      if throttles && item_date && last_lookup
         age = get_timeframe_from_date(item_date)
         throttle = throttles.dig(age)
-        if throttle && Date.parse(last_webmention_date) >= get_date_from_string(throttle)
+        if throttle && last_lookup >= get_date_from_string(throttle)
           log "info", "Throttling #{post.data["title"]} (Only checking it #{throttle})"
           return true
         end

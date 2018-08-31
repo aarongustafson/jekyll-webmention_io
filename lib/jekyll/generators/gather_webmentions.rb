@@ -35,10 +35,14 @@ module Jekyll
 
       @cached_webmentions = Jekyll::WebmentionIO.read_cached_webmentions "incoming"
 
+      @lookups = Jekyll::WebmentionIO.read_lookup_dates
+
       posts = Jekyll::WebmentionIO.gather_documents(@site)
       posts.each do |post|
         check_for_webmentions(post)
       end
+
+      Jekyll::WebmentionIO.cache_lookup_dates @lookups
 
       Jekyll::WebmentionIO.cache_webmentions "incoming", @cached_webmentions
     end # generate
@@ -48,12 +52,18 @@ module Jekyll
     def check_for_webmentions(post)
       Jekyll::WebmentionIO.log "info", "Checking for webmentions of #{post.url}."
 
-      # get the last webmention
       last_webmention = @cached_webmentions.dig(post.url, @cached_webmentions.dig(post.url)&.keys&.last)
+
+      # get the last webmention
+      last_lookup = if @lookups[post.url]
+                      @lookups[post.url]
+                    else
+                      Date.parse last_webmention.dig("raw", "verified_date")
+                    end
 
       # should we throttle?
       if post.respond_to? "date" # Some docs have no date
-        if last_webmention && Jekyll::WebmentionIO.post_should_be_throttled?(post, post.date, last_webmention.dig("raw", "verified_date"))
+        if last_lookup && Jekyll::WebmentionIO.post_should_be_throttled?(post, post.date, last_lookup)
           Jekyll::WebmentionIO.log "info", "Throttling this post."
           return
         end
@@ -74,6 +84,7 @@ module Jekyll
         Jekyll::WebmentionIO.log "info", "No webmentions found."
       end
 
+      @lookups[post.url] = Date.today
       cache_new_webmentions(post.url, response)
     end
 
