@@ -1,7 +1,7 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 module Jekyll
   module WebmentionIO
-    VERSION = "2.9.6".freeze
+    VERSION = "2.9.6"
   end
 end
