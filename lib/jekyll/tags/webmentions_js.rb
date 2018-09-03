@@ -27,14 +27,14 @@ module Jekyll
         config = config.merge(site_config)
 
         # JS file
-        js = +""
+        js = String.new ""
         unless config["deploy"] == false
           js_file_path = "#{site.config["baseurl"]}/#{config["destination"]}/JekyllWebmentionIO.js"
           js << "<script src=\"#{js_file_path}\" async></script>"
         end
 
         Jekyll::WebmentionIO.log "info", "Gathering templates for JavaScript."
-        templates = +""
+        templates = String.new ""
         template_files = Jekyll::WebmentionIO.types + %w(count webmentions)
         template_files.each do |template|
           templates << "<template style=\"display:none\" id=\"webmention-#{template}\">"
