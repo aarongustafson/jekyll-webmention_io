@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
@@ -45,7 +45,7 @@ module Jekyll
 
         @source_file_destination = (config["source"] == false ? Dir.mktmpdir : "#{@site.config["source"]}/#{config["destination"]}")
 
-        @javascript = ""
+        @javascript = +""
 
         concatenate_asset_files
 

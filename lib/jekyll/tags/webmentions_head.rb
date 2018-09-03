@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
@@ -11,7 +11,7 @@ module Jekyll
   module WebmentionIO
     class WebmentionHeadTag < Liquid::Tag
       def render(context)
-        head = ""
+        head = +""
         head << '<link rel="dns-prefetch" href="https://webmention.io">'
         head << '<link rel="preconnect" href="https://webmention.io">'
         head << '<link rel="preconnect" href="ws://webmention.io:8080">'

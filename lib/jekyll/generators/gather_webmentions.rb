@@ -1,4 +1,4 @@
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 #  (c) Aaron Gustafson
 #  https://github.com/aarongustafson/jekyll-webmention_io
@@ -59,8 +59,6 @@ module Jekyll
                       @lookups[post.url]
                     elsif last_webmention
                       Date.parse last_webmention.dig("raw", "verified_date")
-                    else
-                      nil
                     end
 
       # should we throttle?
