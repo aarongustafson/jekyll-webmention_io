@@ -262,7 +262,6 @@ module Jekyll
     end
 
     def self.get_template_contents(template)
-      puts config.inspect
       template_file = if config.dig("templates", template)
                         log "info", "Using custom #{template} template"
                         config["templates"][template]
