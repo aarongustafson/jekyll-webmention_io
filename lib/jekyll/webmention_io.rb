@@ -117,7 +117,7 @@ module Jekyll
         cache_file = get_cache_file_path which
         File.open(cache_file, "w") { |f| YAML.dump(webmentions, f) }
 
-        Jekyll::WebmentionIO.log "msg", "#{which.capitalize} webmentions have been cached."
+        log "msg", "#{which.capitalize} webmentions have been cached."
       end
     end
 
@@ -129,13 +129,13 @@ module Jekyll
                   end
 
       if @config.dig("pages") == true
-        Jekyll::WebmentionIO.log "info", "Including site pages."
+        log "info", "Including site pages."
         documents.concat site.pages.clone
       end
 
       collections = @config.dig("collections")
       if collections
-        Jekyll::WebmentionIO.log "info", "Adding collections."
+        log "info", "Adding collections."
         site.collections.each do |name, collection|
           # skip _posts
           next if name == "posts"
@@ -152,7 +152,7 @@ module Jekyll
     def self.get_response(api_params)
       api_params << @api_suffix
       url = "#{@api_endpoint}?#{api_params}"
-      Jekyll::WebmentionIO.log "info", "Sending request to #{url}."
+      log "info", "Sending request to #{url}."
       source = get_uri_source(url)
       if source
         JSON.parse(source)
@@ -171,7 +171,7 @@ module Jekyll
       cache_file = get_cache_file_path "lookups"
       File.open(cache_file, "w") { |f| YAML.dump(lookups, f) }
 
-      Jekyll::WebmentionIO.log "msg", "Lookups have been cached."
+      log "msg", "Lookups have been cached."
     end
 
     # allowed throttles: last_week, last_month, last_year, older
@@ -262,13 +262,14 @@ module Jekyll
     end
 
     def self.get_template_contents(template)
-      template_file = if Jekyll::WebmentionIO.config.dig("templates", template)
-                        Jekyll::WebmentionIO.log "info", "Using custom #{template} template"
-                        Jekyll::WebmentionIO.config["templates"][template]
+      puts config.inspect
+      template_file = if config.dig("templates", template)
+                        log "info", "Using custom #{template} template"
+                        config["templates"][template]
                       else
                         File.expand_path("templates/#{template}.html", __dir__)
                       end
-      Jekyll::WebmentionIO.log "info", "Template file: #{template_file}"
+      log "info", "Template file: #{template_file}"
       handler = File.open(template_file, "rb")
       handler.read
     end
