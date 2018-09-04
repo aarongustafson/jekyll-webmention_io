@@ -28,10 +28,12 @@ module Jekyll
 
     @types = %w(bookmarks likes links posts replies reposts rsvps)
 
-    EXCEPTIONS = [  SocketError, Timeout::Error, Errno::EINVAL,
-                    Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
-                    Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError,
-                    Net::ProtocolError, OpenSSL::SSL::SSLError, ].freeze
+    EXCEPTIONS = [
+      SocketError, Timeout::Error,
+      Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
+      Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
+      OpenSSL::SSL::SSLError,
+    ].freeze
 
     def self.bootstrap
       # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
@@ -49,7 +51,7 @@ module Jekyll
         "bad_uris" => "#{@cache_folder}/#{@file_prefix}bad_uris.yml",
         "lookups"  => "#{@cache_folder}/#{@file_prefix}lookups.yml"
       }
-      @cache_files.each do |_key, file|
+      @cache_files.each_value do |file|
         unless File.exist?(file)
           File.open(file, "w") { |f| YAML.dump({}, f) }
         end
@@ -187,15 +189,15 @@ module Jekyll
       return false
     end
 
+    TIMEFRAMES = {
+      "last_week"  => "weekly",
+      "last_month" => "monthly",
+      "last_year"  => "yearly",
+    }.freeze
+
     def self.get_timeframe_from_date(time)
       date = time.to_date
-      timeframes = {
-        "last_week"  => "weekly",
-        "last_month" => "monthly",
-        "last_year"  => "yearly",
-      }
-      timeframe = nil
-      timeframes.each do |key, value|
+      TIMEFRAMES.each do |key, value|
         if date.to_date > get_date_from_string(value)
           timeframe = key
           break
@@ -214,7 +216,7 @@ module Jekyll
         text = if text == "daily"
                  "every 1 day"
                else
-                 "every 1 " + text.sub("ly", "")
+                 "every 1 #{text.sub("ly", "")}"
                end
         matches = text.match(pattern)
       end
@@ -263,8 +265,7 @@ module Jekyll
                         File.expand_path("templates/#{template}.html", __dir__)
                       end
       log "info", "Template file: #{template_file}"
-      handler = File.open(template_file, "rb")
-      handler.read
+      File.read(template_file)
     end
 
     # Connections
@@ -303,16 +304,18 @@ module Jekyll
     private
 
     def self.get_http_response(uri)
-      uri = URI.parse(URI.encode(uri))
+      uri  = URI.parse(URI.encode(uri))
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 10
+
       if uri.scheme == "https"
         http.use_ssl = true
         http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
         http.verify_mode = OpenSSL::SSL::VERIFY_PEER
       end
+
       begin
-        request = Net::HTTP::Get.new(uri.request_uri)
+        request  = Net::HTTP::Get.new(uri.request_uri)
         response = http.request(request)
         return response
       rescue *EXCEPTIONS => e
