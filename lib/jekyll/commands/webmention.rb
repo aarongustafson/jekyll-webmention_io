@@ -42,7 +42,7 @@ module Jekyll
             end
           end
           if count.positive?
-            File.open(cached_outgoing, "w") { |f| YAML.dump(outgoing, f) }
+            Jekyll::WebmentionIO.dump_yaml(cached_outgoing, outgoing)
           end
           Jekyll::WebmentionIO.log "msg", "#{count} webmentions sent."
         end # file exists (outgoing)
