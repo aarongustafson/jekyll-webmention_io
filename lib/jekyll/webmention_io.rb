@@ -262,9 +262,9 @@ module Jekyll
     end
 
     def self.get_template_contents(template)
-      template_file = if config.dig("templates", template)
+      template_file = if @config.dig("templates", template)
                         log "info", "Using custom #{template} template"
-                        config["templates"][template]
+                        @config["templates"][template]
                       else
                         File.expand_path("templates/#{template}.html", __dir__)
                       end
