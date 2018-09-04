@@ -96,16 +96,16 @@ module Jekyll
           set_data(webmentions, types)
         end
 
-        render_into_template
+        render_into_template(context.registers)
       end
 
       private
 
-      def render_into_template
+      def render_into_template(context_registry)
         if @template && @data
           Jekyll::WebmentionIO.log "info", "Preparing to render webmention info into the #{@template_name} template."
           template = Liquid::Template.parse(@template, :error_mode => :strict)
-          html = template.render(@data, { :strict_variables => false, :strict_filters => true })
+          html = template.render!(@data, :registers => context_registry, :strict_variables => false, :strict_filters => true)
           template.errors.each do |error|
             Jekyll::WebmentionIO.log "error", error
           end
