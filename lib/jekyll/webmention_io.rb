@@ -351,13 +351,14 @@ module Jekyll
 end
 
 # Load all the bits
-Dir[File.expand_path("commands/*.rb", __dir__)].each do |file|
-  require file
+def require_all(group)
+  Dir[File.expand_path("#{group}/*.rb", __dir__)].each do |file|
+    require file
+  end
 end
-Dir[File.expand_path("generators/*.rb", __dir__)].each do |file|
-  require file
-end
-require "#{__dir__}/tags/_.rb"
-Dir[File.expand_path("tags/*.rb", __dir__)].each do |file|
-  require file unless file.include? "_.rb"
-end
+
+require_all "commands"
+require_all "generators"
+
+require_relative "tags/_.rb"
+require_all "tags"
