@@ -19,7 +19,7 @@ module Jekyll
       end
 
       def set_data(data, _types)
-        webmentions = extract_type "likes", data
+        webmentions = extract_type @template_name, data
         @data = { "webmentions" => webmentions.values }
       end
     end
