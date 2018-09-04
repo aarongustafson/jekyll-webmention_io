@@ -42,9 +42,7 @@ module Jekyll
       @cache_folder = @config["cache_folder"] || ".jekyll-cache"
       Dir.mkdir(@cache_folder) unless File.exist?(@cache_folder)
       @file_prefix = ""
-      unless @cache_folder.include? "webmention"
-        @file_prefix = "webmention_io_"
-      end
+      @file_prefix = "webmention_io_" unless @cache_folder.include? "webmention"
       @cache_files = {
         "incoming" => "#{@cache_folder}/#{@file_prefix}received.yml",
         "outgoing" => "#{@cache_folder}/#{@file_prefix}outgoing.yml",
@@ -203,9 +201,7 @@ module Jekyll
           break
         end
       end
-      unless timeframe
-        timeframe = "older"
-      end
+      timeframe = "older" unless timeframe
       return timeframe
     end
 
@@ -237,9 +233,7 @@ module Jekyll
       # log "info", "Looking for webmention endpoint at #{uri}"
       begin
         endpoint = Webmention::Client.supports_webmention?(uri)
-        unless endpoint
-          log "info", "Could not find a webmention endpoint at #{uri}"
-        end
+        log("info", "Could not find a webmention endpoint at #{uri}") unless endpoint
       rescue => e
         log "info", "Endpoint lookup failed for #{uri}: #{e.message}"
         endpoint = false
@@ -276,9 +270,8 @@ module Jekyll
     # Connections
     def self.get_uri_source(uri, redirect_limit = 10, original_uri = false)
       original_uri ||= uri
-      unless uri_ok?(uri)
-        return false
-      end
+      return false unless uri_ok?(uri)
+
       if redirect_limit.positive?
         response = get_http_response(uri)
         case response
@@ -293,9 +286,7 @@ module Jekyll
           return false
         end
       else
-        if original_uri
-          log "warn", "too many redirects for #{original_uri}"
-        end
+        log("warn", "too many redirects for #{original_uri}") if original_uri
         uri_is_not_ok(uri)
         return false
       end
@@ -304,9 +295,7 @@ module Jekyll
     def self.log(type, message)
       debug = !!@config.dig("debug")
       if debug || %w(error msg).include?(type)
-        if type == "msg"
-          type = "info"
-        end
+        type = "info" if type == "msg"
         Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
       end
     end
@@ -336,9 +325,7 @@ module Jekyll
     # Cache bad URLs for a bit
     def self.uri_is_not_ok(uri)
       # Never cache webmention.io in here
-      if uri.host == "webmention.io"
-        return
-      end
+      return if uri.host == "webmention.io"
       cache_file = @cache_files["bad_uris"]
       bad_uris = open(cache_file) { |f| YAML.load(f) }
       bad_uris[uri.host] = Time.now.to_s
@@ -353,9 +340,7 @@ module Jekyll
         last_checked = DateTime.parse(bad_uris[uri.host])
         cache_bad_uris_for = @config["cache_bad_uris_for"] || 1 # in days
         recheck_at = last_checked.next_day(cache_bad_uris_for).to_s
-        if recheck_at > now
-          return false
-        end
+        return false if recheck_at > now
       end
       return true
     end
