@@ -19,6 +19,12 @@ require "webmention"
 
 module Jekyll
   module WebmentionIO
+    class << self
+      # define simple getters and setters
+      attr_reader :config, :jekyll_config, :cache_files, :cache_folder,
+                  :file_prefix, :types
+      attr_writer :api_suffix
+    end
 
     @logger_prefix = "[jekyll-webmention_io]"
 
@@ -58,38 +64,9 @@ module Jekyll
       end
     end
 
-    # Getters
-    def self.config
-      @config
-    end
-
-    def self.jekyll_config
-      @jekyll_config
-    end
-
-    def self.cache_files
-      @cache_files
-    end
-
-    def self.cache_folder
-      @cache_folder
-    end
-
-    def self.file_prefix
-      @file_prefix
-    end
-
-    def self.types
-      @types
-    end
-
-    # Setters
+    # Setter
     def self.api_path=(path)
       @api_endpoint = "#{@api_url}/#{path}"
-    end
-
-    def self.api_suffix=(suffix)
-      @api_suffix = suffix
     end
 
     # Heplers
