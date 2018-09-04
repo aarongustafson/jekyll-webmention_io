@@ -53,7 +53,7 @@ module Jekyll
       }
       @cache_files.each do |_key, file|
         unless File.exist?(file)
-          File.open(file, "w") { |f| YAML.dump({}, f) }
+          dump_yaml(file)
         end
       end
     end
@@ -115,7 +115,7 @@ module Jekyll
     def self.cache_webmentions(which, webmentions)
       if %w(incoming outgoing).include? which
         cache_file = get_cache_file_path which
-        File.open(cache_file, "w") { |f| YAML.dump(webmentions, f) }
+        dump_yaml(cache_file, webmentions)
 
         log "msg", "#{which.capitalize} webmentions have been cached."
       end
@@ -169,7 +169,7 @@ module Jekyll
 
     def self.cache_lookup_dates(lookups)
       cache_file = get_cache_file_path "lookups"
-      File.open(cache_file, "w") { |f| YAML.dump(lookups, f) }
+      dump_yaml(cache_file, lookups)
 
       log "msg", "Lookups have been cached."
     end
@@ -311,6 +311,14 @@ module Jekyll
       end
     end
 
+    # Utility Method
+    # Writes given +data+ as YAML string into +file+ path.
+    #
+    # Returns nothing.
+    def self.dump_yaml(file, data = {})
+      File.open(file, "wb") { |f| f.puts YAML.dump(data) }
+    end
+
     private
 
     def self.get_http_response(uri)
@@ -342,7 +350,7 @@ module Jekyll
       cache_file = @cache_files["bad_uris"]
       bad_uris = open(cache_file) { |f| YAML.load(f) }
       bad_uris[uri.host] = Time.now.to_s
-      File.open(cache_file, "w") { |f| YAML.dump(bad_uris, f) }
+      dump_yaml(cache_file, bad_uris)
     end
 
     def self.uri_ok?(uri)
