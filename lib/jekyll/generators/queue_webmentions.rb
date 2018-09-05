@@ -72,8 +72,8 @@ module Jekyll
     end
 
     def upgrade_outgoing_webmention_cache
-      old_sent_file = "#{Jekyll::WebmentionIO.cache_folder}/#{Jekyll::WebmentionIO.file_prefix}sent.yml"
-      old_outgoing_file = "#{Jekyll::WebmentionIO.cache_folder}/#{Jekyll::WebmentionIO.file_prefix}queued.yml"
+      old_sent_file = Jekyll::WebmentionIO.cache_file("sent.yml")
+      old_outgoing_file = Jekyll::WebmentionIO.cache_file("queued.yml")
       unless File.exist? old_sent_file
         return
       end

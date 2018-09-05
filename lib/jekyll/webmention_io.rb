@@ -41,21 +41,21 @@ module Jekyll
       OpenSSL::SSL::SSLError,
     ].freeze
 
-    def self.bootstrap
-      # @jekyll_config = Jekyll.configuration({ 'quiet' => true })
-      @jekyll_config = Jekyll.configuration({})
+    def self.bootstrap(site)
+      @site = site
+      @jekyll_config = site.config
       @config = @jekyll_config["webmentions"] || {}
 
       # Set up the cache folder & files
-      @cache_folder = @config["cache_folder"] || ".jekyll-cache"
+      @cache_folder = site.in_source_dir(@config["cache_folder"] || ".jekyll-cache")
       Dir.mkdir(@cache_folder) unless File.exist?(@cache_folder)
       @file_prefix = ""
       @file_prefix = "webmention_io_" unless @cache_folder.include? "webmention"
       @cache_files = {
-        "incoming" => "#{@cache_folder}/#{@file_prefix}received.yml",
-        "outgoing" => "#{@cache_folder}/#{@file_prefix}outgoing.yml",
-        "bad_uris" => "#{@cache_folder}/#{@file_prefix}bad_uris.yml",
-        "lookups"  => "#{@cache_folder}/#{@file_prefix}lookups.yml"
+        "incoming" => cache_file("received.yml"),
+        "outgoing" => cache_file("outgoing.yml"),
+        "bad_uris" => cache_file("bad_uris.yml"),
+        "lookups"  => cache_file("lookups.yml")
       }
       @cache_files.each_value do |file|
         unless File.exist?(file)
@@ -69,7 +69,11 @@ module Jekyll
       @api_endpoint = "#{@api_url}/#{path}"
     end
 
-    # Heplers
+    # Helpers
+    def self.cache_file(filename)
+      Jekyll.sanitized_path(@cache_folder, "#{@file_prefix}#{filename}")
+    end
+
     def self.get_cache_file_path(key)
       path = false
       if @cache_files.key? key
