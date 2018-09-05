@@ -11,16 +11,11 @@
 #
 module Jekyll
   module WebmentionIO
-    class WebmentionBookmarksTag < WebmentionTag
+    class WebmentionBookmarksTag < WebmentionType
       def initialize(tag_name, text, tokens)
         super
         @text = text
         self.template = "bookmarks"
-      end
-
-      def set_data(data, _types)
-        webmentions = extract_type @template_name, data
-        @data = { "webmentions" => webmentions.values }
       end
     end
   end

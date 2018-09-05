@@ -345,5 +345,6 @@ end
 require_all "commands"
 require_all "generators"
 
-require_relative "tags/_.rb"
+require_relative "tags/webmention"
+require_relative "tags/webmention_type"
 require_all "tags"
