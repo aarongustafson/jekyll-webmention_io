@@ -286,8 +286,6 @@ module Jekyll
       File.open(file, "wb") { |f| f.puts YAML.dump(data) }
     end
 
-    private
-
     def self.get_http_response(uri)
       uri  = URI.parse(URI.encode(uri))
       http = Net::HTTP.new(uri.host, uri.port)

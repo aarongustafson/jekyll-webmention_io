@@ -62,7 +62,9 @@ module Jekyll
         end
       end
 
-      private def add_webmention_types
+      private
+
+      def add_webmention_types
         js_types = []
         Jekyll::WebmentionIO.types.each do |type|
           js_types.push "'#{type}': '#{type.to_singular}'"
@@ -76,7 +78,7 @@ module Jekyll
         @javascript << types_js.sub(/TYPES/, js_types.join(","))
       end
 
-      private def concatenate_asset_files
+      def concatenate_asset_files
         source = File.expand_path("../assets/", __dir__)
         Dir["#{source}/*.js"].each do |file|
           handler = File.open(file, "rb")
@@ -84,19 +86,19 @@ module Jekyll
         end
       end
 
-      private def uglify
+      def uglify
         uglify_config = {
           :harmony => true,
         }
         @javascript = Uglifier.new(uglify_config).compile(@javascript)
       end
 
-      private def create_js_file
+      def create_js_file
         Dir.mkdir(@source_file_destination) unless File.exist?(@source_file_destination)
         File.open("#{@source_file_destination}/#{@file_name}", "w") { |f| f.write(@javascript) }
       end
 
-      private def deploy_js_file
+      def deploy_js_file
         js_file = Jekyll::WebmentionIO::JavaScriptFile.new(@site, @source_file_destination, "", @file_name)
         @site.static_files << js_file
       end
