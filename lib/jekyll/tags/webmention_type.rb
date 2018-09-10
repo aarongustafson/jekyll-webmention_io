@@ -11,7 +11,7 @@ module Jekyll
   module WebmentionIO
     # Superclass for Webmention types:
     # [ bookmarks | likes | links | posts | replies | reposts | rsvps ]
-    class WebmentionType < WebmentionTag
+    class WebmentionTypeTag < WebmentionTag
       def set_data(data, _types)
         webmentions = extract_type @template_name, data
         @data = { "webmentions" => webmentions.values }

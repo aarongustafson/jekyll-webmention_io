@@ -11,7 +11,7 @@
 #
 module Jekyll
   module WebmentionIO
-    class WebmentionRepliesTag < WebmentionType
+    class WebmentionRepliesTag < WebmentionTypeTag
       def initialize(tag_name, text, tokens)
         super
         @text = text

@@ -11,7 +11,7 @@
 #
 module Jekyll
   module WebmentionIO
-    class WebmentionBookmarksTag < WebmentionType
+    class WebmentionBookmarksTag < WebmentionTypeTag
       def initialize(tag_name, text, tokens)
         super
         @text = text
