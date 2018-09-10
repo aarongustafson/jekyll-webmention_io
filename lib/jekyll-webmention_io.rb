@@ -3,4 +3,6 @@
 require "jekyll"
 require "jekyll/webmention_io"
 
-Jekyll::WebmentionIO.bootstrap
+Jekyll::Hooks.register :site, :after_init do |site|
+  Jekyll::WebmentionIO.bootstrap(site)
+end

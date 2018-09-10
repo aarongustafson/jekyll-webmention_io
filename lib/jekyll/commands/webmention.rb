@@ -15,7 +15,7 @@ module Jekyll
       end
 
       def self.process(_args = [], _options = {})
-        if File.exist? "#{Jekyll::WebmentionIO.cache_folder}/#{Jekyll::WebmentionIO.file_prefix}sent.yml"
+        if File.exist? Jekyll::WebmentionIO.cache_file("sent.yml")
           Jekyll::WebmentionIO.log "error", "Your outgoing webmentions queue needs to be upgraded. Please re-build your project."
         end
         count = 0
