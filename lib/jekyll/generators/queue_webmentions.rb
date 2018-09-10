@@ -77,8 +77,8 @@ module Jekyll
       unless File.exist? old_sent_file
         return
       end
-      sent_webmentions = open(old_sent_file) { |f| YAML.load(f) }
-      outgoing_webmentions = open(old_outgoing_file) { |f| YAML.load(f) }
+      sent_webmentions = Jekyll::WebmentionIO.load_yaml(old_sent_file)
+      outgoing_webmentions = Jekyll::WebmentionIO.load_yaml(old_outgoing_file)
       merged = {}
       outgoing_webmentions.each do |source_url, webmentions|
         collection = {}
