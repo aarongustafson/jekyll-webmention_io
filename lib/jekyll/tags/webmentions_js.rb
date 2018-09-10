@@ -27,14 +27,15 @@ module Jekyll
         config = config.merge(site_config)
 
         # JS file
-        js = String.new ""
+        js = +"" # unfrozen String
         unless config["deploy"] == false
-          js_file_path = "#{site.config["baseurl"]}/#{config["destination"]}/JekyllWebmentionIO.js"
+          destination = config["destination"].chomp("/").reverse.chomp("/").reverse # removes prefix & suffix "/"
+          js_file_path = "#{site.config["baseurl"]}/#{destination}/JekyllWebmentionIO.js"
           js << "<script src=\"#{js_file_path}\" async></script>"
         end
 
         Jekyll::WebmentionIO.log "info", "Gathering templates for JavaScript."
-        templates = String.new ""
+        templates = +"" # unfrozen String
         template_files = Jekyll::WebmentionIO.types + %w(count webmentions)
         template_files.each do |template|
           templates << "<template style=\"display:none\" id=\"webmention-#{template}\">"

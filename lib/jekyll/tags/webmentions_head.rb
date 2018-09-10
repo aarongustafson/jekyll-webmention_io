@@ -11,7 +11,7 @@ module Jekyll
   module WebmentionIO
     class WebmentionHeadTag < Liquid::Tag
       def render(context)
-        head = String.new ""
+        head = +"" # unfrozen String
         head << '<link rel="dns-prefetch" href="https://webmention.io">'
         head << '<link rel="preconnect" href="https://webmention.io">'
         head << '<link rel="preconnect" href="ws://webmention.io:8080">'

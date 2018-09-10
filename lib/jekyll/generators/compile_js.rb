@@ -45,7 +45,7 @@ module Jekyll
 
         @source_file_destination = (config["source"] == false ? Dir.mktmpdir : "#{@site.config["source"]}/#{config["destination"]}")
 
-        @javascript = String.new ""
+        @javascript = +"" # unfrozen String
 
         concatenate_asset_files
 
