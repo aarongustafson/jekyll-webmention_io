@@ -84,9 +84,7 @@ module Jekyll
       end
 
       cache_file = get_cache_file_path which
-      cached_webmentions = open(cache_file) { |f| YAML.load(f) }
-
-      cached_webmentions
+      load_yaml(cache_file)
     end
 
     def self.cache_webmentions(which, webmentions)
@@ -140,8 +138,7 @@ module Jekyll
 
     def self.read_lookup_dates()
       cache_file = get_cache_file_path "lookups"
-      lookups = open(cache_file) { |f| YAML.load(f) }
-      lookups
+      load_yaml(cache_file)
     end
 
     def self.cache_lookup_dates(lookups)
@@ -286,6 +283,16 @@ module Jekyll
       File.open(file, "wb") { |f| f.puts YAML.dump(data) }
     end
 
+    # Utility Method
+    # Safely parse given YAML +file+ path and return data.
+    #
+    # Returns empty hash if parsing fails to return data
+    def self.load_yaml(file)
+      SafeYAML.load_file(file) || {}
+    end
+
+    private
+
     def self.get_http_response(uri)
       uri  = URI.parse(URI.encode(uri))
       http = Net::HTTP.new(uri.host, uri.port)
@@ -313,7 +320,7 @@ module Jekyll
       # Never cache webmention.io in here
       return if uri.host == "webmention.io"
       cache_file = @cache_files["bad_uris"]
-      bad_uris = open(cache_file) { |f| YAML.load(f) }
+      bad_uris = load_yaml(cache_file)
       bad_uris[uri.host] = Time.now.to_s
       dump_yaml(cache_file, bad_uris)
     end
@@ -321,7 +328,7 @@ module Jekyll
     def self.uri_ok?(uri)
       uri = URI.parse(URI.encode(uri))
       now = Time.now.to_s
-      bad_uris = open(@cache_files["bad_uris"]) { |f| YAML.load(f) }
+      bad_uris = load_yaml(@cache_files["bad_uris"])
       if bad_uris.key? uri.host
         last_checked = DateTime.parse(bad_uris[uri.host])
         cache_bad_uris_for = @config["cache_bad_uris_for"] || 1 # in days

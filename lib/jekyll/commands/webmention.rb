@@ -21,7 +21,7 @@ module Jekyll
         count = 0
         cached_outgoing = Jekyll::WebmentionIO.get_cache_file_path "outgoing"
         if File.exist?(cached_outgoing)
-          outgoing = open(cached_outgoing) { |f| YAML.load(f) }
+          outgoing = Jekyll::WebmentionIO.load_yaml(cached_outgoing)
           outgoing.each do |source, targets|
             targets.each do |target, response|
               next unless response == false
