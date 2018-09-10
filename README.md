@@ -169,25 +169,33 @@ The various tag options provided by this gem are focused around display of infor
 
 Displays a count of webmentions for the current `page.url`:
 
-  {% webmention_count page.url %}
-  
+```liquid
+{% webmention_count page.url %}
+```
+
 The output will be a number.
 
 You can optionally filter this number by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
-  {% webmention_count page.url posts replies %}
+```liquid
+{% webmention_count page.url posts replies %}
+```
 
 ### `webmentions`
 
 You can get a complete list of webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmentions page.url %}
+```liquid
+{% webmentions page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
 You can optionally filter this list by one or more supported webmention types. For instance, if you only wanted posts and replies, you could use this format:
 
-  {% webmentions page.url posts replies %}
+```liquid
+{% webmentions page.url posts replies %}
+```
 
 #### Default template info
 
@@ -221,7 +229,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "bookmark" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_bookmarks page.url %}
+```liquid
+{% webmention_bookmarks page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -249,7 +259,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "like" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_likes page.url %}
+```liquid
+{% webmention_likes page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -275,7 +287,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "link" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_links page.url %}
+```liquid
+{% webmention_links page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -303,7 +317,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "posts" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_posts page.url %}
+```liquid
+{% webmention_posts page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -329,7 +345,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "reply" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_replies page.url %}
+```liquid
+{% webmention_replies page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -360,7 +378,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "repost" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_reposts page.url %}
+```liquid
+{% webmention_reposts page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
@@ -386,7 +406,9 @@ If you go with the default template, here’s a rundown of elements and class na
 
 You can get a complete list of "RSVP" webmentions for a given `page.url` using the following liquid tag:
 
-  {% webmention_rsvps page.url %}
+```liquid
+{% webmention_rsvps page.url %}
+```
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.
 
