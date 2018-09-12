@@ -8,7 +8,7 @@ This gem includes a suite of tools for managing [webmentions](https://indieweb.o
 
 If you want to dive right in, read the [Quickstart](/jekyll-webmention_io/quickstart).
 
-* **[Tags](Tags)**
+* **[Tags](/jekyll-webmention_io/tags/)**
   * [Count of webmentions](/jekyll-webmention_io/tags/webmention_count) (filterable)
   * [All webmentions](/jekyll-webmention_io/tags/webmentions) (filterable)
   * [Bookmarks](/jekyll-webmention_io/tags/webmention_bookmarks)
