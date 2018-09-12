@@ -6,11 +6,13 @@ title: "Jekyll Webmention.io Tags: webmentions_js"
 
 Because static websites are, well, static, it’s possible webmentions might have accrued since your site was last built. This gem includes JavaScript code to pipe those webmentions into your pages asynchronously. These features are turned on by default, but require some tags in order to work:
 
+{% raw %}
 ```html
   …
   {% webmentions_js %}
 </body>
 ```
+{% endraw %}
 
 Include this tag before your post layout’s `</body>` and the plugin will render in a `script` tag pointing to the `JekyllWebmentionIO.js` file and generate `template` tags corresponding to the various Liquid templates (default or custom) being used to render your webmentions.
 

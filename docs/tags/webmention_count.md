@@ -6,9 +6,11 @@ title: "Jekyll Webmention.io Tags: webmention_count"
 
 Displays a count of webmentions for the current `page.url`:
 
+{% raw %}
 ```liquid
 {% webmention_count page.url %}
 ```
+{% endraw %}
 
 The output will be a number.
 
