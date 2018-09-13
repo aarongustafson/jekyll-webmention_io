@@ -32,8 +32,9 @@ module Jekyll
       end
 
       def template=(template)
-        supported_templates = Jekyll::WebmentionIO.types + %w(count webmentions)
-        Jekyll::WebmentionIO.log "error", "#{template.capitalize} is not supported" unless supported_templates.include? template
+        unless Jekyll::WebmentionIO.supported_templates.include? template
+          Jekyll::WebmentionIO.log "error", "#{template.capitalize} is not supported"
+        end
         @template_name = template
         @template = Jekyll::WebmentionIO.get_template_contents(template)
         Jekyll::WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"

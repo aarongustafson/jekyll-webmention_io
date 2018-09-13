@@ -13,12 +13,7 @@ module Jekyll
   module WebmentionIO
     class JavaScriptFile < StaticFile
       def destination_rel_dir
-        config = {
-          "destination" => "js",
-        }
-        js_config = Jekyll::WebmentionIO.config["js"] || {}
-        config = config.merge(js_config)
-        config["destination"]
+        Jekyll::WebmentionIO.js_handler.destination
       end
     end
 
@@ -30,36 +25,27 @@ module Jekyll
       def generate(site)
         @site = site
         @file_name = "JekyllWebmentionIO.js"
+        handler = Jekyll::WebmentionIO.js_handler
 
-        if @site.config.dig("webmentions", "js") == false
+        if handler.disabled?
           Jekyll::WebmentionIO.log "info", "Skipping JavaScript inclusion."
           return
         end
 
-        config = {
-          "destination" => "js",
-          "uglify"      => true,
-        }
-        site_config = @site.config.dig("webmentions", "js") || {}
-        config = config.merge(site_config)
-
-        @source_file_destination = (config["source"] == false ? Dir.mktmpdir : "#{@site.config["source"]}/#{config["destination"]}")
+        @source_file_destination = if handler.source?
+                                     @site.in_source_dir(handler.destination)
+                                   else
+                                     Dir.mktmpdir
+                                   end
 
         @javascript = +"" # unfrozen String
 
         concatenate_asset_files
-
         add_webmention_types
 
-        unless config["uglify"] == false
-          uglify
-        end
-
+        uglify if handler.uglify?
         create_js_file
-
-        unless config["deploy"] == false
-          deploy_js_file
-        end
+        deploy_js_file if handler.deploy?
       end
 
       private
@@ -75,27 +61,24 @@ module Jekyll
             JekyllWebmentionIO.types = { TYPES };
           }(this, this.JekyllWebmentionIO));
         EOF
-        @javascript << types_js.sub(/TYPES/, js_types.join(","))
+        @javascript << types_js.sub("TYPES", js_types.join(","))
       end
 
       def concatenate_asset_files
-        source = File.expand_path("../assets/", __dir__)
-        Dir["#{source}/*.js"].each do |file|
-          handler = File.open(file, "rb")
-          @javascript << File.read(handler)
+        assets_dir = File.expand_path("../assets/", __dir__)
+        Dir["#{assets_dir}/*.js"].each do |file|
+          file_handler = File.open(file, "rb")
+          @javascript << File.read(file_handler)
         end
       end
 
       def uglify
-        uglify_config = {
-          :harmony => true,
-        }
-        @javascript = Uglifier.new(uglify_config).compile(@javascript)
+        @javascript = Uglifier.new(:harmony => true).compile(@javascript)
       end
 
       def create_js_file
         Dir.mkdir(@source_file_destination) unless File.exist?(@source_file_destination)
-        File.open("#{@source_file_destination}/#{@file_name}", "w") { |f| f.write(@javascript) }
+        File.open(File.join(@source_file_destination, @file_name), "wb") { |f| f.write(@javascript) }
       end
 
       def deploy_js_file
