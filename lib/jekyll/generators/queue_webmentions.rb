@@ -15,7 +15,7 @@ module Jekyll
     def generate(site)
       @site = site
 
-      if @site.config.dig("url").include? 'localhost'
+      if @site.config["url"].to_s.include? "localhost"
         Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
         return
       end
@@ -39,7 +39,7 @@ module Jekyll
     def gather_webmentions(posts)
       webmentions = Jekyll::WebmentionIO.read_cached_webmentions "outgoing"
 
-      base_uri = @site.config["url"].chomp("/")
+      base_uri = @site.config["url"].to_s.chomp("/")
 
       posts.each do |post|
         uri = "#{base_uri}#{post.url}"
