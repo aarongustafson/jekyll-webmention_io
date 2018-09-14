@@ -17,7 +17,7 @@ module Jekyll
     def generate(site)
       @site = site
       
-      if @site.config.dig("url").include? 'localhost'
+      if @site.config["url"].to_s.include? "localhost"
         Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered on localhost."
         return
       end
