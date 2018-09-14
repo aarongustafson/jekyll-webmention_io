@@ -23,9 +23,9 @@ module Jekyll
       priority :low
 
       def generate(site)
-        @site = site
-        @file_name = "JekyllWebmentionIO.js"
         handler = Jekyll::WebmentionIO.js_handler
+        @site = site
+        @file_name = handler.resource_name
 
         if handler.disabled?
           Jekyll::WebmentionIO.log "info", "Skipping JavaScript inclusion."

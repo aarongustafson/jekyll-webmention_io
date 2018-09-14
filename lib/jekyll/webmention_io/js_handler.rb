@@ -8,7 +8,7 @@
 module Jekyll
   module WebmentionIO
     class JSHandler
-      attr_reader :destination, :resource_url
+      attr_reader :destination, :resource_name, :resource_url
 
       DEFAULTS = {
         "destination" => "js",
@@ -26,8 +26,9 @@ module Jekyll
         js_config = DEFAULTS.merge(js_config)
 
         @deploy, @uglify, @source, @destination = js_config.values_at("deploy", "uglify", "source", "destination")
+        @resource_name = "JekyllWebmentionIO.js"
         @resource_url = File.join(
-          "", site.config["baseurl"], @destination, "JekyllWebmentionIO.js"
+          "", site.config["baseurl"], @destination, @resource_name
         )
       end
 
@@ -54,7 +55,7 @@ module Jekyll
           return ""
         end
 
-        js_file = deploy? ? "<script src=\"#{resource_url}\" async></script>" : ""
+        js_file = deploy? ? "<script src=\"#@resource_url\" async></script>" : ""
 
         Jekyll::WebmentionIO.log "info", "Gathering templates for JavaScript."
         "#{js_file}\n#{Jekyll::WebmentionIO.html_templates}"
