@@ -16,8 +16,9 @@ module Jekyll
 
     def generate(site)
       @site = site
+      @site_url = site.config["url"].to_s
       
-      if @site.config["url"].to_s.include? "localhost"
+      if @site_url.include? "localhost"
         Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered on localhost."
         return
       end
@@ -90,8 +91,7 @@ module Jekyll
 
     def get_webmention_target_urls(post)
       targets = []
-      base_uri = @site.config["url"].chomp("/")
-      uri = "#{base_uri}#{post.url}"
+      uri = File.join(@site_url, post.url)
       targets.push(uri)
 
       # Redirection?
@@ -122,7 +122,7 @@ module Jekyll
       if Jekyll::WebmentionIO.config.key? "legacy_domains"
         Jekyll::WebmentionIO.log "info", "adding legacy URIs"
         Jekyll::WebmentionIO.config["legacy_domains"].each do |domain|
-          legacy = uri.sub @site.config["url"], domain
+          legacy = uri.sub(@site_url, domain)
           Jekyll::WebmentionIO.log "info", "adding URI #{legacy}"
           targets.push(legacy)
         end
