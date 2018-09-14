@@ -18,11 +18,12 @@ module Jekyll
 
         page = context["page"]
         site = context.registers[:site]
+        site_url = site.config["url"].to_s
         if page["redirect_from"]
           if page["redirect_from"].is_a? String
-            redirect = site.config["url"] + page["redirect_from"]
+            redirect = site_url + page["redirect_from"]
           elsif page["redirect_from"].is_a? Array
-            redirect = site.config["url"] + page["redirect_from"].join(",#{site.config["url"]}")
+            redirect = site_url + page["redirect_from"].join(",#{site_url}")
           end
           head << "<meta property=\"webmention:redirected_from\" content=\"#{redirect}\">"
         end

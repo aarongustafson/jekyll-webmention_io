@@ -28,7 +28,7 @@ module Jekyll
         @deploy, @uglify, @source, @destination = js_config.values_at("deploy", "uglify", "source", "destination")
         @resource_name = "JekyllWebmentionIO.js"
         @resource_url = File.join(
-          "", site.config["baseurl"], @destination, @resource_name
+          "", site.config["baseurl"].to_s, @destination, @resource_name
         )
       end
 
