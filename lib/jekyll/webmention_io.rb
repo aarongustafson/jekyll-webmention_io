@@ -254,8 +254,8 @@ module Jekyll
       end
     end
 
-    def self.gathered_templates
-      @gathered_templates ||= begin
+    def self.html_templates
+      @html_templates ||= begin
         templates = +"" # unfrozen String
         supported_templates.each do |template|
           templates << "<template style=\"display:none\" id=\"webmention-#{template}\">"

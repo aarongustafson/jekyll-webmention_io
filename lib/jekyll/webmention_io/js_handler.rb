@@ -57,7 +57,7 @@ module Jekyll
         js_file = deploy? ? "<script src=\"#{resource_url}\" async></script>" : ""
 
         Jekyll::WebmentionIO.log "info", "Gathering templates for JavaScript."
-        "#{js_file}\n#{Jekyll::WebmentionIO.gathered_templates}"
+        "#{js_file}\n#{Jekyll::WebmentionIO.html_templates}"
       end
     end
   end
