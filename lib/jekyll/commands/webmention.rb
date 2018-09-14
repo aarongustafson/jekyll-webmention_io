@@ -15,22 +15,22 @@ module Jekyll
       end
 
       def self.process(_args = [], _options = {})
-        if File.exist? Jekyll::WebmentionIO.cache_file("sent.yml")
-          Jekyll::WebmentionIO.log "error", "Your outgoing webmentions queue needs to be upgraded. Please re-build your project."
+        if File.exist? WebmentionIO.cache_file("sent.yml")
+          WebmentionIO.log "error", "Your outgoing webmentions queue needs to be upgraded. Please re-build your project."
         end
         count = 0
-        cached_outgoing = Jekyll::WebmentionIO.get_cache_file_path "outgoing"
+        cached_outgoing = WebmentionIO.get_cache_file_path "outgoing"
         if File.exist?(cached_outgoing)
-          outgoing = Jekyll::WebmentionIO.load_yaml(cached_outgoing)
+          outgoing = WebmentionIO.load_yaml(cached_outgoing)
           outgoing.each do |source, targets|
             targets.each do |target, response|
               next unless response == false
               if target.index("//").zero?
                 target = "http:#{target}"
               end
-              endpoint = Jekyll::WebmentionIO.get_webmention_endpoint(target)
+              endpoint = WebmentionIO.get_webmention_endpoint(target)
               next unless endpoint
-              response = Jekyll::WebmentionIO.webmention(source, target, endpoint)
+              response = WebmentionIO.webmention(source, target, endpoint)
               next unless response
               begin
                 response = JSON.parse response
@@ -42,9 +42,9 @@ module Jekyll
             end
           end
           if count.positive?
-            Jekyll::WebmentionIO.dump_yaml(cached_outgoing, outgoing)
+            WebmentionIO.dump_yaml(cached_outgoing, outgoing)
           end
-          Jekyll::WebmentionIO.log "msg", "#{count} webmentions sent."
+          WebmentionIO.log "msg", "#{count} webmentions sent."
         end # file exists (outgoing)
       end # def process
     end # WebmentionCommand

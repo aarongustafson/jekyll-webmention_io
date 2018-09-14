@@ -13,7 +13,7 @@ module Jekyll
   module WebmentionIO
     class JavaScriptFile < StaticFile
       def destination_rel_dir
-        Jekyll::WebmentionIO.js_handler.destination
+        WebmentionIO.js_handler.destination
       end
     end
 
@@ -23,12 +23,12 @@ module Jekyll
       priority :low
 
       def generate(site)
-        handler = Jekyll::WebmentionIO.js_handler
+        handler = WebmentionIO.js_handler
         @site = site
         @file_name = handler.resource_name
 
         if handler.disabled?
-          Jekyll::WebmentionIO.log "info", "Skipping JavaScript inclusion."
+          WebmentionIO.log "info", "Skipping JavaScript inclusion."
           return
         end
 
@@ -52,7 +52,7 @@ module Jekyll
 
       def add_webmention_types
         js_types = []
-        Jekyll::WebmentionIO.types.each do |type|
+        WebmentionIO.types.each do |type|
           js_types.push "'#{type}': '#{type.to_singular}'"
         end
         types_js = <<-EOF
@@ -82,7 +82,7 @@ module Jekyll
       end
 
       def deploy_js_file
-        js_file = Jekyll::WebmentionIO::JavaScriptFile.new(@site, @source_file_destination, "", @file_name)
+        js_file = WebmentionIO::JavaScriptFile.new(@site, @source_file_destination, "", @file_name)
         @site.static_files << js_file
       end
     end
