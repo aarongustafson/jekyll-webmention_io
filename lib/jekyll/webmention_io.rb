@@ -9,6 +9,7 @@
 #
 require_relative "webmention_io/version"
 require_relative "webmention_io/webmention"
+require_relative "webmention_io/js_handler"
 
 require "json"
 require "net/http"
@@ -22,7 +23,7 @@ module Jekyll
     class << self
       # define simple getters and setters
       attr_reader :config, :jekyll_config, :cache_files, :cache_folder,
-                  :file_prefix, :types
+                  :file_prefix, :types, :supported_templates, :js_handler
       attr_writer :api_suffix
     end
 
@@ -32,7 +33,11 @@ module Jekyll
     @api_endpoint = @api_url
     @api_suffix = ""
 
-    @types = %w(bookmarks likes links posts replies reposts rsvps)
+    @types = %w(bookmarks likes links posts replies reposts rsvps).freeze
+    @supported_templates = (@types + %w(count webmentions)).freeze
+
+    @template_file_cache = {}
+    @template_content_cache = {}
 
     EXCEPTIONS = [
       SocketError, Timeout::Error,
@@ -58,10 +63,10 @@ module Jekyll
         "lookups"  => cache_file("lookups.yml")
       }
       @cache_files.each_value do |file|
-        unless File.exist?(file)
-          dump_yaml(file)
-        end
+        dump_yaml(file) unless File.exist?(file)
       end
+
+      @js_handler = Jekyll::WebmentionIO::JSHandler.new(site)
     end
 
     # Setter
@@ -75,17 +80,11 @@ module Jekyll
     end
 
     def self.get_cache_file_path(key)
-      path = false
-      if @cache_files.key? key
-        path = @cache_files[key]
-      end
-      return path
+      @cache_files[key] || false
     end
 
     def self.read_cached_webmentions(which)
-      unless %w(incoming outgoing).include? which
-        return {}
-      end
+      return {} unless %w(incoming outgoing).include?(which)
 
       cache_file = get_cache_file_path which
       load_yaml(cache_file)
@@ -136,7 +135,7 @@ module Jekyll
       if source
         JSON.parse(source)
       else
-        ""
+        {}
       end
     end
 
@@ -235,15 +234,36 @@ module Jekyll
       end
     end
 
+    def self.template_file(template)
+      @template_file_cache[template] ||= begin
+        configured_template = @config.dig("templates", template)
+        if configured_template
+          log "info", "Using custom #{template} template"
+          configured_template
+        else
+          File.expand_path("templates/#{template}.html", __dir__)
+        end
+      end
+    end
+
     def self.get_template_contents(template)
-      template_file = if @config.dig("templates", template)
-                        log "info", "Using custom #{template} template"
-                        @config["templates"][template]
-                      else
-                        File.expand_path("templates/#{template}.html", __dir__)
-                      end
-      log "info", "Template file: #{template_file}"
-      File.read(template_file)
+      template_file = template_file(template)
+      @template_content_cache[template_file] ||= begin
+        log "info", "Template file: #{template_file}"
+        File.read(template_file)
+      end
+    end
+
+    def self.html_templates
+      @html_templates ||= begin
+        templates = +"" # unfrozen String
+        supported_templates.each do |template|
+          templates << "<template style=\"display:none\" id=\"webmention-#{template}\">"
+          templates << get_template_contents(template)
+          templates << "</template>"
+        end
+        templates
+      end
     end
 
     # Connections
