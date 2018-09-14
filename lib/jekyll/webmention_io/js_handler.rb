@@ -50,15 +50,15 @@ module Jekyll
 
       def render
         if disabled?
-          Jekyll::WebmentionIO.log "info",
+          WebmentionIO.log "info",
             "JavaScript output is disabled, so the {% webmentions_js %} tag is being skipped"
           return ""
         end
 
         js_file = deploy? ? "<script src=\"#@resource_url\" async></script>" : ""
 
-        Jekyll::WebmentionIO.log "info", "Gathering templates for JavaScript."
-        "#{js_file}\n#{Jekyll::WebmentionIO.html_templates}"
+        WebmentionIO.log "info", "Gathering templates for JavaScript."
+        "#{js_file}\n#{WebmentionIO.html_templates}"
       end
     end
   end

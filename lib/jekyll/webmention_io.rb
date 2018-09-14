@@ -38,6 +38,7 @@ module Jekyll
 
     @template_file_cache = {}
     @template_content_cache = {}
+    @webmention_data_cache = {}
 
     EXCEPTIONS = [
       SocketError, Timeout::Error,
@@ -66,7 +67,7 @@ module Jekyll
         dump_yaml(file) unless File.exist?(file)
       end
 
-      @js_handler = Jekyll::WebmentionIO::JSHandler.new(site)
+      @js_handler = WebmentionIO::JSHandler.new(site)
     end
 
     # Setter
@@ -300,19 +301,22 @@ module Jekyll
     end
 
     # Utility Method
-    # Writes given +data+ as YAML string into +file+ path.
+    # Caches given +data+ to memory and then proceeds to write +data+
+    # as YAML string into +file+ path.
     #
     # Returns nothing.
     def self.dump_yaml(file, data = {})
+      @webmention_data_cache[file] = data
       File.open(file, "wb") { |f| f.puts YAML.dump(data) }
     end
 
     # Utility Method
-    # Safely parse given YAML +file+ path and return data.
+    # Attempts to first load data cached in memory and then proceeds to
+    # safely parse given YAML +file+ path and return data.
     #
     # Returns empty hash if parsing fails to return data
     def self.load_yaml(file)
-      SafeYAML.load_file(file) || {}
+      @webmention_data_cache[file] || SafeYAML.load_file(file) || {}
     end
 
     private
