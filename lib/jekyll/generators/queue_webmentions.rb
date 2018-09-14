@@ -16,20 +16,20 @@ module Jekyll
       @site = site
 
       if @site.config["url"].to_s.include? "localhost"
-        Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
+        WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
         return
       end
       
       if @site.config.dig("webmentions", "pause_lookups")
-        Jekyll::WebmentionIO.log "info", "Webmention lookups are currently paused."
+        WebmentionIO.log "info", "Webmention lookups are currently paused."
         return
       end
 
-      Jekyll::WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
+      WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
 
       upgrade_outgoing_webmention_cache
 
-      posts = Jekyll::WebmentionIO.gather_documents(@site)
+      posts = WebmentionIO.gather_documents(@site)
 
       gather_webmentions(posts)
     end
@@ -37,7 +37,7 @@ module Jekyll
     private
 
     def gather_webmentions(posts)
-      webmentions = Jekyll::WebmentionIO.read_cached_webmentions "outgoing"
+      webmentions = WebmentionIO.read_cached_webmentions "outgoing"
 
       base_uri = @site.config["url"].to_s.chomp("/")
 
@@ -55,7 +55,7 @@ module Jekyll
         end
       end
 
-      Jekyll::WebmentionIO.cache_webmentions "outgoing", webmentions
+      WebmentionIO.cache_webmentions "outgoing", webmentions
     end
 
     def get_mentioned_uris(post)
@@ -72,13 +72,13 @@ module Jekyll
     end
 
     def upgrade_outgoing_webmention_cache
-      old_sent_file = Jekyll::WebmentionIO.cache_file("sent.yml")
-      old_outgoing_file = Jekyll::WebmentionIO.cache_file("queued.yml")
+      old_sent_file = WebmentionIO.cache_file("sent.yml")
+      old_outgoing_file = WebmentionIO.cache_file("queued.yml")
       unless File.exist? old_sent_file
         return
       end
-      sent_webmentions = Jekyll::WebmentionIO.load_yaml(old_sent_file)
-      outgoing_webmentions = Jekyll::WebmentionIO.load_yaml(old_outgoing_file)
+      sent_webmentions = WebmentionIO.load_yaml(old_sent_file)
+      outgoing_webmentions = WebmentionIO.load_yaml(old_outgoing_file)
       merged = {}
       outgoing_webmentions.each do |source_url, webmentions|
         collection = {}
@@ -91,9 +91,9 @@ module Jekyll
         end
         merged[source_url] = collection
       end
-      Jekyll::WebmentionIO.cache_webmentions "outgoing", merged
+      WebmentionIO.cache_webmentions "outgoing", merged
       File.delete old_sent_file, old_outgoing_file
-      Jekyll::WebmentionIO.log "msg", "Upgraded your sent webmentions cache."
+      WebmentionIO.log "msg", "Upgraded your sent webmentions cache."
     end
   end
 end

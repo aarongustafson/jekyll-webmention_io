@@ -66,7 +66,7 @@ module Jekyll
         dump_yaml(file) unless File.exist?(file)
       end
 
-      @js_handler = Jekyll::WebmentionIO::JSHandler.new(site)
+      @js_handler = WebmentionIO::JSHandler.new(site)
     end
 
     # Setter

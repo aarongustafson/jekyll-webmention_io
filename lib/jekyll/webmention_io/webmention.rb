@@ -53,9 +53,9 @@ module Jekyll
       def markdownify(string)
         unless @converter
           @converter = if defined? @site.find_converter_instance
-                         @site.find_converter_instance(::Jekyll::Converters::Markdown)
+                         @site.find_converter_instance(Jekyll::Converters::Markdown)
                        else
-                         @site.getConverterImpl(::Jekyll::Converters::Markdown)
+                         @site.getConverterImpl(Jekyll::Converters::Markdown)
                        end
         end
 
@@ -134,7 +134,7 @@ module Jekyll
 
         if @type == "post"
 
-          html_source = Jekyll::WebmentionIO.get_uri_source(@uri)
+          html_source = WebmentionIO.get_uri_source(@uri)
           unless html_source
             return title
           end

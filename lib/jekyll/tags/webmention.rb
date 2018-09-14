@@ -15,9 +15,9 @@ module Jekyll
     class WebmentionTag < Liquid::Tag
       def initialize(tag_name, text, tokens)
         super
-        cache_file = Jekyll::WebmentionIO.get_cache_file_path "incoming"
+        cache_file = WebmentionIO.get_cache_file_path "incoming"
         @cached_webmentions = if File.exist? cache_file
-                                Jekyll::WebmentionIO.load_yaml(cache_file)
+                                WebmentionIO.load_yaml(cache_file)
                               else
                                 {}
                               end
@@ -32,12 +32,12 @@ module Jekyll
       end
 
       def template=(template)
-        unless Jekyll::WebmentionIO.supported_templates.include? template
-          Jekyll::WebmentionIO.log "error", "#{template.capitalize} is not supported"
+        unless WebmentionIO.supported_templates.include? template
+          WebmentionIO.log "error", "#{template.capitalize} is not supported"
         end
         @template_name = template
-        @template = Jekyll::WebmentionIO.get_template_contents(template)
-        Jekyll::WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"
+        @template = WebmentionIO.get_template_contents(template)
+        WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"
       end
 
       def set_data(data, types)
@@ -45,13 +45,13 @@ module Jekyll
       end
 
       def extract_type(type, webmentions)
-        Jekyll::WebmentionIO.log "info", "Looking for #{type}"
+        WebmentionIO.log "info", "Looking for #{type}"
         keep = {}
-        if !Jekyll::WebmentionIO.types.include? type
-          Jekyll::WebmentionIO.log "warn", "#{type} are not extractable"
+        if !WebmentionIO.types.include? type
+          WebmentionIO.log "warn", "#{type} are not extractable"
         else
           type = type.to_singular
-          Jekyll::WebmentionIO.log "info", "Searching #{webmentions.length} webmentions for type==#{type}"
+          WebmentionIO.log "info", "Searching #{webmentions.length} webmentions for type==#{type}"
           if webmentions.is_a? Hash
             webmentions = webmentions.values
           end
@@ -73,19 +73,19 @@ module Jekyll
 
         if @cached_webmentions.key? uri
           all_webmentions = @cached_webmentions[uri].clone
-          Jekyll::WebmentionIO.log "info", "#{all_webmentions.length} total webmentions for #{uri}"
+          WebmentionIO.log "info", "#{all_webmentions.length} total webmentions for #{uri}"
 
           if args.length.positive?
-            Jekyll::WebmentionIO.log "info", "Requesting only #{args.inspect}"
+            WebmentionIO.log "info", "Requesting only #{args.inspect}"
             webmentions = {}
             args.each do |type|
               types.push type
               extracted = extract_type(type, all_webmentions)
-              Jekyll::WebmentionIO.log "info", "Merging in #{extracted.length} #{type}"
+              WebmentionIO.log "info", "Merging in #{extracted.length} #{type}"
               webmentions = webmentions.merge(extracted)
             end
           else
-            Jekyll::WebmentionIO.log "info", "Grabbing all webmentions"
+            WebmentionIO.log "info", "Grabbing all webmentions"
             webmentions = all_webmentions
           end
 
@@ -104,20 +104,20 @@ module Jekyll
 
       def render_into_template(context_registry)
         if @template && @data
-          Jekyll::WebmentionIO.log "info", "Preparing to render webmention info into the #{@template_name} template."
+          WebmentionIO.log "info", "Preparing to render webmention info into the #{@template_name} template."
           template = Liquid::Template.parse(@template, :error_mode => :strict)
           html = template.render!(@data, :registers => context_registry, :strict_variables => false, :strict_filters => true)
           template.errors.each do |error|
-            Jekyll::WebmentionIO.log "error", error
+            WebmentionIO.log "error", error
           end
           # Clean up the output
           HtmlBeautifier.beautify html.each_line.reject { |x| x.strip == "" }.join
         else
           unless @template
-            Jekyll::WebmentionIO.log "warn", "#{self.class} No template provided"
+            WebmentionIO.log "warn", "#{self.class} No template provided"
           end
           unless @data
-            Jekyll::WebmentionIO.log "warn", "#{self.class} No data provided"
+            WebmentionIO.log "warn", "#{self.class} No data provided"
           end
           ""
         end

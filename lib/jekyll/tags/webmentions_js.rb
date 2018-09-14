@@ -11,7 +11,7 @@ module Jekyll
   module WebmentionIO
     class WebmentionJSTag < Liquid::Tag
       def render(_context)
-        Jekyll::WebmentionIO.js_handler.render
+        WebmentionIO.js_handler.render
       end
     end
   end
