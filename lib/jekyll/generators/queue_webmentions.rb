@@ -8,91 +8,93 @@
 #
 
 module Jekyll
-  class QueueWebmentions < Generator
-    safe true
-    priority :low
+  module WebmentionIO
+    class QueueWebmentions < Generator
+      safe true
+      priority :low
 
-    def generate(site)
-      @site = site
-      @site_url = site.config["url"].to_s
+      def generate(site)
+        @site = site
+        @site_url = site.config["url"].to_s
 
-      if @site_url.include? "localhost"
-        WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
-        return
+        if @site_url.include? "localhost"
+          WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
+          return
+        end
+
+        if @site.config.dig("webmentions", "pause_lookups")
+          WebmentionIO.log "info", "Webmention lookups are currently paused."
+          return
+        end
+
+        WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
+
+        upgrade_outgoing_webmention_cache
+
+        posts = WebmentionIO.gather_documents(@site)
+
+        gather_webmentions(posts)
       end
-      
-      if @site.config.dig("webmentions", "pause_lookups")
-        WebmentionIO.log "info", "Webmention lookups are currently paused."
-        return
-      end
 
-      WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
+      private
 
-      upgrade_outgoing_webmention_cache
+      def gather_webmentions(posts)
+        webmentions = WebmentionIO.read_cached_webmentions "outgoing"
 
-      posts = WebmentionIO.gather_documents(@site)
-
-      gather_webmentions(posts)
-    end
-
-    private
-
-    def gather_webmentions(posts)
-      webmentions = WebmentionIO.read_cached_webmentions "outgoing"
-
-      posts.each do |post|
-        uri = File.join(@site_url, post.url)
-        mentions = get_mentioned_uris(post)
-        if webmentions.key? uri
-          mentions.each do |mentioned_uri, response|
-            unless webmentions[uri].key? mentioned_uri
-              webmentions[uri][mentioned_uri] = response
+        posts.each do |post|
+          uri = File.join(@site_url, post.url)
+          mentions = get_mentioned_uris(post)
+          if webmentions.key? uri
+            mentions.each do |mentioned_uri, response|
+              unless webmentions[uri].key? mentioned_uri
+                webmentions[uri][mentioned_uri] = response
+              end
             end
+          else
+            webmentions[uri] = mentions
           end
-        else
-          webmentions[uri] = mentions
         end
+
+        WebmentionIO.cache_webmentions "outgoing", webmentions
       end
 
-      WebmentionIO.cache_webmentions "outgoing", webmentions
-    end
-
-    def get_mentioned_uris(post)
-      uris = {}
-      if post.data["in_reply_to"]
-        uris[post.data["in_reply_to"]] = false
-      end
-      post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
-        unless uris.key? match
-          uris[match] = false
+      def get_mentioned_uris(post)
+        uris = {}
+        if post.data["in_reply_to"]
+          uris[post.data["in_reply_to"]] = false
         end
-      end
-      return uris
-    end
-
-    def upgrade_outgoing_webmention_cache
-      old_sent_file = WebmentionIO.cache_file("sent.yml")
-      old_outgoing_file = WebmentionIO.cache_file("queued.yml")
-      unless File.exist? old_sent_file
-        return
-      end
-      sent_webmentions = WebmentionIO.load_yaml(old_sent_file)
-      outgoing_webmentions = WebmentionIO.load_yaml(old_outgoing_file)
-      merged = {}
-      outgoing_webmentions.each do |source_url, webmentions|
-        collection = {}
-        webmentions.each do |target_url|
-          collection[target_url] = if sent_webmentions.dig(source_url, target_url)
-                                     ""
-                                   else
-                                     false
-                                   end
+        post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
+          unless uris.key? match
+            uris[match] = false
+          end
         end
-        merged[source_url] = collection
+        return uris
       end
-      WebmentionIO.cache_webmentions "outgoing", merged
-      File.delete old_sent_file, old_outgoing_file
-      WebmentionIO.log "msg", "Upgraded your sent webmentions cache."
+
+      def upgrade_outgoing_webmention_cache
+        old_sent_file = WebmentionIO.cache_file("sent.yml")
+        old_outgoing_file = WebmentionIO.cache_file("queued.yml")
+        unless File.exist? old_sent_file
+          return
+        end
+        sent_webmentions = WebmentionIO.load_yaml(old_sent_file)
+        outgoing_webmentions = WebmentionIO.load_yaml(old_outgoing_file)
+        merged = {}
+        outgoing_webmentions.each do |source_url, webmentions|
+          collection = {}
+          webmentions.each do |target_url|
+            collection[target_url] = if sent_webmentions.dig(source_url, target_url)
+                                       ""
+                                     else
+                                       false
+                                     end
+          end
+          merged[source_url] = collection
+        end
+        WebmentionIO.cache_webmentions "outgoing", merged
+        File.delete old_sent_file, old_outgoing_file
+        WebmentionIO.log "msg", "Upgraded your sent webmentions cache."
+      end
     end
   end
 end
