@@ -319,7 +319,7 @@ module Jekyll
       @webmention_data_cache[file] || SafeYAML.load_file(file) || {}
     end
 
-    private
+    # Private Methods
 
     def self.get_http_response(uri)
       uri  = URI.parse(URI.encode(uri))
@@ -345,6 +345,7 @@ module Jekyll
 
     # Cache bad URLs for a bit
     def self.uri_is_not_ok(uri)
+      uri = URI.parse(URI.encode(uri))
       # Never cache webmention.io in here
       return if uri.host == "webmention.io"
       cache_file = @cache_files["bad_uris"]
@@ -365,6 +366,8 @@ module Jekyll
       end
       return true
     end
+
+    private_class_method :get_http_response, :uri_is_not_ok, :uri_ok?
   end
 end
 
