@@ -25,13 +25,16 @@ module Jekyll
           outgoing.each do |source, targets|
             targets.each do |target, response|
               next unless response == false
+
               if target.index("//").zero?
                 target = "http:#{target}"
               end
               endpoint = WebmentionIO.get_webmention_endpoint(target)
               next unless endpoint
+
               response = WebmentionIO.webmention(source, target, endpoint)
               next unless response
+
               begin
                 response = JSON.parse response
               rescue JSON::ParserError

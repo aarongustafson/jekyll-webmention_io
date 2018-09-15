@@ -101,11 +101,7 @@ module Jekyll
     end
 
     def self.gather_documents(site)
-      documents = if Jekyll::VERSION >= "3.0.0"
-                    site.posts.docs.clone
-                  else
-                    site.posts.clone
-                  end
+      documents = site.posts.docs.clone
 
       if @config.dig("pages") == true
         log "info", "Including site pages."
@@ -140,7 +136,7 @@ module Jekyll
       end
     end
 
-    def self.read_lookup_dates()
+    def self.read_lookup_dates
       cache_file = get_cache_file_path "lookups"
       load_yaml(cache_file)
     end
@@ -181,7 +177,7 @@ module Jekyll
           break
         end
       end
-      timeframe = "older" unless timeframe
+      timeframe ||= "older"
       return timeframe
     end
 
@@ -214,7 +210,7 @@ module Jekyll
       begin
         endpoint = Webmention::Client.supports_webmention?(uri)
         log("info", "Could not find a webmention endpoint at #{uri}") unless endpoint
-      rescue => e
+      rescue StandardError => e
         log "info", "Endpoint lookup failed for #{uri}: #{e.message}"
         endpoint = false
       end
@@ -348,6 +344,7 @@ module Jekyll
       uri = URI.parse(URI.encode(uri))
       # Never cache webmention.io in here
       return if uri.host == "webmention.io"
+
       cache_file = @cache_files["bad_uris"]
       bad_uris = load_yaml(cache_file)
       bad_uris[uri.host] = Time.now.to_s

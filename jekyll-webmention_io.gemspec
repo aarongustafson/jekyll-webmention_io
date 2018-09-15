@@ -38,7 +38,7 @@ EOF
   s.files         = `git ls-files app lib`.split("\n")
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency "jekyll", ">= 2.0", "< 4.0"
+  s.add_runtime_dependency "jekyll", ">= 3.2.0", "< 4.0"
   s.add_runtime_dependency "json", "~> 2.0"
   s.add_runtime_dependency "http", "~> 2.0"
   s.add_runtime_dependency "openssl", "~> 2.0"
