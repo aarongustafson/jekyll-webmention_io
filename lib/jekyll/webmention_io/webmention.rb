@@ -51,13 +51,7 @@ module Jekyll
       end
 
       def markdownify(string)
-        unless @converter
-          @converter = if defined? @site.find_converter_instance
-                         @site.find_converter_instance(Jekyll::Converters::Markdown)
-                       else
-                         @site.getConverterImpl(Jekyll::Converters::Markdown)
-                       end
-        end
+        @converter ||= @site.find_converter_instance(Jekyll::Converters::Markdown)
 
         if string
           string = @converter.convert(string.to_s)
