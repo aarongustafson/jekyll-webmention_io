@@ -239,8 +239,8 @@ module Jekyll
       @template_file_cache[template] ||= begin
         configured_template = @config.dig("templates", template)
         if configured_template
-          log "info", "Using custom #{template} template"
-          configured_template
+          log "info", "Using custom #{template} template from site source"
+          @site.in_source_dir configured_template
         else
           File.expand_path("templates/#{template}.html", __dir__)
         end
