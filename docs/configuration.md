@@ -49,7 +49,7 @@ webmentions:
 
 ## What’s checked
 
-Given the tim-consuming nature of collecting and sending webmentions, by default this plugin will only look at your site’s posts (stuff in the `_posts` directory or what’s returned in `site.posts.docs`). In reality, there can be many more content types in a Jekyll site and you may want to include them with outgoing webmentions or look for inbound webmentions to them. You can customize your installation to include arbitrary pages and/or Jekyll Collections by altering your `_config.yml`.
+Given the time-consuming nature of collecting and sending webmentions, by default this plugin will only look at your site’s posts (stuff in the `_posts` directory or what’s returned in `site.posts.docs`). In reality, there can be many more content types in a Jekyll site and you may want to include them with outgoing webmentions or look for inbound webmentions to them. You can customize your installation to include arbitrary pages and/or Jekyll Collections by altering your `_config.yml`.
 
 Add pages by setting `pages` to `true`:
 
