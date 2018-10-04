@@ -212,7 +212,7 @@ module Jekyll
         log("info", "Could not find a webmention endpoint at #{uri}") unless endpoint
       rescue StandardError => e
         log "info", "Endpoint lookup failed for #{uri}: #{e.message}"
-        endpoint = false
+        endpoint = 'fail'
       end
       endpoint
     end

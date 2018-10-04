@@ -32,7 +32,12 @@ module Jekyll
               if target.index("//").zero?
                 target = "http:#{target}"
               end
+
               endpoint = WebmentionIO.get_webmention_endpoint(target)
+              if endpoint == 'fail'
+                outgoing[source][target] = response
+                endpoint = false
+              end
               next unless endpoint
 
               response = WebmentionIO.webmention(source, target, endpoint)
