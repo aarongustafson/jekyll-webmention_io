@@ -4,12 +4,12 @@
 #  https://github.com/aarongustafson/jekyll-webmention_io
 #  Licence : MIT
 #
-#  this liquid plugin insert a webmentions into your Octopress or Jekyll blog
+#  this liquid plugin insert a webmention into your Octopress or Jekyll blog
 #  using http://webmention.io/ and the following syntax:
 #
 module Jekyll
   module WebmentionIO
-    class Webmention
+    class WebmentionItem
       attr_reader :id, :hash
 
       def initialize(mention, site)

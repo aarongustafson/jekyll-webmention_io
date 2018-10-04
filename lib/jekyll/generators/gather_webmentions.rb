@@ -147,7 +147,7 @@ module Jekyll
 
         if response && response["links"]
           response["links"].reverse_each do |link|
-            webmention = WebmentionIO::Webmention.new(link, @site)
+            webmention = WebmentionIO::WebmentionItem.new(link, @site)
 
             # Do we already have it?
             if webmentions.key? webmention.id
