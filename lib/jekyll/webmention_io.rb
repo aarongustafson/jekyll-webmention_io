@@ -8,7 +8,7 @@
 #  using http://webmention.io/ and the following syntax:
 #
 require_relative "webmention_io/version"
-require_relative "webmention_io/webmention"
+require_relative "webmention_io/webmention_item"
 require_relative "webmention_io/js_handler"
 
 require "json"
