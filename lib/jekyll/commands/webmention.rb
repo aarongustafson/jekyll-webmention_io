@@ -27,22 +27,30 @@ module Jekyll
           outgoing = WebmentionIO.load_yaml(cached_outgoing)
           outgoing.each do |source, targets|
             targets.each do |target, response|
+              # skip ones we’ve handled
               next unless response == false
 
+              # convert protocol-less links
               if target.index("//").zero?
                 target = "http:#{target}"
               end
 
+              # skip bad URLs
+              next unless WebmentionIO.uri_ok?(target)
+
+              # get the endpoint
               endpoint = WebmentionIO.get_webmention_endpoint(target)
               if endpoint == 'fail'
-                outgoing[source][target] = response
+                WebmentionIO.uri_is_not_ok(target)
                 endpoint = false
               end
               next unless endpoint
 
+              # get the response
               response = WebmentionIO.webmention(source, target, endpoint)
               next unless response
 
+              # capture JSON responses in case site wants to do anything with them
               begin
                 response = JSON.parse response
               rescue JSON::ParserError

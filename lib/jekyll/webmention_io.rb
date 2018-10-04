@@ -363,7 +363,7 @@ module Jekyll
       return true
     end
 
-    private_class_method :get_http_response, :uri_is_not_ok, :uri_ok?
+    private_class_method :get_http_response
   end
 end
 
