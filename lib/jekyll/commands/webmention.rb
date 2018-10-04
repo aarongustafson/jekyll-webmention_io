@@ -14,7 +14,10 @@ module Jekyll
         end
       end
 
-      def self.process(_args = [], _options = {})
+      def self.process(_args = [], options = {})
+        options = configuration_from_options(options)
+        WebmentionIO.bootstrap(Jekyll::Site.new(options))
+
         if File.exist? WebmentionIO.cache_file("sent.yml")
           WebmentionIO.log "error", "Your outgoing webmentions queue needs to be upgraded. Please re-build your project."
         end
