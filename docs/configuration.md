@@ -8,6 +8,7 @@ This gem will work well out of the box, but is configurable in a number of ways.
 
 * `cache_folder` - by default, this gem will cache all files in the `.jekyll-cache`, but you can specify another location (like `_data`) if you like. In order to avoid collisions, all cache files will be prefixed with “webmention_io_” unless your `cache_folder` value contains “webmention” (e.g. `.jekyll_cache/webmentions`)
 * `cache_bad_uris_for` - In order to reduce unnecessary requests to servers that aren’t responding, this gem will keep track of them and avoid making new requests to them for 1 day. If you’d like to adjust this up or down, you can use this configuration value. It expects a number corresponding to the number of days you want to wait before trying the domain again.
+* `html_proofer` - If you use the HTML Proofer gem to check your HTML, it does’t ignore template tags, so we add the `data-proofer-ignore` attribute to the template elements to avoid showing false positives.
 * `legacy_domains` - If you’ve relocated your site from another URL or moved from to HTTPS from HTTP, you can use this configuration option to specify additional domains to append your `page.url` to. It expects an array.
 * `templates` - If you would like to roll your own templates, you totally can. You will need to assign a hash of the template paths to use for loading each one.
 * `username` - Your [webmention.io](https://webmention.io) username (for use in the `link` tags in your head)
