@@ -225,9 +225,10 @@ module Jekyll
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
       mention = Webmention::Client.send_mention(endpoint, source, target, true)
-      if (mention.response.is_a? Net::HTTPOK) || (mention.response.is_a? Net::HTTPCreated) || (mention.response.is_a? Net::HTTPAccepted)
+      case mention.response
+      when Net::HTTPOK, Net::HTTPCreated, Net::HTTPAccepted
         log "info", "Webmention successful!"
-        return mention.response.body
+        mention.response.body
       else
         log "info", mention.inspect
         log "info", "Webmention failed, but will remain queued for next time"
