@@ -40,10 +40,6 @@ module Jekyll
 
               # get the endpoint
               endpoint = WebmentionIO.get_webmention_endpoint(target)
-              if endpoint == 'fail'
-                WebmentionIO.uri_is_not_ok(target)
-                endpoint = false
-              end
               next unless endpoint
 
               # get the response

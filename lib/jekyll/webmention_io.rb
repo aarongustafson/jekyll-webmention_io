@@ -209,10 +209,14 @@ module Jekyll
       # log "info", "Looking for webmention endpoint at #{uri}"
       begin
         endpoint = Webmention::Client.supports_webmention?(uri)
-        log("info", "Could not find a webmention endpoint at #{uri}") unless endpoint
+        unless endpoint
+          log("info", "Could not find a webmention endpoint at #{uri}")
+          uri_is_not_ok(uri)
+        end
       rescue StandardError => e
         log "info", "Endpoint lookup failed for #{uri}: #{e.message}"
-        endpoint = 'fail'
+        uri_is_not_ok(uri)
+        endpoint = false
       end
       endpoint
     end
@@ -221,10 +225,11 @@ module Jekyll
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
       mention = Webmention::Client.send_mention(endpoint, source, target, true)
-      if (mention.response.is_a? Net::HTTPOK) || (mention.response.is_a? Net::HTTPCreated)
+      if (mention.response.is_a? Net::HTTPOK) || (mention.response.is_a? Net::HTTPCreated) || (mention.response.is_a? Net::HTTPAccepted)
         log "info", "Webmention successful!"
         return mention.response.body
       else
+        log "info", mention.inspect
         log "info", "Webmention failed, but will remain queued for next time"
         false
       end
@@ -363,7 +368,7 @@ module Jekyll
       return true
     end
 
-    private_class_method :get_http_response
+    private_class_method :get_http_response, :uri_is_not_ok
   end
 end
 
