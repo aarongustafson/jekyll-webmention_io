@@ -256,10 +256,15 @@ module Jekyll
     end
 
     def self.html_templates
+      proofer = if @config['html_proofer'] == true
+                  ' data-proofer-ignore'
+                else
+                  ''
+                end
       @html_templates ||= begin
         templates = +"" # unfrozen String
         supported_templates.each do |template|
-          templates << "<template style=\"display:none\" id=\"webmention-#{template}\">"
+          templates << "<template style=\"display:none\" id=\"webmention-#{template}\"#{proofer}>"
           templates << get_template_contents(template)
           templates << "</template>"
         end
