@@ -153,9 +153,18 @@ module Jekyll
 
           # cleanup
           title = title.gsub(/<\/?[^>]+?>/, "")
+        elsif @type == "link" && @source != "twitter"
+
+          name = @raw.dig("data", "name")
+          title = name if name
+
         end # if post
 
-        markdownify(title)
+        if title
+          markdownify(title)
+        else
+          title
+        end
       end
 
       def determine_content
