@@ -160,11 +160,7 @@ module Jekyll
 
         end # if post
 
-        if title
-          markdownify(title)
-        else
-          title
-        end
+        title
       end
 
       def determine_content
