@@ -1,5 +1,6 @@
 # encoding: utf-8
-# gem bump jekyll-webmention_io -v patch -p -t -r
+# Test: bundle exec cucumber
+# Push: gem bump jekyll-webmention_io -v patch -p -t -r
 
 require File.expand_path("lib/jekyll/webmention_io/version", __dir__)
 
