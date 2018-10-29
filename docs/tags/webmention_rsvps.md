@@ -16,7 +16,7 @@ The webmentions found, if any, will be piped into the webmentions template your 
 
 ## Default template info
 
-If you go with the default template, here’s a rundown of elements and class names in use in the template:
+If you go with the default template, here’s a rundown of elements and `class` names in use in the template:
 
 * `webmentions` - overall container (`div`)
   * `webmentions--rsvps` - Identifies this as only pertaining to “RSVPs”

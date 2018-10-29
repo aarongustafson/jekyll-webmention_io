@@ -24,7 +24,7 @@ You can optionally filter this list by one or more supported webmention types. F
 
 ## Default template info
 
-If you go with the default template, here’s a rundown of elements and class names in use in the template:
+If you go with the default template, here’s a rundown of elements and `class` names in use in the template:
 
 * `webmentions` - overall container (`div`)
 * `webmentions__list` - the list of webmentions (`ol`)
