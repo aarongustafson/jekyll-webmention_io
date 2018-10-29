@@ -4,7 +4,7 @@
       {% for webmention in webmentions %}
         <li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
           <div class="webmention__author p-author h-card">
-            <a class="u-url" href="{{ webmention.author.url }}">
+            <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">
               <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="Avatar for {{ webmention.author.name }}" title="{{ webmention.author.name }}">
               <b class="p-name">{{ webmention.author.name }}</b>
               {{ webmention.content }}

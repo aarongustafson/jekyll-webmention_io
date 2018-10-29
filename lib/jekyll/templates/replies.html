@@ -8,7 +8,7 @@
           </div>
           <div class="webmention__meta">
             {% if webmention.author %}
-              <a class="webmention__author h-card u-url" href="{{ webmention.author.url }}">
+              <a class="webmention__author h-card u-url" href="{{ webmention.author.url }}" rel="nofollow">
                 {% if webmention.author.photo %}
                   <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
                 {% endif %}
@@ -17,7 +17,7 @@
             {% endif %}
             {% if webmention.pubdate and webmention.author %}on{% endif %}
             {% if webmention.pubdate %}
-              <a class="webmention__source u-url" href="{{ webmention.url }}">
+              <a class="webmention__source u-url" href="{{ webmention.url }}" rel="nofollow">
                 <time class="webmention__pubdate dt-published" datetime="{{ webmention.pubdate | date: '%FT%T%:z' }}">{{ webmention.pubdate | date: '%d %B %Y' }}</time>
               </a>
             {% endif %}

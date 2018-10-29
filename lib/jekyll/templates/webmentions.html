@@ -11,7 +11,7 @@
             ">
             {% if webmention.author %}
               <div class="webmention__author p-author h-card">
-                <a class="u-url" href="{{ webmention.author.url }}">
+                <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">
                   {% if webmention.author.photo %}
                     <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
                   {% endif %}
@@ -35,7 +35,7 @@
               {% endif %}
               {% if webmention.pubdate and webmention.url %}|{% endif %}
               {% if webmention.url %}
-                <a class="webmention__source u-url" href="{{ webmention.url }}">Permalink</a>
+                <a class="webmention__source u-url" href="{{ webmention.url }}" rel="nofollow">Permalink</a>
               {% endif %}
             </div>
           </article>

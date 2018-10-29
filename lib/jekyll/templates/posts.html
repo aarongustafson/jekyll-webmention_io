@@ -3,7 +3,7 @@
     <ol class="webmentions__list">
       {% for webmention in webmentions %}
         <li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
-          <a class="webmention__title webmention__source u-url" href="{{ webmention.url }}">{{ webmention.title }}</a>
+          <a class="webmention__title webmention__source u-url" href="{{ webmention.url }}" rel="nofollow">{{ webmention.title }}</a>
           <div class="webmention__meta">
             {% if webmention.pubdate %}
               <time class="webmention__pubdate dt-published" datetime="{{ webmention.pubdate | date: '%FT%T%:z' }}">{{ webmention.pubdate | date: '%d %B %Y' }}</time>
