@@ -1,5 +1,12 @@
 # Change Log
 
+## [v3.3.3](https://github.com/aarongustafson/jekyll-webmention_io/tree/v3.3.3) (2018-12-13)
+[Full Changelog](https://github.com/aarongustafson/jekyll-webmention_io/compare/v3.3.2...v3.3.3)
+
+**Bugs fixed:**
+
+- Webmention command was failing (due to improper scope)
+
 ## [v3.3.2](https://github.com/aarongustafson/jekyll-webmention_io/tree/v3.3.2) (2018-10-29)
 [Full Changelog](https://github.com/aarongustafson/jekyll-webmention_io/compare/v3.3.1...v3.3.2)
 
