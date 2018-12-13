@@ -13,4 +13,4 @@ Authored by [Aaron Gustafson][AG] and released under the [MIT License][license].
 [AG]: https://www.aaron-gustafson.com
 [license]: https://github.com/aarongustafson/jekyll-webmention_io/blob/master/LICENSE
 [contributors]: http://github.com/aarongustafson/jekyll-webmention_io/contributors
-[coc]: https://github.com/aarongustafson/jekyll-webmention_io/blob/master/docs/CODE_OF_CONDUCT.md
+[coc]: https://aarongustafson.github.io/jekyll-webmention_io/CODE_OF_CONDUCT
