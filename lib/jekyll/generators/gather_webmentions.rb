@@ -19,6 +19,12 @@ module Jekyll
         @site = site
         @site_url = site.config["url"].to_s
 
+        if @site.config['serving']
+          Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered when running `jekyll serve`."
+          @site.config['webmentions']['pause_lookups'] = true
+          return
+        end
+
         if @site_url.include? "localhost"
           Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered on localhost."
           return
