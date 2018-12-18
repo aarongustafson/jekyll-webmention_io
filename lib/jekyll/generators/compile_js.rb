@@ -32,7 +32,11 @@ module Jekyll
           return
         end
 
-        @source_file_destination = if handler.source?
+        if @site.config['serving']
+          Jekyll::WebmentionIO.log "msg", "A WebmentionIO.js source file will not be generated during `jekyll serve`."
+        end
+
+        @source_file_destination = if handler.source? && !@site.config['serving'] 
                                      @site.in_source_dir(handler.destination)
                                    else
                                      Dir.mktmpdir
@@ -77,11 +81,6 @@ module Jekyll
       end
 
       def create_js_file
-        if @site.config['serving']
-          Jekyll::WebmentionIO.log "msg", "A JavaScript source file won’t be generated when running `jekyll serve`."
-          return
-        end
-
         Dir.mkdir(@source_file_destination) unless File.exist?(@source_file_destination)
         File.open(File.join(@source_file_destination, @file_name), "wb") { |f| f.write(@javascript) }
       end
