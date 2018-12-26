@@ -171,6 +171,7 @@ module Jekyll
 
     def self.get_timeframe_from_date(time)
       date = time.to_date
+      timeframe = nil
       TIMEFRAMES.each do |key, value|
         if date.to_date > get_date_from_string(value)
           timeframe = key
