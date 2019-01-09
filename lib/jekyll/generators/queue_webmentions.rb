@@ -1,3 +1,4 @@
+# coding: utf-8
 # frozen_string_literal: true
 
 #  (c) Aaron Gustafson
@@ -69,7 +70,7 @@ module Jekyll
         if post.data["in_reply_to"]
           uris[post.data["in_reply_to"]] = false
         end
-        post.content.scan(/(?:https?:)?\/\/[^\s)#"]+/) do |match|
+        post.content.scan(/(?:https?:)?\/\/[^\s)#\[\]{}<>%|\^"]+/) do |match|
           unless uris.key? match
             uris[match] = false
           end
