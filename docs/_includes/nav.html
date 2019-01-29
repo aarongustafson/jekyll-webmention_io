@@ -1,5 +1,5 @@
-
-<nav>
+{% capture current_url %}{{ page.url }}{% endcapture %}
+<nav data-current="{{ current_url }}">
   <h2><a href="{{ site.url }}">Documentation</a></h2>
   <ol>
     {% for link in site.data.nav %}
@@ -24,7 +24,7 @@
                   {% endif %}
                 {% endcapture %}
                 <a href="{{ site.url }}/{{ link.slug }}/{{ sublink.slug }}">{{ sublink_title | trim }}</a>
-              <li>
+              </li>
             {% endfor %}
           </ol>
         {% endif %}
