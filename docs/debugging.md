@@ -1,8 +1,6 @@
 ---
-title: "Jekyll Webmention.io Debugging"
+title: "Debugging"
 ---
-
-# Debugging
 
 To enable debugging, add `debug: true` to the config:
 

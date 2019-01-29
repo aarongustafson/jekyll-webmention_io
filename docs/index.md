@@ -1,8 +1,5 @@
 ---
-title: Jekyll Webmention.io
 ---
-
-# Jekyll Webmention.io
 
 This gem includes a suite of tools for managing [webmentions](https://indieweb.org/Webmention) in Jekyll, using the [the webmention.io service](https://webmention.io).
 

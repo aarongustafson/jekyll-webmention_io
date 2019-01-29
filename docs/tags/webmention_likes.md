@@ -1,15 +1,15 @@
 ---
-title: "Jekyll Webmention.io Tags: webmention_likes"
+title: "Liquid Tag: `webmention_likes`"
 ---
-
-# `webmention_likes`
 
 You can get a complete list of “like” webmentions for a given `page.url` using the following liquid tag:
 
 {% raw %}
+
 ```liquid
 {% webmention_likes page.url %}
 ```
+
 {% endraw %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.

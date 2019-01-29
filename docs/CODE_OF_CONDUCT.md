@@ -1,8 +1,6 @@
 ---
-title: "Jekyll Webmention.io Contributor Covenant Code of Conduct"
+title: "Contributor Covenant Code of Conduct"
 ---
-
-# Contributor Covenant Code of Conduct
 
 ## Our Pledge
 

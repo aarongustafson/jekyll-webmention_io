@@ -1,8 +1,6 @@
 ---
-title: "Jekyll Webmention.io Performance Tuning"
+title: "Performance Tuning"
 ---
-
-# Performance Tuning
 
 Looking up webmentions is a time-consuming process and can really increase your build times. As it’s likely that engagement with your content will go down over time, this plugin enables you to tailor how often you want to look for new webmentions of your posts. Using the `webmentions.throttle_lookups` key, you can deal with posts in the following broad categories:
 

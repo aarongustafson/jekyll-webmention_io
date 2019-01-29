@@ -1,8 +1,6 @@
 ---
-title: "Jekyll Webmention.io Configuration"
+title: "Configuration"
 ---
-
-# Configuration
 
 This gem will work well out of the box, but is configurable in a number of ways. Note: all of these configuration options should nest under a `webmentions` key in your `_config.yml` file.
 

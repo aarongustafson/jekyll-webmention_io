@@ -1,15 +1,15 @@
 ---
-title: "Jekyll Webmention.io Tags: webmention_reposts"
+title: "Liquid Tag: `webmention_reposts`"
 ---
-
-# `webmention_reposts`
 
 You can get a complete list of “repost” webmentions for a given `page.url` using the following liquid tag:
 
 {% raw %}
+
 ```liquid
 {% webmention_reposts page.url %}
 ```
+
 {% endraw %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.

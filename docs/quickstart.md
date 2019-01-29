@@ -1,8 +1,6 @@
 ---
-title: "Jekyll Webmention.io Quickstart"
+title: "Quickstart"
 ---
-
-# Quickstart
 
 If you want to get up and running quickly, here’s the rundown of what you need to do:
 

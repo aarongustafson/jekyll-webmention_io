@@ -10,13 +10,13 @@
   </head>
   <body>
     <div class="container-lg px-3 my-5 markdown-body">
-      {% if site.title and site.title != page.title %}
-        <header>
-          <h1><a href="{{ site.url }}">{{ site.title }}</a></h1>
-        </header>
-      {% endif %}
+      <header>
+        <h1><a href="{{ site.url }}">{{ site.title }}</a></h1>
+      </header>
 
       <main>
+        {% if page.title %}<h1>{{ page.title | markdownify }}</h1>{% endif %}
+
         {{ content }}
       </main>
 

@@ -1,15 +1,15 @@
 ---
-title: "Jekyll Webmention.io Tags: webmention_links"
+title: "Liquid Tag: `webmention_links`"
 ---
-
-# `webmention_links`
 
 You can get a complete list of “link” webmentions for a given `page.url` using the following liquid tag:
 
 {% raw %}
+
 ```liquid
 {% webmention_links page.url %}
 ```
+
 {% endraw %}
 
 The webmentions found, if any, will be piped into the webmentions template your specified in your configuration or the default one that ships with this gem.

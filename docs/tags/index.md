@@ -1,8 +1,6 @@
 ---
-title: "Jekyll Webmention.io Tags"
+title: "Liquid Tags"
 ---
-
-# Jekyll Webmention.io Tags
 
 The various tag options provided by this gem are focused around display of information about incoming webmentions.
 
