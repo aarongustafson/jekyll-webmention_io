@@ -1,1 +1,5 @@
 theme: jekyll-theme-primer
+title: Jekyll Webmentions
+url: https://aarongustafson.github.io/jekyll-webmention_io
+encoding: utf-8
+lang: en_US

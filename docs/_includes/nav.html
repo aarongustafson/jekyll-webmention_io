@@ -1,0 +1,34 @@
+
+<nav>
+  <h2><a href="{{ site.url }}">Documentation</a></h2>
+  <ol>
+    {% for link in site.data.nav %}
+      <li>
+        {% capture title %}
+          {% if link.title %}
+            {{ link.title }}
+          {% else %}
+            {{ link.slug | replace:"-", " " | capitalize }}
+          {% endif %}
+        {% endcapture %}
+        <a href="{{ site.url }}/{{ link.slug }}">{{ title | trim }}</a>
+        {% if link.subnav %}
+          <ol>
+            {% for sublink in link.subnav %}
+              <li>
+                {% capture sublink_title %}
+                  {% if sublink.title %}
+                    {{ sublink.title }}
+                  {% else %}
+                    {{ sublink.slug | replace:"-", " " | capitalize }}
+                  {% endif %}
+                {% endcapture %}
+                <a href="{{ site.url }}/{{ link.slug }}/{{ sublink.slug }}">{{ sublink_title | trim }}</a>
+              <li>
+            {% endfor %}
+          </ol>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</nav>
