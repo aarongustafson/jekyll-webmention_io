@@ -1,5 +1,5 @@
 {% capture current_url %}{{ page.url | replace:".html","" }}{% endcapture %}
-<nav data-current="{{ current_url }}">
+<nav>
   <h2>More About This Gem</h2>
   <ol>
     {% for link in site.data.nav %}
@@ -12,7 +12,7 @@
           {% endif %}
         {% endcapture %}
         {% capture the_link %}/{{ link.slug }}{% endcapture %}
-        <a href="{{ the_link }}"{% if the_link == current_url %} aria-current="page"{% endif %}>{{ title | trim }}</a>
+        <a href="{{ site.url }}{{ the_link }}"{% if the_link == current_url %} aria-current="page"{% endif %}>{{ title | trim }}</a>
         {% if link.subnav %}
           <ol>
             {% for sublink in link.subnav %}
@@ -25,7 +25,7 @@
                   {% endif %}
                 {% endcapture %}
                 {% capture the_link %}/{{ link.slug }}/{{ sublink.slug }}{% endcapture %}
-                <a href="{{ the_link }}"{% if the_link == current_url %} aria-current="page"{% endif %}>{{ sublink_title | trim }}</a>
+                <a href="{{ site.url }}{{ the_link }}"{% if the_link == current_url %} aria-current="page"{% endif %}>{{ sublink_title | trim }}</a>
               </li>
             {% endfor %}
           </ol>
