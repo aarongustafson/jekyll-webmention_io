@@ -11,21 +11,25 @@
   <body>
     <div class="container-lg px-3 my-5 markdown-body">
       {% if site.title and site.title != page.title %}
-      <h1><a href="{{ site_url }}">{{ site.title }}</a></h1>
+        <header>
+          <h1><a href="{{ site_url }}">{{ site.title }}</a></h1>
+        </header>
       {% endif %}
 
-      {{ content }}
+      <main>
+        {{ content }}
+      </main>
 
       {% if page.url != "/" %}
         {% include nav.html %}
       {% endif %}
 
       {% if site.github.private != true and site.github.license %}
-      <div class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
-        This site is open source. {% github_edit_link "Improve this page" %}.<br>
-        <a href="https://github.com/aarongustafson/jekyll-webmention_io/blob/master/LICENSE">License: MIT</a>
-        <a href="/CODE_OF_CONDUCT">Code of Conduct</a>
-      </div>
+        <footer class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray">
+          This site is open source. {% github_edit_link "Improve this page" %}.<br>
+          <a href="https://github.com/aarongustafson/jekyll-webmention_io/blob/master/LICENSE">License: MIT</a>
+          <a href="/CODE_OF_CONDUCT">Code of Conduct</a>
+        </footer>
       {% endif %}
     </div>
 
