@@ -1,7 +1,7 @@
 {::options auto_ids="false" /}
-{% capture current_url %}{{ page.url }}{% endcapture %}
+{% capture current_url %}{{ page.url | replace:".html","" }}{% endcapture %}
 <nav data-current="{{ current_url }}">
-  <h2><a href="{{ site.url }}">Documentation</a></h2>
+  <h2><a href="/">Documentation</a></h2>
   <ol>
     {% for link in site.data.nav %}
       <li>
@@ -12,7 +12,8 @@
             {{ link.slug | replace:"-", " " | capitalize }}
           {% endif %}
         {% endcapture %}
-        <a href="{{ site.url }}/{{ link.slug }}">{{ title | trim }}</a>
+        {% capture the_link %}/{{ link.slug }}{% endcapture %}
+        <a href="{{ the_link }}"{% if the_link == current_url %} aria-current="page"{% endif %}>{{ title | trim }}</a>
         {% if link.subnav %}
           <ol>
             {% for sublink in link.subnav %}
@@ -24,7 +25,8 @@
                     {{ sublink.slug | replace:"-", " " | capitalize }}
                   {% endif %}
                 {% endcapture %}
-                <a href="{{ site.url }}/{{ link.slug }}/{{ sublink.slug }}">{{ sublink_title | trim }}</a>
+                {% capture the_link %}/{{ link.slug }}/{{ sublink.slug }}{% endcapture %}
+                <a href="{{ the_link }}"{% if the_link == current_url %} aria-current="page"{% endif %}>{{ sublink_title | trim }}</a>
               </li>
             {% endfor %}
           </ol>
