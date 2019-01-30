@@ -1,0 +1,36 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+#page {
+  display: grid;
+  
+  grid-template: "header"
+                 "main"
+                 "nav"
+                 "footer";
+
+  @media (min-width:43rem) {
+    grid-template: "header header header"
+                   "main main nav"
+                   "footer footer footer";
+  }
+}
+
+header {
+  grid-area: header;
+}
+main {
+  grid-area: main;
+}
+nav {
+  grid-area: nav;
+  
+  @media (min-width:43rem) {
+    padding-top: 12px;
+  }
+}
+footer {
+  grid-area: footer;
+}
