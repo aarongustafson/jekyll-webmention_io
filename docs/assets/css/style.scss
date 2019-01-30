@@ -3,6 +3,10 @@
 
 @import "{{ site.theme }}";
 
+.code {
+  line-height: 1;
+}
+
 #page {
   display: grid;
   
