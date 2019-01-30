@@ -3,6 +3,8 @@
 
 @import "{{ site.theme }}";
 
+$space: 12px;
+
 .code {
   line-height: 1;
 }
@@ -29,20 +31,26 @@ main {
   grid-area: main;
 
   @media (min-width:43rem) {
-    padding-right: 12px;
+    padding-right: $space;
+    
+    h1 {
+      margin-right: 0 - $space;
+      padding-right: $space;
+    }
   }
 }
 nav {
   grid-area: nav;
-  border-left: 1px solid;
-  padding-left: 12px;
+  border-left: 1px solid #eaecef;
+  padding-left: $space;
   
   @media (min-width:43rem) {
-    padding-top: 12px;
-  }
+    padding-top: $space;
 
-  h2 {
-    border: 0;
+    h2 {
+      margin-left: 0 - $space;
+      padding-left: 12px;
+    }
   }
 }
 footer {
