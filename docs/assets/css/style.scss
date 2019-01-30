@@ -34,9 +34,15 @@ main {
 }
 nav {
   grid-area: nav;
+  border-left: 1px solid;
+  padding-left: 12px;
   
   @media (min-width:43rem) {
     padding-top: 12px;
+  }
+
+  h2 {
+    border: 0;
   }
 }
 footer {
