@@ -27,6 +27,10 @@ header {
 }
 main {
   grid-area: main;
+
+  @media (min-width:43rem) {
+    padding-right: 12px;
+  }
 }
 nav {
   grid-area: nav;
