@@ -85,6 +85,26 @@ module Jekyll
             uris[syndicate] = false
           end
         end
+        if post.data["mf-repost-of"]
+          for syndicate in post.data["mp-repost-of"]
+            uris[syndicate] = false
+          end
+        end
+        if post.data["mf-like-of"]
+          for syndicate in post.data["mp-like-of"]
+            uris[syndicate] = false
+          end
+        end
+        if post.data["mf-in-reply-to"]
+          for syndicate in post.data["mf-in-reply-to"]
+            uris[syndicate] = false
+          end
+        end
+        if post.data["mf-bookmark-of"]
+          for syndicate in post.data["mf-bookmark-of"]
+            uris[syndicate] = false
+          end
+        end
         return uris
       end
 
