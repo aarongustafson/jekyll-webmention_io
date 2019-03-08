@@ -80,6 +80,11 @@ module Jekyll
             uris[syndicate] = false
           end
         end
+        if post.data["mf-mp-syndicate-to"]
+          for syndicate in post.data["mf-mp-syndicate-to"]
+            uris[syndicate] = false
+          end
+        end
         return uris
       end
 
