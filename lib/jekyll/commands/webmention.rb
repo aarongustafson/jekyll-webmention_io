@@ -31,6 +31,9 @@ module Jekyll
             outgoing = WebmentionIO.load_yaml(cached_outgoing)
             outgoing.each do |source, targets|
               targets.each do |target, response|
+
+                WebmentionIO.log "msg", "Sending #{target}"                
+
                 # skip ones we’ve handled
                 next unless response == false
 
@@ -44,10 +47,12 @@ module Jekyll
 
                 # get the endpoint
                 endpoint = WebmentionIO.get_webmention_endpoint(target)
+                WebmentionIO.log "msg", "endpoint #{endpoint}"
                 next unless endpoint
 
                 # get the response
                 response = WebmentionIO.webmention(source, target, endpoint)
+                WebmentionIO.log "msg", "response #{response}"
                 next unless response
 
                 # capture JSON responses in case site wants to do anything with them
@@ -56,8 +61,14 @@ module Jekyll
                 rescue JSON::ParserError
                   response = ""
                 end
+                WebmentionIO.log "msg", "Response for #{target} : #{response}"
                 outgoing[source][target] = response
                 count += 1
+              rescue URI::InvalidURIError
+                # skip bad url that may have been undetected by WebmentionIO.uri_ok? 
+                # not ideal, but i'm in a rush
+                WebmentionIO.log "error", "URI::InvalidURIError #{target}"
+                next
               end
             end
             if count.positive?
