@@ -66,7 +66,9 @@ module Jekyll
         # Get the URI
         args = @text.split(/\s+/).map(&:strip)
         uri = context['page']['url']
-                
+        uri = args.shift
+        uri = lookup(context, uri)
+
         # capture the types in case JS needs them
         types = []
 
