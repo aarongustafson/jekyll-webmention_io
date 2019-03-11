@@ -65,8 +65,8 @@ module Jekyll
       def render(context)
         # Get the URI
         args = @text.split(/\s+/).map(&:strip)
-        uri = context['page']['permalink']
-        
+        uri = context['page']['url']
+                
         # capture the types in case JS needs them
         types = []
 
