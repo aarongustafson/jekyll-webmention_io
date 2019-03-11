@@ -3,3 +3,5 @@
 module Jekyll
   module WebmentionIO
     VERSION = "3.3.4.3"
+  end
+end
