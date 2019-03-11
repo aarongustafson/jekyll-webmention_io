@@ -38,7 +38,7 @@ module Jekyll
                 next unless response == false
 
                 # convert protocol-less links
-                if target.index("//").zero?
+                if target.index("//") && target.index("//").zero?
                   target = "http:#{target}"
                 end
 

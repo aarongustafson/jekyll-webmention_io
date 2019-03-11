@@ -80,6 +80,7 @@ module Jekyll
           %w(syndicate-to repost-of like-of in-reply-to bookmark-of).each do |kind|
             if syndicates = post.data["#{prefix}-#{kind}"]
               for syndicate in syndicates
+                WebmentionIO.log "info", "Syndicate #{syndicate}."
                 uris[syndicate] = false
               end
             end            
