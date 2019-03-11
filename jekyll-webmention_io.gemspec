@@ -11,8 +11,7 @@ Gem::Specification.new do |s|
   s.authors       = ["Aaron Gustafson"]
   s.email         = ["aaron@easy-designs.net"]
   s.homepage      = "https://github.com/aarongustafson/jekyll-webmention_io"
-  s.has_rdoc      = false
-
+  
   s.summary       = "A Jekyll plugin for sending & receiving webmentions via Webmention.io."
   s.description   = <<-EOF
 This Gem includes a suite of tools for managing webmentions in Jekyll:
