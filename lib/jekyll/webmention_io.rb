@@ -286,7 +286,7 @@ module Jekyll
           return response.body.force_encoding("UTF-8")
         when Net::HTTPRedirection then
           redirect_to = URI.parse(URI.encode(response["location"]))
-          redirect_to = redirect_to.relative? ? "#{uri.scheme}://#{uri.host}" + redirect_to.to_s : redirect_to.to_s
+          redirect_to = redirect_to.relative? ? "#{original_uri.scheme}://#{original_uri.host}" + redirect_to.to_s : redirect_to.to_s
           return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
         else
           uri_is_not_ok(uri)
@@ -352,7 +352,7 @@ module Jekyll
 
     # Cache bad URLs for a bit
     def self.uri_is_not_ok(uri)
-      uri = URI.parse(URI.encode(uri))
+      uri = URI.parse(URI.encode(uri.to_s))
       # Never cache webmention.io in here
       return if uri.host == "webmention.io"
 
@@ -363,7 +363,7 @@ module Jekyll
     end
 
     def self.uri_ok?(uri)
-      uri = URI.parse(URI.encode(uri))
+      uri = URI.parse(URI.encode(uri.to_s))
       now = Time.now.to_s
       bad_uris = load_yaml(@cache_files["bad_uris"])
       if bad_uris.key? uri.host
