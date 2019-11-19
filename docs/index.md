@@ -22,7 +22,8 @@ If you want to dive right in, read the [Quickstart](/jekyll-webmention_io/quicks
 
 Other topics you might be interested in:
 
-* **[Configuration](/jekyll-webmention_io/configuration)** - How to configure yoru installation
+* **[Configuration](/jekyll-webmention_io/configuration)** - How to configure your installation
+* **[Syndication](/jekyll-webmention_io/syndication)** - How to configure your blog for easy syndication to standard locations
 * **[Performance Tuning](/jekyll-webmention_io/performance-tuning)** - How to speed up (or at least manage) your build time
 * **[Debugging](/jekyll-webmention_io/debugging)** - Print debugging info to the command line
 
