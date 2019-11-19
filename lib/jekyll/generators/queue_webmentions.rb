@@ -17,6 +17,7 @@ module Jekyll
       def generate(site)
         @site = site
         @site_url = site.config["url"].to_s
+        @syndication_endpoints = site.config.dig("webmentions", "syndication_endpoints")
 
         if @site.config['serving']
           Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run when running `jekyll serve`."
@@ -69,6 +70,15 @@ module Jekyll
 
       def get_mentioned_uris(post)
         uris = {}
+        if post.data["syndicate_to"]
+          post.data["syndicate_to"].each do |endpoint|
+            if @syndication_endpoints.key? endpoint
+              uris[@syndication_endpoints[endpoint]] = false
+            else
+              WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
+            end
+          end
+        end
         if post.data["in_reply_to"]
           uris[post.data["in_reply_to"]] = false
         end
