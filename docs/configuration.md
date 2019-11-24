@@ -6,6 +6,7 @@ This gem will work well out of the box, but is configurable in a number of ways.
 
 * `cache_folder` - by default, this gem will cache all files in the `.jekyll-cache`, but you can specify another location (like `_data`) if you like. In order to avoid collisions, all cache files will be prefixed with “webmention_io_” unless your `cache_folder` value contains “webmention” (e.g. `.jekyll_cache/webmentions`)
 * `bad_uri_policy` - In order to reduce unnecessary requests to servers that aren’t responding, this gem will keep track of them and avoid making new requests to them based on a policy you set.  See Bad URI Policy](/jekyll-webmention_io/bad_uri_policy) for more details.
+* `max_attempts` - The bad_uri_policy settings control the behaviour of jekyll-webmention for whole hosts.  This setting allows the user to specify a maximum number of attempts to send a specific webmention before the plugin gives up.  By default this setting is disabled, meaning there is no maximum.
 * `html_proofer` - If you use the HTML Proofer gem to check your HTML, it does’t ignore template tags, so we add the `data-proofer-ignore` attribute to the template elements to avoid showing false positives.
 * `legacy_domains` - If you’ve relocated your site from another URL or moved from to HTTPS from HTTP, you can use this configuration option to specify additional domains to append your `page.url` to. It expects an array.
 * `templates` - If you would like to roll your own templates, you totally can. You will need to assign a hash of the template paths to use for loading each one.
@@ -34,6 +35,7 @@ webmentions:
   username: YOUR_USERNAME
   cache_folder: .cache
   cache_bad_uris_for: 5
+  max_attempts: 5
   legacy_domains:
     - http://aaron-gustafson.com
     - http://www.aaron-gustafson.com

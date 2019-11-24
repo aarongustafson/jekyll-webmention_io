@@ -106,6 +106,10 @@ module Jekyll
       Jekyll.sanitized_path(@cache_folder, "#{@file_prefix}#{filename}")
     end
 
+    def self.max_attempts()
+      @config.dig("max_attempts")
+    end
+
     def self.get_cache_file_path(key)
       @cache_files[key] || false
     end
