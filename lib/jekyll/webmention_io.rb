@@ -259,7 +259,7 @@ module Jekyll
         mention.response.body
       else
         log "info", mention.inspect
-        log "info", "Webmention failed, but will remain queued for next time"
+        log "msg", "Webmention from #{source} to #{target} failed with '#{mention.response.message}', but will remain queued for next time"
         update_uri_cache(target, UriState::ERROR)
         false
       end
