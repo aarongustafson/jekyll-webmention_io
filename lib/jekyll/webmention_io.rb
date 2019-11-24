@@ -87,7 +87,7 @@ module Jekyll
         .fetch("bad_uri_policy", {})
         .fetch("whitelist", [])
         .clone
-        .append("^https?://webmention.io/")
+        .insert(-1, "^https?://webmention.io/")
         .map { |expr| Regexp.new(expr) }
 
       @uri_blacklist = @config
