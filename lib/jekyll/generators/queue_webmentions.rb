@@ -54,7 +54,29 @@ module Jekyll
           mentions = get_mentioned_uris(post)
           if webmentions.key? uri
             mentions.each do |mentioned_uri, response|
-              unless webmentions[uri].key? mentioned_uri
+              if webmentions[uri].key? mentioned_uri
+                # We knew about this target from a previous run
+
+                cached_response = webmentions[uri][mentioned_uri]
+
+                if ! @syndication_endpoints.values.index(mentioned_uri).nil? and
+                    cached_response.instance_of? Hash and
+                    cached_response.key? "url"
+
+                  # If this is a syndication target, and we have a response,
+                  # then the response might include the syndication URL (e.g.
+                  # with brid.gy).  Here we pull that out if it exists and add
+                  # it to the "syndication" front matter element so that it can
+                  # be used in templates.
+
+                  post.data["syndication"] ||= []
+
+                  if post.data["syndication"].instance_of? Array
+                    post.data["syndication"].insert(-1, cached_response["url"])
+                  end
+                end
+              else
+                # This is a new mention, add the target to the cache
                 webmentions[uri][mentioned_uri] = response
               end
             end
