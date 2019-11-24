@@ -26,13 +26,14 @@ module Jekyll
           WebmentionIO.log "msg", "Getting ready to send webmentions (this may take a while)."
 
           count = 0
+          max_attempts = WebmentionIO.max_attempts()
           cached_outgoing = WebmentionIO.get_cache_file_path "outgoing"
           if File.exist?(cached_outgoing)
             outgoing = WebmentionIO.load_yaml(cached_outgoing)
             outgoing.each do |source, targets|
               targets.each do |target, response|
                 # skip ones we’ve handled
-                next unless response == false
+                next unless response == false or response.instance_of? Integer
 
                 # convert protocol-less links
                 if target.index("//").zero?
@@ -41,6 +42,17 @@ module Jekyll
 
                 # skip bad URLs
                 next unless WebmentionIO.uri_ok?(target)
+
+                # give up if we've attempted this too many times
+                response = (response || 0) + 1
+
+                if ! max_attempts.nil? and response > max_attempts
+                  outgoing[source][target] = ""
+                  WebmentionIO.log "msg", "Giving up sending from #{source} to #{target}."
+                  next
+                else
+                  outgoing[source][target] = response
+                end
 
                 # get the endpoint
                 endpoint = WebmentionIO.get_webmention_endpoint(target)
@@ -60,9 +72,7 @@ module Jekyll
                 count += 1
               end
             end
-            if count.positive?
-              WebmentionIO.dump_yaml(cached_outgoing, outgoing)
-            end
+            WebmentionIO.dump_yaml(cached_outgoing, outgoing)
             WebmentionIO.log "msg", "#{count} webmentions sent."
           end # file exists (outgoing)
         end # def process
