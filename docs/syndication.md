@@ -26,6 +26,58 @@ webmentions:
 
 Each endpoint includes a shorthand name and the URL to send the webmention to.  In this case, we're configuring our system to send webmentions to Brid.gy for automated syndication.
 
+## Post syndication
+
+Once syndication targets have been set up, you must provide Jekyll with instructions as to where to syndicate each page.  Syndication is controlled in one of two ways:
+
+1. Page front matter
+2. Collection configuration
+
+Note, these can be combined.  If you specify syndication targets in both front matter and collections, the results are combined and webmentions are sent to all endpoints that apply for the page in question.
+
+### Front matter
+
+If a page contains a "syndicate_to" key in its front matter, the value is assumed to be an array which contains the names of one or more endpoints to send webmentions to.  For example:
+
+```yml
+---
+layout: post
+date:   2019-11-18 09:49:09 -0700
+syndicate_to: [ twitter, github ]
+---
+```
+
+Alternatively, this can also be controlled via the `defaults` Jekyll configuration.  For example:
+
+```yml
+defaults:
+  -
+    scope:
+      path: "microblog"
+    values:
+      syndicate_to: [ twitter, github ]
+```
+
+### Collections
+
+As an alternative to used `defaults`, you can also instruct the plugin to syndicate whole collections as follows:
+
+```yml
+collections:
+  posts:
+    syndicate_to: [ twitter, github ]
+```
+
+## Layout
+
+Receivers of webmentions require that the source page where the webmention originates include a link to the target page.  To automate this, some additional material should be added to the page layout (the simplest would be to add this to the common header or footer):
+
+```
+{% for target in page.syndicate_to %}
+  <a href="{{ site.webmentions.syndication_endpoints[target] }}"></a>
+{% endfor %}
+```
+
 ## Response mapping
 
 Some syndication endpoints return JSON responses which contain important information about the syndicated post.
@@ -56,24 +108,3 @@ These values can then be used in the page layout.  For example, the following sn
 
 If you're curious what is present in the endpoint responses that you might be able to use, you can find the raw webmention responses in the webmention_io_outgoing.yml file in your cache directory.
 
-## Front matter
-
-Each post must then include an additional `syndicate_to` key which specifies an array of one or more endpoints to send webmentions to:
-
-```yml
----
-layout: post
-date:   2019-11-18 09:49:09 -0700
-syndicate_to: [ twitter, github ]
----
-```
-
-## Layout
-
-Receivers of webmentions require that the source page where the webmention originates include a link to the target page.  To automate this, some additional material should be added to the page layout (the simplest would be to add this to the common header or footer):
-
-```
-{% for target in page.syndicate_to %}
-  <a href="{{ site.webmentions.syndication_endpoints[target] }}"></a>
-{% endfor %}
-```
