@@ -83,6 +83,16 @@ module Jekyll
         end
       end
 
+      def get_collection_for_post(post)
+        @site.collections.each do |name, collection|
+          if collection.docs.include? post
+            return collection
+          end
+        end
+
+        return nil
+      end
+
       def gather_webmentions(posts)
         webmentions = WebmentionIO.read_cached_webmentions "outgoing"
 
@@ -117,16 +127,26 @@ module Jekyll
       end
 
       def get_mentioned_uris(post)
+        collection = get_collection_for_post(post)
+
         uris = {}
-        if post.data["syndicate_to"]
-          post.data["syndicate_to"].each do |endpoint|
-            if @syndication.key? endpoint
-              uris[@syndication[endpoint]["endpoint"]] = false
-            else
-              WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
-            end
+
+        syndication_targets = []
+        syndication_targets += post.data["syndicate_to"] || []
+        syndication_targets += collection.metadata["syndicate_to"] || []
+
+        syndication_targets.each do |endpoint|
+          if @syndication.key? endpoint
+            url = @syndication[endpoint]["endpoint"]
+
+            WebmentionIO.log "msg", "Syndication target found: #{url}"
+
+            uris[@syndication[endpoint]["endpoint"]] = false
+          else
+            WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
           end
         end
+
         if post.data["in_reply_to"]
           uris[post.data["in_reply_to"]] = false
         end
@@ -135,6 +155,7 @@ module Jekyll
             uris[match] = false
           end
         end
+
         return uris
       end
 
