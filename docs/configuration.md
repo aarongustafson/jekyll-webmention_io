@@ -10,7 +10,7 @@ This gem will work well out of the box, but is configurable in a number of ways.
 * `legacy_domains` - If you’ve relocated your site from another URL or moved from to HTTPS from HTTP, you can use this configuration option to specify additional domains to append your `page.url` to. It expects an array.
 * `templates` - If you would like to roll your own templates, you totally can. You will need to assign a hash of the template paths to use for loading each one.
 * `username` - Your [webmention.io](https://webmention.io) username (for use in the `link` tags in your head)
-* `syndication_endpoints` - A list of key-value pairs representing standard targets for [syndication](/jekyll-webmention_io/syndication)
+* `syndication` - A set of endpoints to use for [syndication](/jekyll-webmention_io/syndication)
 
 ## Simple Example
 
@@ -45,9 +45,13 @@ webmentions:
     replies: _includes/webmentions/replies.html
     reposts: _includes/webmentions/reposts.html
     webmentions: _includes/webmentions/webmentions.html
-  syndication_endpoints:
-    twitter: https://brid.gy/publish/twitter
-    github: https://brid.gy/publish/github
+  syndication:
+    twitter: 
+      endpoint: https://brid.gy/publish/twitter
+      response_mapping:
+        url: syndication
+    github: 
+      endpoint: https://brid.gy/publish/github
 ```
 
 ## What’s checked

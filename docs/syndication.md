@@ -9,6 +9,7 @@ To enable syndication to services supporting webmention, this plugin includes so
 1. A set of short-hand syndication endpoints, specified in your site configuration
 2. Additional front matter in the page that indicates where to send webmentions
 3. Additional material in your layout template to automatically include the endpoint URL in the page
+4. Support for pulling data from syndication endpoint JSON responses into the page front matter for display
 
 ## Site configuration
 
@@ -16,12 +17,44 @@ The first part of the setup is to configure your syndication endpoints:
 
 ```yml
 webmentions:
-  syndication_endpoints:
-    twitter: https://brid.gy/publish/twitter
-    github: https://brid.gy/publish/github
+  syndication:
+    twitter: 
+      endpoint: https://brid.gy/publish/twitter
+    github: 
+      endpoint: https://brid.gy/publish/github
 ```
 
 Each endpoint includes a shorthand name and the URL to send the webmention to.  In this case, we're configuring our system to send webmentions to Brid.gy for automated syndication.
+
+## Response mapping
+
+Some syndication endpoints return JSON responses which contain important information about the syndicated post.
+
+This plugin supports defining a mapping from data in the response to keys in the front matter for the page.  For example:
+
+```yml
+webmentions:
+  syndication:
+    twitter: 
+      endpoint: https://brid.gy/publish/twitter
+      response_mapping:
+        url: syndication
+        user.screen_name: username
+```
+
+The keys in the `response_mapping` map represent paths to values in the JSON response.  The values are the names of keys in the page front matter where the data will be stored.
+
+Note:  If multiple endpoints are specified that map a response value to the same front matter key, the result will be an array of values in the front matter.
+
+These values can then be used in the page layout.  For example, the following snippet will use the `url` front matter property defined above to create links to the syndicated content:
+
+```
+{%- for url in page.syndication -%}
+  <a class="u-syndication" href="{{ url }}">{{ url }}</a>
+{%- endfor -%}
+```
+
+If you're curious what is present in the endpoint responses that you might be able to use, you can find the raw webmention responses in the webmention_io_outgoing.yml file in your cache directory.
 
 ## Front matter
 
