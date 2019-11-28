@@ -17,7 +17,7 @@ module Jekyll
       def generate(site)
         @site = site
         @site_url = site.config["url"].to_s
-        @syndication_endpoints = site.config.dig("webmentions", "syndication_endpoints")
+        @syndication = site.config.dig("webmentions", "syndication")
 
         if @site.config['serving']
           Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run when running `jekyll serve`."
@@ -48,6 +48,41 @@ module Jekyll
 
       private
 
+      def process_syndication(post, uri, target, response)
+        # If this is a syndication target, and we have a response,
+        # and the syndication entry contains a response mapping, then
+        # go through that map and store the selected values into
+        # the page front matter.
+
+        target["response_mapping"].each do |skey, tkey|
+          parts = skey.split(".")
+          value = response
+
+          parts.each do |part|
+            if value.instance_of? Hash
+              value = value[part]
+            else
+              # Uhoh!  The path doesn't exist, so throw an error and
+              # give up on this mapping entry
+              WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target['endpoint']} for #{uri}"
+
+              value = nil
+              break
+            end
+          end
+
+          if ! value.nil?
+            if post.data[tkey].nil?
+              post.data[tkey] = value
+            elsif ! post.data[tkey].instance_of? Array
+              post.data[tkey] = [ post.data[tkey], value ]
+            else
+              post.data[tkey].insert(-1, value)
+            end
+          end
+        end
+      end
+
       def gather_webmentions(posts)
         webmentions = WebmentionIO.read_cached_webmentions "outgoing"
 
@@ -59,23 +94,14 @@ module Jekyll
               if webmentions[uri].key? mentioned_uri
                 # We knew about this target from a previous run
 
-                cached_response = webmentions[uri][mentioned_uri]
+                target = @syndication.values.detect { |t|
+                  t["endpoint"] == mentioned_uri
+                }
 
-                if ! @syndication_endpoints.values.index(mentioned_uri).nil? and
-                    cached_response.instance_of? Hash and
-                    cached_response.key? "url"
+                response = webmentions[uri][mentioned_uri]
 
-                  # If this is a syndication target, and we have a response,
-                  # then the response might include the syndication URL (e.g.
-                  # with brid.gy).  Here we pull that out if it exists and add
-                  # it to the "syndication" front matter element so that it can
-                  # be used in templates.
-
-                  post.data["syndication"] ||= []
-
-                  if post.data["syndication"].instance_of? Array
-                    post.data["syndication"].insert(-1, cached_response["url"])
-                  end
+                if ! target.nil? and target.key? "response_mapping"
+                  process_syndication(post, uri, target, response)
                 end
               else
                 # This is a new mention, add the target to the cache
@@ -94,8 +120,8 @@ module Jekyll
         uris = {}
         if post.data["syndicate_to"]
           post.data["syndicate_to"].each do |endpoint|
-            if @syndication_endpoints.key? endpoint
-              uris[@syndication_endpoints[endpoint]] = false
+            if @syndication.key? endpoint
+              uris[@syndication[endpoint]["endpoint"]] = false
             else
               WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
             end
