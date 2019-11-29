@@ -104,6 +104,8 @@ module Jekyll
               if webmentions[uri].key? mentioned_uri
                 # We knew about this target from a previous run
 
+                next if @syndication.nil?
+
                 target = @syndication.values.detect { |t|
                   t["endpoint"] == mentioned_uri
                 }
