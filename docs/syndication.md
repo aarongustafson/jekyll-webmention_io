@@ -74,7 +74,7 @@ Receivers of webmentions require that the source page where the webmention origi
 
 ```
 {% for target in page.syndicate_to %}
-  <a href="{{ site.webmentions.syndication_endpoints[target] }}"></a>
+  <a href="{{ site.webmentions.syndication[target].endpoint }}"></a>
 {% endfor %}
 ```
 
