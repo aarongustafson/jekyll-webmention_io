@@ -266,6 +266,18 @@ module Jekyll
       else
         log "info", response.inspect
         log "info", "Webmention failed, but will remain queued for next time"
+
+        if response.body
+          begin
+            body = JSON.parse(response.body)
+
+            if body.key? "error"
+              log "msg", "Endpoint returned error: #{body['error']}"
+            end
+          rescue
+          end
+        end
+
         update_uri_cache(target, UriState::ERROR)
         false
       end
