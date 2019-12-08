@@ -41,8 +41,7 @@ module Jekyll
 
         upgrade_outgoing_webmention_cache
 
-        posts = WebmentionIO.gather_documents(@site)
-
+        posts = WebmentionIO.gather_documents(@site).select { |p| ! p.data["draft"] }
         gather_webmentions(posts)
       end
 
