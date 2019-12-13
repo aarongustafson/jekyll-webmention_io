@@ -115,9 +115,9 @@ module Jekyll
 
       def get_collection_for_post(post)
         @site.collections.each do |name, collection|
-          if collection.docs.include? post
-            return collection
-          end
+          next if name == "posts"
+
+          return collection if collection.docs.include? post
         end
 
         return nil
@@ -174,7 +174,10 @@ module Jekyll
 
         syndication_targets = []
         syndication_targets += post.data["syndicate_to"] || []
-        syndication_targets += collection.metadata["syndicate_to"] || []
+
+        if ! collection.nil?
+          syndication_targets += collection.metadata["syndicate_to"] || []
+        end
 
         syndication_targets.each do |endpoint|
           if @syndication.key? endpoint
