@@ -90,13 +90,13 @@ webmentions:
     twitter: 
       endpoint: https://brid.gy/publish/twitter
       response_mapping:
-        url: syndication
-        user.screen_name: username
+        syndication: $.url
+        username: $.user.screen_name: 
 ```
 
-The keys in the `response_mapping` map represent paths to values in the JSON response.  The values are the names of keys in the page front matter where the data will be stored.
+The keys in the `response_mapping` map represent the names of keys that will be populated in the page front matter.  The values are [JsonPath](https://goessner.net/articles/JsonPath/) expressions that return the value for the key.  If the expression returns a single value, that value will be used to populate the front matter.  Otherwise, the set of values will be stored as an array.
 
-Note:  If multiple endpoints are specified that map a response value to the same front matter key, the result will be an array of values in the front matter.
+Note:  If multiple endpoints are specified that map a response value to the same front matter key, the result will be a flattened array of values.
 
 These values can then be used in the page layout.  For example, the following snippet will use the `url` front matter property defined above to create links to the syndicated content:
 

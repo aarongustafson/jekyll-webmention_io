@@ -8,6 +8,8 @@
 #  This generator caches sites you mention so they can be mentioned
 #
 
+require "jsonpath"
+
 module Jekyll
   module WebmentionIO
     class QueueWebmentions < Generator
@@ -35,6 +37,8 @@ module Jekyll
           return
         end
 
+        compile_jsonpath_expressions() if ! @syndication.nil?
+
         WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
 
         upgrade_outgoing_webmention_cache
@@ -46,37 +50,59 @@ module Jekyll
 
       private
 
+      def compile_jsonpath_expressions()
+        @syndication.each do | target, config |
+          next if ! config.key? "response_mapping"
+
+          mapping = config["response_mapping"]
+
+          mapping.clone.each do | key, pattern |
+            begin
+              mapping[key] = JsonPath.new(pattern)
+            rescue StandardError => e
+              WebmentionIO.log "error", "Ignoring invalid JsonPath expression #{pattern}: #{e}"
+
+              mapping.delete(key)
+            end
+          end
+        end
+      end
+
+      def combine_values(a, b)
+        return case [ a.instance_of?(Array), b.instance_of?(Array) ]
+          when [ false, false ]
+            [ a, b ]
+          when [ false, true ]
+            [ a ] + b
+          when [ true, false ]
+            a << b
+          when [ true, true ]
+            a + b
+        end
+      end
+
       def process_syndication(post, uri, target, response)
         # If this is a syndication target, and we have a response,
         # and the syndication entry contains a response mapping, then
         # go through that map and store the selected values into
         # the page front matter.
 
-        target["response_mapping"].each do |skey, tkey|
-          parts = skey.split(".")
-          value = response
+        response = JSON.generate(response)
 
-          parts.each do |part|
-            if value.instance_of? Hash
-              value = value[part]
-            else
-              # Uhoh!  The path doesn't exist, so throw an error and
-              # give up on this mapping entry
-              WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target['endpoint']} for #{uri}"
+        target["response_mapping"].each do |key, pattern|
+          result = pattern.on(response)
 
-              value = nil
-              break
-            end
+          if ! result
+            WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target['endpoint']} for #{uri}"
+            next
+          elsif result.length == 1
+            result = result.first
           end
 
-          if ! value.nil?
-            if post.data[tkey].nil?
-              post.data[tkey] = value
-            elsif ! post.data[tkey].instance_of? Array
-              post.data[tkey] = [ post.data[tkey], value ]
-            else
-              post.data[tkey].insert(-1, value)
-            end
+          if post.data[key].nil?
+            post.data[key] = result
+          else
+            post.data[key] = combine_values(post.data[key], result)
           end
         end
       end
@@ -140,10 +166,6 @@ module Jekyll
 
         syndication_targets.each do |endpoint|
           if @syndication.key? endpoint
-            url = @syndication[endpoint]["endpoint"]
-
-            WebmentionIO.log "msg", "Syndication target found: #{url}"
-
             uris[@syndication[endpoint]["endpoint"]] = false
           else
             WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."

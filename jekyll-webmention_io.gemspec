@@ -45,6 +45,7 @@ EOF
   s.add_runtime_dependency "htmlbeautifier", "~> 1.1"
   s.add_runtime_dependency "uglifier", "~> 4.1"
   s.add_runtime_dependency "webmention", "~> 0.1.6"
+  s.add_runtime_dependency "jsonpath", "~> 1.0.1"
 
   s.add_development_dependency "bundler", "~> 1.14"
   s.add_development_dependency "cucumber", "~> 3.1"
