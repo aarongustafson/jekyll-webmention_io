@@ -1,0 +1,61 @@
+"*":
+  '1':
+    id: '1'
+    uri: https://www.aaron-gustafson.com/
+    source: false
+    pubdate: 2020-02-10 09:09:09.000000000 +00:00
+    raw:
+      source: https://www.aaron-gustafson.com/
+      verified: true
+      verified_date: '2020-02-10T09:09:09+00:00'
+      id: 1
+      private: false
+      data:
+        author: &1
+          name: Aaron Gustafson
+          url: https://www.aaron-gustafson.com/about
+          photo: https://www.aaron-gustafson.com/i/headshots/2014.jpg
+        url: https://www.aaron-gustafson.com
+        name:
+        content:
+        published:
+        published_ts:
+      activity:
+        type: like
+        sentence:
+        sentence_html:
+      target: http://localhost:4000/mention1
+    author: *1
+    type: like
+    content: ''
+  '2':
+    id: '2'
+    uri: https://twitter.com/AaronGustafson/status/123456
+    source: twitter
+    pubdate: 2020-02-11 10:10:10.000000000 +00:00
+    raw:
+      source: https://brid-gy.appspot.com/like/twitter/AaronGustafson/123456
+      verified: true
+      verified_date: '2020-02-11T10:10:10+00:00'
+      id: 2
+      private: false
+      data:
+        author: &2
+          name: Aaron Gustafson
+          url: https://twitter.com/AaronGustafson
+          photo: https://webmention.io/avatar/pbs.twimg.com/ccecfe0f8e7fe60a7d2fa1f0524b3e73449fd5bdf62eacb7d9c3298360ca316f.jpg
+        url: https://twitter.com/AaronGustafson/status/123456
+        name:
+        content:
+        published:
+        published_ts:
+      activity:
+        type: like
+        sentence: Aaron Gustafson favorited a tweet http://localhost:4000/mention2
+        sentence_html: <a href="https://twitter.com/AaronGustafson">Aaron Gustafson</a>
+          favorited a tweet <a href="http://localhost:4000/mention2">http://localhost:4000/mention2</a>
+      target: http://localhost:4000/mention2
+    author: *2
+    type: like
+    content: <p><a href="https://twitter.com/AaronGustafson">Aaron Gustafson</a> favorited
+      a tweet <a href="http://localhost:4000/mention2">http://localhost:4000/mention2</a></p>
