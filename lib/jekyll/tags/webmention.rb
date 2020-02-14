@@ -16,6 +16,12 @@ module Jekyll
       def initialize(tag_name, text, tokens)
         super
         cache_file = WebmentionIO.get_cache_file_path "incoming"
+
+        if Jekyll.sites.first.config['serving'] || Jekyll.sites.first.config['url'].include?('localhost') #Jekyll.env == 'development'
+          WebmentionIO.log "info", "Running locally: returning webmention samples."
+          cache_file = File.join( File.dirname(__FILE__), '../samples/webmentions.yml')
+        end
+
         @cached_webmentions = if File.exist? cache_file
                                 WebmentionIO.load_yaml(cache_file)
                               else
@@ -67,6 +73,7 @@ module Jekyll
         args = @text.split(/\s+/).map(&:strip)
         uri = args.shift
         uri = lookup(context, uri)
+        uri = '*' if Jekyll.sites.first.config['serving'] || Jekyll.sites.first.config['url'].include?('localhost') #Jekyll.env == 'development'
 
         # capture the types in case JS needs them
         types = []
