@@ -8,8 +8,8 @@
     slug: webmentions_head
   - title: <code>webmentions</code>
     slug: webmentions
-  - title: <code>webmentions_count</code>
-    slug: webmentions_count
+  - title: <code>webmention_count</code>
+    slug: webmention_count
   - title: <code>webmention_bookmarks</code>
     slug: webmention_bookmarks
   - title: <code>webmention_likes</code>
