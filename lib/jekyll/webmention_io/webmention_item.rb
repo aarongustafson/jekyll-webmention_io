@@ -55,9 +55,9 @@ module Jekyll
 
         if string
           string = @converter.convert(string.to_s)
-          unless string.start_with?("<p")
-            string = string.sub(/^<[^>]+>/, "<p>").sub(/<\/[^>]+>$/, "</p>")
-          end
+          # unless string.start_with?("<p")
+          #   string = string.sub(/^<[^>]+>/, "<p>").sub(/<\/[^>]+>$/, "</p>")
+          # end
           string.strip
         else
           string
