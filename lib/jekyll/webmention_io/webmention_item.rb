@@ -54,10 +54,11 @@ module Jekyll
         @converter ||= @site.find_converter_instance(Jekyll::Converters::Markdown)
 
         if string
+          string = "&#8291;"+string if string.start_with?(/^\d+\./)
           string = @converter.convert(string.to_s)
-          unless string.start_with?("<p")
-            string = string.sub(/^<[^>]+>/, "<p>").sub(/<\/[^>]+>$/, "</p>")
-          end
+          # unless string.start_with?("<p")
+          #   string = string.sub(/^<[^>]+>/, "<p>").sub(/<\/[^>]+>$/, "</p>")
+          # end
           string.strip
         else
           string
