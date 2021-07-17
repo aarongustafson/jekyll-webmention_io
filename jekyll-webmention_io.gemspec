@@ -32,7 +32,7 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
 * Generators - Collect webmentions from Webmention.io and gather sites you’ve mentioned
 EOF
 
-  s.required_ruby_version = ">= 2.3.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.platform      = Gem::Platform::RUBY
   s.files         = `git ls-files app lib`.split("\n")
@@ -46,10 +46,11 @@ EOF
   s.add_runtime_dependency "uglifier", "~> 4.1"
   s.add_runtime_dependency "webmention", "~> 0.1.6"
 
-  s.add_development_dependency "bundler", "~> 1.14"
+  s.add_development_dependency "bundler", "~> 2.0"
   s.add_development_dependency "cucumber", "~> 3.1"
   s.add_development_dependency "rake", "~> 12.0"
   s.add_development_dependency "rspec", "~> 3.5"
   s.add_development_dependency "html-proofer", "~> 3.6"
   s.add_development_dependency "rubocop", "~> 0.48"
+  s.add_development_dependency "kramdown-parser-gfm", "~> 1.1"
 end
