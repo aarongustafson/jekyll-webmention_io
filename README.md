@@ -1,3 +1,7 @@
+<hr>
+<p><strong>This project is in search of a new sponsor as the author is no longer using Jekyll.</strong></p>
+<hr>
+
 # A Jekyll plugin for sending & receiving webmentions via Webmention.io
 
 [![Gem](https://img.shields.io/gem/v/jekyll-webmention_io.svg?style=flat)](http://rubygems.org/gems/jekyll-webmention_io "View this project in Rubygems")
