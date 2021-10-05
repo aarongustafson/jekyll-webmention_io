@@ -35,10 +35,8 @@ module Jekyll
                 # skip ones we’ve handled
                 next unless response == false or response.instance_of? Integer
 
-                # convert protocol-less links
-                if target.index("//").zero?
-                  target = "http:#{target}"
-                end
+                # skip protocol-less links, we'll need to revisit this again later
+                next if target.index("//").zero?
 
                 # produce an escaped version of the target (in case of special
                 # characters, etc).
