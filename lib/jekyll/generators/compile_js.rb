@@ -8,6 +8,7 @@
 #
 
 require "uglifier"
+require "fileutils"
 
 module Jekyll
   module WebmentionIO
@@ -84,7 +85,7 @@ module Jekyll
       end
 
       def create_js_file
-        Dir.mkdir(@source_file_destination) unless File.exist?(@source_file_destination)
+        FileUtils.mkdir_p(@source_file_destination) unless File.exist?(@source_file_destination)
         File.open(File.join(@source_file_destination, @file_name), "wb") { |f| f.write(@javascript) }
       end
 
