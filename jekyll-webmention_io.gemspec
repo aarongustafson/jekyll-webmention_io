@@ -52,4 +52,5 @@ EOF
   s.add_development_dependency "rspec", "~> 3.5"
   s.add_development_dependency "html-proofer", "~> 3.6"
   s.add_development_dependency "rubocop", "~> 0.48"
+  s.add_development_dependency "kramdown-parser-gfm", "~> 1.1"
 end
