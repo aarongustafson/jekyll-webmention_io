@@ -38,7 +38,7 @@ EOF
   s.files         = `git ls-files app lib`.split("\n")
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency "jekyll", ">= 3.2.0", "< 4.0"
+  s.add_runtime_dependency "jekyll", ">= 3.2.0", "< 5.0"
   s.add_runtime_dependency "json", "~> 2.0"
   s.add_runtime_dependency "openssl", "~> 2.0"
   s.add_runtime_dependency "string_inflection", "~> 0.1"
@@ -46,7 +46,7 @@ EOF
   s.add_runtime_dependency "uglifier", "~> 4.1"
   s.add_runtime_dependency "webmention", "~> 0.1.6"
 
-  s.add_development_dependency "bundler", "~> 2.0"
+  s.add_development_dependency "bundler", "~> 2.2"
   s.add_development_dependency "cucumber", "~> 3.1"
   s.add_development_dependency "rake", "~> 12.0"
   s.add_development_dependency "rspec", "~> 3.5"
