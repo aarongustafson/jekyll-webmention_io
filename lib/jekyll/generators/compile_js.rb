@@ -36,11 +36,14 @@ module Jekyll
           Jekyll::WebmentionIO.log "msg", "A WebmentionIO.js source file will not be generated during `jekyll serve`."
         end
 
-        @source_file_destination = if handler.source? && !@site.config['serving'] 
-                                     @site.in_source_dir(handler.destination)
-                                   else
-                                     Dir.mktmpdir
-                                   end
+        @source_file_base_dir = if handler.source? && !@site.config['serving']
+                                  @site.in_source_dir()
+                                else
+                                  Dir.mktmpdir
+                                end
+
+        @destination = handler.destination
+        @source_file_destination = File.join(@source_file_base_dir, @destination)
 
         @javascript = +"" # unfrozen String
 
@@ -86,7 +89,7 @@ module Jekyll
       end
 
       def deploy_js_file
-        js_file = WebmentionIO::JavaScriptFile.new(@site, @source_file_destination, "", @file_name)
+        js_file = WebmentionIO::JavaScriptFile.new(@site, @source_file_base_dir, @destination, @file_name)
         @site.static_files << js_file
       end
     end
