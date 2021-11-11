@@ -32,7 +32,7 @@ This Gem includes a suite of tools for managing webmentions in Jekyll:
 * Generators - Collect webmentions from Webmention.io and gather sites you’ve mentioned
 EOF
 
-  s.required_ruby_version = ">= 2.3.0"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.platform      = Gem::Platform::RUBY
   s.files         = `git ls-files app lib`.split("\n")
