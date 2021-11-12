@@ -47,7 +47,7 @@ module Jekyll
                 next unless endpoint
 
                 # get the response
-                response = WebmentionIO.webmention(source, target, endpoint)
+                response = WebmentionIO.webmention(source, target)
                 next unless response
 
                 # capture JSON responses in case site wants to do anything with them

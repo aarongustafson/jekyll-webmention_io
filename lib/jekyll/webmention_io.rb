@@ -16,6 +16,7 @@ require "net/http"
 require "uri"
 require "openssl"
 require "string_inflection"
+require "indieweb/endpoints"
 require "webmention"
 
 module Jekyll
@@ -209,7 +210,7 @@ module Jekyll
     def self.get_webmention_endpoint(uri)
       # log "info", "Looking for webmention endpoint at #{uri}"
       begin
-        endpoint = Webmention::Client.supports_webmention?(uri)
+        endpoint = IndieWeb::Endpoints.get(uri)[:webmention]
         unless endpoint
           log("info", "Could not find a webmention endpoint at #{uri}")
           uri_is_not_ok(uri)
@@ -222,16 +223,17 @@ module Jekyll
       endpoint
     end
 
-    def self.webmention(source, target, endpoint)
+    def self.webmention(source, target)
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      mention = Webmention::Client.send_mention(endpoint, source, target, true)
-      case mention.response
+      response = Webmention.send_mention(source, target)
+
+      case response
       when Net::HTTPOK, Net::HTTPCreated, Net::HTTPAccepted
         log "info", "Webmention successful!"
-        mention.response.body
+        response.body
       else
-        log "info", mention.inspect
+        log "info", response.inspect
         log "info", "Webmention failed, but will remain queued for next time"
         false
       end
