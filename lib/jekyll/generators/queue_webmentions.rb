@@ -20,6 +20,8 @@ module Jekyll
 
         if @site.config['serving']
           Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run when running `jekyll serve`."
+
+          @site.config['webmentions'] ||= {}
           @site.config['webmentions']['pause_lookups'] = true
           return
         end
