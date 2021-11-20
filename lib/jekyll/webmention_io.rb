@@ -126,7 +126,7 @@ module Jekyll
 
     def self.get_response(api_params)
       api_params << @api_suffix
-      url = "#{@api_endpoint}?#{api_params}"
+      url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")
       log "info", "Sending request to #{url}."
       source = get_uri_source(url)
       if source
