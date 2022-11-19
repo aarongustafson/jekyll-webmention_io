@@ -149,7 +149,15 @@ module Jekyll
               webmentions.dig(fulluri, mentioned_uri)
 
             if cached_response.nil?
-              uri = (! target.nil? and target["shorturl"]) ? shorturi : fulluri
+              if ! target.nil?
+                uri = target["shorturl"] ? shorturi : fulluri
+
+                if target.key? "fragment"
+                  uri += "#" + target["fragment"]
+                end
+              else
+                uri = fulluri
+              end
 
               webmentions[uri] ||= {}
               webmentions[uri][mentioned_uri] = response
