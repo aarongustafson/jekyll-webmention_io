@@ -34,14 +34,9 @@ module Jekyll
           return
         end
 
-        if @site.config.dig("webmentions", "pause_lookups")
-          WebmentionIO.log "info", "Webmention lookups are currently paused."
-          return
-        end
-
         compile_jsonpath_expressions() if ! @syndication.nil?
 
-        WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
+        WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
 
         upgrade_outgoing_webmention_cache
 
@@ -167,7 +162,16 @@ module Jekyll
           end
         end
 
-        WebmentionIO.cache_webmentions "outgoing", webmentions
+        # This check is moved down here because we still need the steps
+        # above to populate frontmatter during the site build, even
+        # if we're not going to modify the webmention cache.
+
+        if @site.config.dig("webmentions", "pause_lookups")
+          WebmentionIO.log "info", "Webmention lookups are currently paused."
+          return
+        else
+          WebmentionIO.cache_webmentions "outgoing", webmentions
+        end
       end
 
       def get_mentioned_uris(post)
