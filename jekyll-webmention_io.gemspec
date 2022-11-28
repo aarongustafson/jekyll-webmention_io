@@ -40,7 +40,7 @@ EOF
 
   s.add_runtime_dependency "jekyll", ">= 3.2.0", "< 5.0"
   s.add_runtime_dependency "json", "~> 2.0"
-  s.add_runtime_dependency "openssl", "~> 2.0"
+  s.add_runtime_dependency "openssl", ">= 2.0", "< 4.0"
   s.add_runtime_dependency "string_inflection", "~> 0.1"
   s.add_runtime_dependency "htmlbeautifier", "~> 1.1"
   s.add_runtime_dependency "uglifier", "~> 4.1"
