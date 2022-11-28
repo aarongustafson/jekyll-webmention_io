@@ -8,6 +8,8 @@
 #  This generator caches sites you mention so they can be mentioned
 #
 
+require "jsonpath"
+
 module Jekyll
   module WebmentionIO
     class QueueWebmentions < Generator
@@ -36,6 +38,8 @@ module Jekyll
           WebmentionIO.log "info", "Webmention lookups are currently paused."
           return
         end
+
+        compile_jsonpath_expressions() if ! @syndication.nil?
 
         WebmentionIO.log "msg", "Beginning to gather webmentions you’ve made. This may take a while."
 
@@ -84,31 +88,22 @@ module Jekyll
         # go through that map and store the selected values into
         # the page front matter.
 
-        target["response_mapping"].each do |skey, tkey|
-          parts = skey.split(".")
-          value = response
+        response = JSON.generate(response)
 
-          parts.each do |part|
-            if value.instance_of? Hash
-              value = value[part]
-            else
-              # Uhoh!  The path doesn't exist, so throw an error and
-              # give up on this mapping entry
-              WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target['endpoint']} for #{post.url}"
+        target["response_mapping"].each do |key, pattern|
+          result = pattern.on(response)
 
-              value = nil
-              break
-            end
+          if ! result
+            WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target['endpoint']} for #{uri}"
+            next
+          elsif result.length == 1
+            result = result.first
           end
 
-          if ! value.nil?
-            if post.data[tkey].nil?
-              post.data[tkey] = value
-            elsif ! post.data[tkey].instance_of? Array
-              post.data[tkey] = [ post.data[tkey], value ]
-            else
-              post.data[tkey].insert(-1, value)
-            end
+          if post.data[key].nil?
+            post.data[key] = result
+          else
+            post.data[key] = combine_values(post.data[key], result)
           end
         end
       end
@@ -181,10 +176,6 @@ module Jekyll
 
         syndication_targets.each do |endpoint|
           if @syndication.key? endpoint
-            url = @syndication[endpoint]["endpoint"]
-
-            WebmentionIO.log "msg", "Syndication target found: #{url}"
-
             uris[@syndication[endpoint]["endpoint"]] = false
           else
             WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
