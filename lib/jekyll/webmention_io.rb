@@ -226,7 +226,7 @@ module Jekyll
     def self.webmention(source, target)
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      response = Webmentjon.send_webmention(source, target)
+      response = Webmention.send_webmention(source, target)
 
       case response.code
       when 200, 201, 202
