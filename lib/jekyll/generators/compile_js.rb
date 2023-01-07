@@ -8,6 +8,7 @@
 #
 
 require "uglifier"
+require "fileutils"
 
 module Jekyll
   module WebmentionIO
@@ -36,11 +37,14 @@ module Jekyll
           Jekyll::WebmentionIO.log "msg", "A WebmentionIO.js source file will not be generated during `jekyll serve`."
         end
 
-        @source_file_destination = if handler.source? && !@site.config['serving'] 
-                                     @site.in_source_dir(handler.destination)
-                                   else
-                                     Dir.mktmpdir
-                                   end
+        @source_file_base_dir = if handler.source? && !@site.config['serving']
+                                  @site.in_source_dir()
+                                else
+                                  Dir.mktmpdir
+                                end
+
+        @destination = handler.destination
+        @source_file_destination = File.join(@source_file_base_dir, @destination)
 
         @javascript = +"" # unfrozen String
 
@@ -81,12 +85,12 @@ module Jekyll
       end
 
       def create_js_file
-        Dir.mkdir(@source_file_destination) unless File.exist?(@source_file_destination)
+        FileUtils.mkdir_p(@source_file_destination) unless File.exist?(@source_file_destination)
         File.open(File.join(@source_file_destination, @file_name), "wb") { |f| f.write(@javascript) }
       end
 
       def deploy_js_file
-        js_file = WebmentionIO::JavaScriptFile.new(@site, @source_file_destination, "", @file_name)
+        js_file = WebmentionIO::JavaScriptFile.new(@site, @source_file_base_dir, @destination, @file_name)
         @site.static_files << js_file
       end
     end

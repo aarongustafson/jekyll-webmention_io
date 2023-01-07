@@ -16,6 +16,7 @@ require "net/http"
 require "uri"
 require "openssl"
 require "string_inflection"
+require "indieweb/endpoints"
 require "webmention"
 
 module Jekyll
@@ -126,7 +127,7 @@ module Jekyll
 
     def self.get_response(api_params)
       api_params << @api_suffix
-      url = "#{@api_endpoint}?#{api_params}"
+      url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")
       log "info", "Sending request to #{url}."
       source = get_uri_source(url)
       if source
@@ -209,7 +210,7 @@ module Jekyll
     def self.get_webmention_endpoint(uri)
       # log "info", "Looking for webmention endpoint at #{uri}"
       begin
-        endpoint = Webmention::Client.supports_webmention?(uri)
+        endpoint = IndieWeb::Endpoints.get(uri)[:webmention]
         unless endpoint
           log("info", "Could not find a webmention endpoint at #{uri}")
           uri_is_not_ok(uri)
@@ -222,16 +223,17 @@ module Jekyll
       endpoint
     end
 
-    def self.webmention(source, target, endpoint)
+    def self.webmention(source, target)
       log "info", "Sending webmention of #{target} in #{source}"
       # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      mention = Webmention::Client.send_mention(endpoint, source, target, true)
-      case mention.response
-      when Net::HTTPOK, Net::HTTPCreated, Net::HTTPAccepted
+      response = Webmention.send_webmention(source, target)
+
+      case response.code
+      when 200, 201, 202
         log "info", "Webmention successful!"
-        mention.response.body
+        response.body
       else
-        log "info", mention.inspect
+        log "info", response.inspect
         log "info", "Webmention failed, but will remain queued for next time"
         false
       end
@@ -285,7 +287,7 @@ module Jekyll
         when Net::HTTPSuccess then
           return response.body.force_encoding("UTF-8")
         when Net::HTTPRedirection then
-          redirect_to = URI.parse(URI.encode(response["location"]))
+          redirect_to = URI::Parser.new.parse(response["location"])
           redirect_to = redirect_to.relative? ? "#{original_uri.scheme}://#{original_uri.host}" + redirect_to.to_s : redirect_to.to_s
           return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
         else
@@ -329,7 +331,7 @@ module Jekyll
     # Private Methods
 
     def self.get_http_response(uri)
-      uri  = URI.parse(URI.encode(uri))
+      uri = URI::Parser.new.parse(uri)
       http = Net::HTTP.new(uri.host, uri.port)
       http.read_timeout = 10
 
@@ -352,7 +354,7 @@ module Jekyll
 
     # Cache bad URLs for a bit
     def self.uri_is_not_ok(uri)
-      uri = URI.parse(URI.encode(uri.to_s))
+      uri = URI::Parser.new.parse(uri.to_s)
       # Never cache webmention.io in here
       return if uri.host == "webmention.io"
 
@@ -363,7 +365,7 @@ module Jekyll
     end
 
     def self.uri_ok?(uri)
-      uri = URI.parse(URI.encode(uri.to_s))
+      uri = URI::Parser.new.parse(uri.to_s)
       now = Time.now.to_s
       bad_uris = load_yaml(@cache_files["bad_uris"])
       if bad_uris.key? uri.host

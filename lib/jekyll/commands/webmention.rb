@@ -39,15 +39,19 @@ module Jekyll
                   target = "http:#{target}"
                 end
 
+                # produce an escaped version of the target (in case of special
+                # characters, etc).
+                escaped = URI::Parser.new.escape(target);
+
                 # skip bad URLs
-                next unless WebmentionIO.uri_ok?(target)
+                next unless WebmentionIO.uri_ok?(escaped)
 
                 # get the endpoint
-                endpoint = WebmentionIO.get_webmention_endpoint(target)
+                endpoint = WebmentionIO.get_webmention_endpoint(escaped)
                 next unless endpoint
 
                 # get the response
-                response = WebmentionIO.webmention(source, target, endpoint)
+                response = WebmentionIO.webmention(source, target)
                 next unless response
 
                 # capture JSON responses in case site wants to do anything with them

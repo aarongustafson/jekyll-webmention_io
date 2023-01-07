@@ -20,6 +20,8 @@ module Jekyll
 
         if @site.config['serving']
           Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run when running `jekyll serve`."
+
+          @site.config['webmentions'] ||= {}
           @site.config['webmentions']['pause_lookups'] = true
           return
         end
@@ -70,7 +72,7 @@ module Jekyll
         if post.data["in_reply_to"]
           uris[post.data["in_reply_to"]] = false
         end
-        post.content.scan(/(?:https?:)?\/\/[^\s)#\[\]{}<>%|\^"]+/) do |match|
+        post.content.scan(/(?:https?:)?\/\/[^\s)#\[\]{}<>%|\^"']+/) do |match|
           unless uris.key? match
             uris[match] = false
           end
