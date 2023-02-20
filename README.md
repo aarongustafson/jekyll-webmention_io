@@ -1,7 +1,3 @@
-<hr>
-<p><strong>This project is in search of a new sponsor as the author is no longer using Jekyll.</strong></p>
-<hr>
-
 # A Jekyll plugin for sending & receiving webmentions via Webmention.io
 
 [![Gem](https://img.shields.io/gem/v/jekyll-webmention_io.svg?style=flat)](http://rubygems.org/gems/jekyll-webmention_io "View this project in Rubygems")
@@ -12,9 +8,12 @@ This gem includes a suite of tools for managing [webmentions](https://indieweb.o
 
 All issues, feature suggestions, and participants welcome. Please be kind to your fellow coders and follow the [code of conduct][coc].
 
-Authored by [Aaron Gustafson][AG] and released under the [MIT License][license]. Maintained by Aaron with help from [these awesome contributors][contributors].
+Authored by [Aaron Gustafson][AG] and released under the [MIT License][license].
+
+Currently maintained by [Brett Kosinski][BK], who is standing on the shoulders of many including Aaron and [these awesome contributors][contributors].
 
 [AG]: https://www.aaron-gustafson.com
+[BK]: https://b-ark.ca
 [license]: https://github.com/aarongustafson/jekyll-webmention_io/blob/master/LICENSE
 [contributors]: http://github.com/aarongustafson/jekyll-webmention_io/contributors
 [coc]: https://aarongustafson.github.io/jekyll-webmention_io/CODE_OF_CONDUCT
