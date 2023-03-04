@@ -50,20 +50,6 @@ module Jekyll
         @content = determine_content
       end
 
-      def markdownify(string)
-        @converter ||= @site.find_converter_instance(Jekyll::Converters::Markdown)
-
-        if string
-          string = @converter.convert(string.to_s)
-          unless string.start_with?("<p")
-            string = string.sub(/^<[^>]+>/, "<p>").sub(/<\/[^>]+>$/, "</p>")
-          end
-          string.strip
-        else
-          string
-        end
-      end
-
       def determine_uri
         @raw["data"]["url"] || @raw["source"]
       end
@@ -164,13 +150,11 @@ module Jekyll
       end
 
       def determine_content
-        content = if %w(post reply link).include? @type
-                    @raw.dig("data", "content")
-                  else
-                    @raw.dig("activity", "sentence_html")
-                  end
-
-        markdownify(content)
+        if %w(post reply link).include? @type
+          @raw.dig("data", "content")
+        else
+          @raw.dig("activity", "sentence_html")
+        end
       end
     end
   end
