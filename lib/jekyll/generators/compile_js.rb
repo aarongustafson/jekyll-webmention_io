@@ -18,7 +18,6 @@ module Jekyll
       end
     end
 
-    using StringInflection
     class CompileJS < Generator
       safe true
       priority :low
@@ -61,7 +60,7 @@ module Jekyll
       def add_webmention_types
         js_types = []
         WebmentionIO.types.each do |type|
-          js_types.push "'#{type}': '#{type.to_singular}'"
+          js_types.push "'#{type}': '#{ActiveSupport::Inflector.singularize(type)}'"
         end
         types_js = <<-EOF
           ;(function(window,JekyllWebmentionIO){

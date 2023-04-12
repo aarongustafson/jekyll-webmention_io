@@ -15,7 +15,7 @@ require "json"
 require "net/http"
 require "uri"
 require "openssl"
-require "string_inflection"
+require "active_support"
 require "indieweb/endpoints"
 require "webmention"
 

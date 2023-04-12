@@ -11,7 +11,6 @@ require "htmlbeautifier"
 
 module Jekyll
   module WebmentionIO
-    using StringInflection
     class WebmentionTag < Liquid::Tag
       def initialize(tag_name, text, tokens)
         super
@@ -50,7 +49,7 @@ module Jekyll
         if !WebmentionIO.types.include? type
           WebmentionIO.log "warn", "#{type} are not extractable"
         else
-          type = type.to_singular
+          type = ActiveSupport::Inflector.singularize(type)
           WebmentionIO.log "info", "Searching #{webmentions.length} webmentions for type==#{type}"
           if webmentions.is_a? Hash
             webmentions = webmentions.values
