@@ -41,7 +41,7 @@ EOF
   s.add_runtime_dependency "jekyll", ">= 3.2.0", "< 5.0"
   s.add_runtime_dependency "json", "~> 2.0"
   s.add_runtime_dependency "openssl", ">= 2.0", "< 4.0"
-  s.add_runtime_dependency "string_inflection", "~> 0.1"
+  s.add_runtime_dependency "activesupport", "~> 7.0", ">= 7.0.4.3"
   s.add_runtime_dependency "htmlbeautifier", "~> 1.1"
   s.add_runtime_dependency "uglifier", "~> 4.1"
   s.add_runtime_dependency "webmention", "~> 7.0"
@@ -49,7 +49,7 @@ EOF
 
   s.add_development_dependency "bundler", "~> 2.2"
   s.add_development_dependency "cucumber", "~> 3.1"
-  s.add_development_dependency "rake", "~> 12.0"
+  s.add_development_dependency "rake", "~> 13.0"
   s.add_development_dependency "rspec", "~> 3.5"
   s.add_development_dependency "html-proofer", "~> 3.6"
   s.add_development_dependency "rubocop", "~> 0.48"
