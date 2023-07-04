@@ -1,8 +1,6 @@
 ---
 ---
 
-If you want to dive right in because you already know what this gem is all about, then go ahead and jump down to the Quickstart guide below.
-
 # A quick introduction
 
 If you've come by this gem, I have to assume you're probably already aware of [Webmentions](https://indieweb.org/webmention), which are a technology designed to enable conversations across the web by supporting things like comments, likes, reposts, and so forth.  Think: pingback but better.
