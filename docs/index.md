@@ -1,8 +1,6 @@
 ---
 ---
 
-# A quick introduction
-
 If you've come by this gem, I have to assume you're probably already aware of [Webmentions](https://indieweb.org/webmention), which are a technology designed to enable conversations across the web by supporting things like comments, likes, reposts, and so forth.  Think: pingback but better.
 
 Webmentions function by having the source site send a message to a defined endpoint on the target site.  This model naturally assumes an active service that's available and listening for these messages.  Unfortunately, static site generators like Jekyll provide no such service (being served by a vanilla web server), and so some intermediary server must exist to receive webmentions and store them for use during site generation.
@@ -40,7 +38,7 @@ The second collects any webmentions you may have made--meaning any URLs you've r
 
 ## Sending webmentions
 
-Once the site is built and the outgoing webmentions have been cached, they can be sent using [the `jekyll webmention` command](/jekyll-webmention_io/commands)
+Once the site is built and the outgoing webmentions have been cached, they can be sent using the `jekyll webmention` command:
 
 ```sh
 $> jekyll webmention
