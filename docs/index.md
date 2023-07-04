@@ -11,6 +11,8 @@ And this is where [webmention.io](https://webmention.io) enters the picture.  De
 
 Which brings us to this gem, which integrates Jekyll with webmention.io to receive and display webmentions, while also providing functionality for sending webmentions to supported sites.
 
+Note: To use this plugin you'll need to sign up at webmention.io, which will require setting up [IndieAuth](https://indieweb.org/IndieAuth) for your site.
+
 # Setting up the plugin
 
 A basic installation and setup of the plugin is pretty straightforward and involves the following steps:
