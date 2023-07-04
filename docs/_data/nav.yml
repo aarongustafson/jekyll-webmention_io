@@ -1,6 +1,5 @@
 - title: Overview
   slug: ""
-- slug: quickstart
 - slug: configuration
 - slug: tags
   subnav:
@@ -24,7 +23,5 @@
     slug: webmention_rsvps
   - title: <code>webmentions_js</code>
     slug: webmentions_js
-- slug: commands
-- slug: generators
 - slug: performance-tuning
 - slug: debugging
