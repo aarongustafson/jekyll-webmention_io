@@ -76,9 +76,11 @@ collections:
 Receivers of webmentions require that the source page where the webmention originates include a link to the target page.  To automate this, some additional material should be added to the page layout (the simplest would be to add this to the common header or footer):
 
 ```
+{%raw%}
 {% for target in page.syndicate_to %}
   <a href="{{ site.webmentions.syndication[target].endpoint }}"></a>
 {% endfor %}
+{%endraw%}
 ```
 
 ## Response mapping
