@@ -75,13 +75,13 @@ collections:
 
 Receivers of webmentions require that the source page where the webmention originates include a link to the target page.  To automate this, some additional material should be added to the page layout (the simplest would be to add this to the common header or footer):
 
-```
 {%raw%}
+```
 {% for target in page.syndicate_to %}
   <a href="{{ site.webmentions.syndication[target].endpoint }}"></a>
 {% endfor %}
-{%endraw%}
 ```
+{%endraw%}
 
 ## Response mapping
 
@@ -105,11 +105,13 @@ Note:  If multiple endpoints are specified that map a response value to the same
 
 These values can then be used in the page layout.  For example, the following snippet will use the `syndication` front matter property defined above to create links to the syndicated content on the target silo:
 
+{%raw%}
 ```
 {%- for url in page.syndication -%}
   <a class="u-syndication" href="{{ url }}">{{ url }}</a>
 {%- endfor -%}
 ```
+{%endraw%}
 
 If you're curious what is present in the endpoint responses that you might be able to use, you can find the raw webmention responses in the webmention_io_outgoing.yml file in your cache directory.
 
