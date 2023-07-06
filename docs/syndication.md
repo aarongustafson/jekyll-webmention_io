@@ -54,7 +54,7 @@ defaults:
   -
     scope:
       path: ""
-      type: "_posts"
+      type: "posts"
     values:
       syndicate_to: [ mastodon, github ]
 ```
