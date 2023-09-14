@@ -9,7 +9,7 @@
             {% unless webmention.author.photo %}webmention--no-photo{% endunless %}
             {% if webmention.source=='twitter' %}{% if webmention.type=='like' or webmention.type=='repost' %}webmention--author-starts{% endif %}{% endif %}
             ">
-            {% if webmention.author %}
+            {% if webmention.author.name %}
               <div class="webmention__author p-author h-card">
                 {% if webmention.author.url %}
                   <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">
