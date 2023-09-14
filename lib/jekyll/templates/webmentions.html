@@ -24,14 +24,16 @@
               </div>
             {% endif %}
 
-            <div class="webmention__content p-content">
-              {% if webmention.content %}
-                {{ webmention.content }}
-              {% else %}
-                {{ webmention.title }}
-              {% endif %}
-            </div>
-            
+            {% if webmention.content or webmention.title %}
+              <div class="webmention__content p-content">
+                {% if webmention.content %}
+                  {{ webmention.content }}
+                {% else %}
+                  {{ webmention.title }}
+                {% endif %}
+              </div>
+            {% endif %}
+
             <div class="webmention__meta">
               {% if webmention.pubdate %}
                 <time class="webmention__pubdate dt-published"
