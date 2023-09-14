@@ -11,12 +11,16 @@
             ">
             {% if webmention.author %}
               <div class="webmention__author p-author h-card">
-                <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">
-                  {% if webmention.author.photo %}
-                    <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
-                  {% endif %}
-                  <b class="p-name">{{ webmention.author.name }}</b>
-                </a>
+                {% if webmention.author.url %}
+                  <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">
+                {% endif %}
+                {% if webmention.author.photo %}
+                  <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
+                {% endif %}
+                <b class="p-name">{{ webmention.author.name }}</b>
+                {% if webmention.author.url %}
+                  </a>
+                {% endif %}
               </div>
             {% endif %}
 
