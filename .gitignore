@@ -24,3 +24,6 @@ tmp
 _yardoc
 doc/
 .vscode/settings.json
+
+# IDE settings
+/.idea/
