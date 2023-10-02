@@ -2,12 +2,38 @@
   {% if webmentions.size > 0 %}
     <ol class="webmentions__list">
       {% for webmention in webmentions %}
-        <li id="webmention-{{ webmention.id }}" class="webmentions__item webmention webmention--{{ webmention.type }}">
-          <div class="webmention__author p-author h-card">
-            <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">
-              <img class="webmention__author__photo u-photo" src="{{ webmention.author.photo }}" alt="" title="{{ webmention.author.name }}">
-            </a>
-          </div>
+        <li id="webmention-{{ webmention.id }}" class="webmention webmentions__item webmention--{{ webmention.type }}">
+          <article class="h-cite
+            {% unless webmention.author %}webmention--no-author{% endunless %}
+            {% unless webmention.author.photo %}webmention--no-photo{% endunless %}
+            ">
+            {% if webmention.author %}
+            <div class="webmention__author p-author h-card">
+              {% capture author_id %}
+                {% if webmention.author.photo %}
+                  <img
+                    class="webmention__author__photo u-photo"
+                    src="{{ webmention.author.photo }}"
+                    alt=""
+                    {% if webmention.author.name %}
+                    title="{{ webmention.author.name }}"
+                    {% endif %}
+                    >
+                {% endif %}
+
+                {% if webmention.author.name %}
+                  <span class="webmention__author__name p-name">{{ webmention.author.name }}</span>
+                {% endif %}
+              {% endcapture %}
+
+              {% if webmention.author.url %}
+                <a class="u-url" href="{{ webmention.author.url }}" rel="nofollow">{{ author_id }}</a>
+              {% else %}
+                {{ author_id }}
+              {% endif %}
+            </div>
+            {% endif %}
+          </article>
         </li>
       {% endfor %}
     </ol>
