@@ -95,6 +95,12 @@ module Jekyll
         .fetch("bad_uri_policy", {})
         .fetch("blacklist", [])
         .map { |expr| Regexp.new(expr) }
+
+      # Backward compatibility config for html_proofer setting
+
+      if @config['html_proofer'] == true
+        @config['html_proofer_ignore'] = "templates"
+      end
     end
 
     # Setter
@@ -304,7 +310,8 @@ module Jekyll
     end
 
     def self.html_templates
-      proofer = if @config['html_proofer'] == true
+      setting = @config['html_proofer_ignore']
+      proofer = if setting == "all" || setting = "templates"
                   ' data-proofer-ignore'
                 else
                   ''

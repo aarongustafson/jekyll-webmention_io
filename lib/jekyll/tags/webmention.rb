@@ -39,8 +39,8 @@ module Jekyll
         WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"
       end
 
-      def set_data(data, types)
-        @data = { "webmentions" => data, "types" => types }
+      def set_data(data, types, html_proofer_ignore)
+        @data = { "webmentions" => data, "types" => types, "html_proofer_ignore" => html_proofer_ignore }
       end
 
       def extract_type(type, webmentions)
@@ -62,6 +62,11 @@ module Jekyll
       end
 
       def render(context)
+        # Retrieve the html_proofer_ignore config setting so we can pass
+        # it into the templates.
+        site = context.registers[:site]
+        html_proofer_ignore = site.config.dig("webmentions", "html_proofer_ignore") || "none"
+
         # Get the URI
         args = @text.split(/\s+/).map(&:strip)
         uri = args.shift
@@ -93,7 +98,7 @@ module Jekyll
           end
 
           webmentions = sort_webmentions(webmentions)
-          set_data(webmentions, types)
+          set_data(webmentions, types, html_proofer_ignore)
         end
 
         render_into_template(context.registers)

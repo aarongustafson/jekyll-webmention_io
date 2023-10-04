@@ -18,7 +18,7 @@ module Jekyll
         self.template = "count"
       end
 
-      def set_data(data, types)
+      def set_data(data, types, html_proofer_ignore)
         @data = { "count" => data.length, "types" => types }
       end
     end

@@ -1,4 +1,7 @@
-<div class="webmentions webmentions--rsvps">
+{%- if html_proofer_ignore == "all" -%}
+{%- assign html_proofer_attr = " data-proofer-ignore" -%}
+{%- endif -%}
+<div class="webmentions webmentions--rsvps"{{ html_proofer_attr }}>
   {% if webmentions.size > 0 %}
     <ol class="webmentions__list">
       {% for webmention in webmentions %}

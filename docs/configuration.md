@@ -11,7 +11,8 @@ This gem will work well out of the box, but is configurable in a number of ways.
 * `cache_bad_uris_for` - This setting provides a short-hand method for controlling basic URL error handling by allowing you to set the number of days you want to wait before trying a given domain again.  This behaviour can also be more finely controlled through the Bad URI Policy.
 * `max_attempts` - The bad_uri_policy settings control the behaviour of this gem for whole hosts.  This setting allows the user to specify a maximum number of attempts to send a specific webmention before the plugin gives up.  By default this setting is disabled, meaning there is no maximum.
 * `cache_folder` - by default, this gem will cache all files in the `.jekyll-cache`, but you can specify another location (like `_data`) if you like. In order to avoid collisions, all cache files will be prefixed with “webmention_io_” unless your `cache_folder` value contains “webmention” (e.g. `.jekyll_cache/webmentions`)
-* `html_proofer` - If you use the HTML Proofer gem to check your HTML, it doesn't ignore template tags, so we add the `data-proofer-ignore` attribute to the template elements to avoid showing false positives.
+* `html_proofer_ignore` - If you use the HTML Proofer gem to check your HTML, it doesn't ignore template tags or third party content returned in webmentions.  If this configuration option is set to "templates", the plugin will add the `data-proofer-ignore` attribute to the included template tags so that they will be ignored by the gem.  If the option is set to "all", the plugin adds the attribute to both template tags and all server-side rendered webmentions as well.[^1]
+* `html_proofer` - Legacy setting.  Setting this to "true" is equivalent to setting `html_proofer_ignore` to "templates".
 * `legacy_domains` - If you’ve relocated your site from another URL or moved from to HTTPS from HTTP, you can use this configuration option to specify additional domains to append your `page.url` to. It expects an array.
 
 
@@ -102,3 +103,5 @@ webmentions:
 ## Picking Up Redirects
 
 If you’ve ever changed the path to your posts, you may have used [the `jekyll-redirect-from` gem](https://github.com/jekyll/jekyll-redirect-from). `jekyll-webmention_io` will look for a `redirect_from` key in your YAML front matter and automatically include that original URL in any requests for webmentions so none get left behind.
+
+[^1]: Note, the inclusion of the "data-proofer-ignore" attribute in server-side rendered templates is achieved by including markup right in the templates themselves, which conditionally adds the attribute based on the configuration setting.  If you have set up your own custom templates for rendering webmentions and want this behaviour, you'll need to update your templates accordingly.  Please consult the templates included with the plugin for how to do this.

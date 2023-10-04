@@ -1,5 +1,9 @@
 {% capture webmention_types %}{{ types | join: ',' }}{% endcapture %}
-<div class="webmentions"{% unless webmention_types=="" %} data-webmention-types="{{ webmention_types }}"{% endunless %}>
+
+{%- if html_proofer_ignore == "all" -%}
+{%- assign html_proofer_attr = " data-proofer-ignore" -%}
+{%- endif -%}
+<div class="webmentions"{{ html_proofer_attr }}{% unless webmention_types=="" %} data-webmention-types="{{ webmention_types }}"{% endunless %}>
   {% if webmentions.size > 0 %}
     <ol class="webmentions__list">
       {% for webmention in webmentions %}
