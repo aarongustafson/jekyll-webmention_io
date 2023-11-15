@@ -311,7 +311,7 @@ module Jekyll
 
     def self.html_templates
       setting = @config['html_proofer_ignore']
-      proofer = if setting == "all" || setting = "templates"
+      proofer = if setting == "all" || setting == "templates"
                   ' data-proofer-ignore'
                 else
                   ''
