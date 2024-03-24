@@ -178,6 +178,7 @@ module Jekyll
         collection = get_collection_for_post(post)
 
         uris = {}
+        parser = URI::Parser.new
 
         syndication_targets = []
         syndication_targets += post.data["syndicate_to"] || []
@@ -203,8 +204,20 @@ module Jekyll
         end
 
         post.content.scan(/(?:https?:)?\/\/[^\s)#\[\]{}<>%|\^"']+/) do |match|
-          unless uris.key? match
-            uris[match] = false
+          begin
+            # We do this as a poor man's way to validate the URI.  We do most
+            # of the work with the regex scan above, then attempt a parse as
+            # the last test in case a bad URI fell through the cracks.
+            #
+            # Of course, better would be to fix the regex, but consider this
+            # belt-and-suspenders...
+            parser.parse(parser.escape(match))
+
+            unless uris.key? match
+              uris[match] = false
+            end
+          rescue => e
+            WebmentionIO.log "msg", "Encountered unexpected malformed URI '#{match}' in #{post.path}, skipping..."
           end
         end
 
