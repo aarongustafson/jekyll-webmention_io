@@ -62,6 +62,13 @@ module Jekyll
       end
 
       def render(context)
+        # Initialize an empty set of webmentions (we'll populate later if
+        # there actually are any).
+        webmentions = []
+
+        # Capture the types in case JS needs them
+        types = []
+
         # Retrieve the html_proofer_ignore config setting so we can pass
         # it into the templates.
         site = context.registers[:site]
@@ -71,9 +78,6 @@ module Jekyll
         args = @text.split(/\s+/).map(&:strip)
         uri = args.shift
         uri = lookup(context, uri)
-
-        # capture the types in case JS needs them
-        types = []
 
         if @cached_webmentions.key? uri
           all_webmentions = @cached_webmentions[uri].clone
@@ -98,9 +102,9 @@ module Jekyll
           end
 
           webmentions = sort_webmentions(webmentions)
-          set_data(webmentions, types, html_proofer_ignore)
         end
 
+        set_data(webmentions, types, html_proofer_ignore)
         render_into_template(context.registers)
       end
 
