@@ -1,5 +1,7 @@
 # Change Log
 
+NOTE: This document exists for historical purposes. For a developer audience, as maintainer I strongly prefer an extremely clean, well-documented, and orderly commit history over a separate changelog that must be independently maintained. As a result, starting with version 3.3.7, if you're interested in exploring how this project has evolved over time, `git log` is your friend.
+
 ## [v3.3.3](https://github.com/aarongustafson/jekyll-webmention_io/tree/v3.3.3) (2018-12-13)
 [Full Changelog](https://github.com/aarongustafson/jekyll-webmention_io/compare/v3.3.2...v3.3.3)
 
