@@ -62,25 +62,12 @@ module Jekyll
       OpenSSL::SSL::SSLError,
     ].freeze
 
-    def self.bootstrap(site)
+    def self.bootstrap(site, caches = nil)
       @site = site
+      @caches = caches || Caches.new(@site)
+
       @jekyll_config = site.config
       @config = @jekyll_config["webmentions"] || {}
-
-      # Set up the cache folder & files
-      @cache_folder = site.in_source_dir(@config["cache_folder"] || ".jekyll-cache")
-      Dir.mkdir(@cache_folder) unless File.exist?(@cache_folder)
-      @file_prefix = ""
-      @file_prefix = "webmention_io_" unless @cache_folder.include? "webmention"
-      @cache_files = {
-        "incoming" => cache_file("received.yml"),
-        "outgoing" => cache_file("outgoing.yml"),
-        "bad_uris" => cache_file("bad_uris.yml"),
-        "lookups"  => cache_file("lookups.yml")
-      }
-      @cache_files.each_value do |file|
-        dump_yaml(file) unless File.exist?(file)
-      end
 
       @js_handler = WebmentionIO::JSHandler.new(site)
 
@@ -103,38 +90,17 @@ module Jekyll
       end
     end
 
+    def self.caches
+      @caches
+    end
+
     # Setter
     def self.api_path=(path)
       @api_endpoint = "#{@api_url}/#{path}"
     end
 
-    # Helpers
-    def self.cache_file(filename)
-      Jekyll.sanitized_path(@cache_folder, "#{@file_prefix}#{filename}")
-    end
-
     def self.max_attempts()
       @config.dig("max_attempts")
-    end
-
-    def self.get_cache_file_path(key)
-      @cache_files[key] || false
-    end
-
-    def self.read_cached_webmentions(which)
-      return {} unless %w(incoming outgoing).include?(which)
-
-      cache_file = get_cache_file_path which
-      load_yaml(cache_file)
-    end
-
-    def self.cache_webmentions(which, webmentions)
-      if %w(incoming outgoing).include? which
-        cache_file = get_cache_file_path which
-        dump_yaml(cache_file, webmentions)
-
-        log "msg", "#{which.capitalize} webmentions have been cached."
-      end
     end
 
     def self.gather_documents(site)
@@ -171,18 +137,6 @@ module Jekyll
       else
         {}
       end
-    end
-
-    def self.read_lookup_dates
-      cache_file = get_cache_file_path "lookups"
-      load_yaml(cache_file)
-    end
-
-    def self.cache_lookup_dates(lookups)
-      cache_file = get_cache_file_path "lookups"
-      dump_yaml(cache_file, lookups)
-
-      log "msg", "Lookups have been cached."
     end
 
     # allowed throttles: last_week, last_month, last_year, older
@@ -360,25 +314,6 @@ module Jekyll
       end
     end
 
-    # Utility Method
-    # Caches given +data+ to memory and then proceeds to write +data+
-    # as YAML string into +file+ path.
-    #
-    # Returns nothing.
-    def self.dump_yaml(file, data = {})
-      @webmention_data_cache[file] = data
-      File.open(file, "wb") { |f| f.puts YAML.dump(data) }
-    end
-
-    # Utility Method
-    # Attempts to first load data cached in memory and then proceeds to
-    # safely parse given YAML +file+ path and return data.
-    #
-    # Returns empty hash if parsing fails to return data
-    def self.load_yaml(file)
-      @webmention_data_cache[file] || SafeYAML.load_file(file) || {}
-    end
-
     # Private Methods
 
     def self.get_http_response(uri)
@@ -479,8 +414,7 @@ module Jekyll
       uri = URI::Parser.new.parse(uri.to_s)
       uri_str = uri.to_s
 
-      cache_file = @cache_files["bad_uris"]
-      bad_uris = load_yaml(cache_file)
+      bad_uris = @caches.bad_uris
 
       if state == UriState::SUCCESS or
           @uri_whitelist.any? { |expr| expr.match uri_str } or
@@ -497,7 +431,7 @@ module Jekyll
         }
       end
 
-      dump_yaml(cache_file, bad_uris)
+      bad_uris.write
     end
 
     # Check if we should attempt to send a webmention to the given URI based
@@ -513,7 +447,7 @@ module Jekyll
       # If the URI is blacklisted, it's never ok!
       return false if @uri_blacklist.any? { |expr| expr.match uri_str }
 
-      bad_uris = load_yaml(@cache_files["bad_uris"])
+      bad_uris = @caches.bad_uris
       entry = get_bad_uri_cache_entry(bad_uris, uri)
 
       # If the entry isn't in our cache yet, then it's ok.

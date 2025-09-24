@@ -17,19 +17,16 @@ module Jekyll
 
         def self.process(_args = [], options = {})
           options = configuration_from_options(options)
-          WebmentionIO.bootstrap(Jekyll::Site.new(options))
+          site = Jekyll::Site.new(options)
 
-          if File.exist? WebmentionIO.cache_file("sent.yml")
-            WebmentionIO.log "error", "Your outgoing webmentions queue needs to be upgraded. Please re-build your project."
-          end
-
+          WebmentionIO.bootstrap(site)
           WebmentionIO.log "msg", "Getting ready to send webmentions (this may take a while)."
 
           count = 0
-          max_attempts = WebmentionIO.max_attempts()
-          cached_outgoing = WebmentionIO.get_cache_file_path "outgoing"
-          if File.exist?(cached_outgoing)
-            outgoing = WebmentionIO.load_yaml(cached_outgoing)
+          max_attempts = WebmentionIO.max_attempts
+          outgoing = WebmentionIO.caches.outgoing_webmentions
+
+          if ! outgoing.empty?
             outgoing.each do |source, targets|
               targets.each do |target, response|
                 # skip ones we’ve handled
@@ -74,7 +71,8 @@ module Jekyll
                 count += 1
               end
             end
-            WebmentionIO.dump_yaml(cached_outgoing, outgoing)
+
+            outgoing.write
             WebmentionIO.log "msg", "#{count} webmentions sent."
           end # file exists (outgoing)
         end # def process

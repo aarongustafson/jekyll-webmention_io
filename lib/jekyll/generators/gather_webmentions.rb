@@ -8,6 +8,7 @@
 #
 
 require "time"
+require_relative "../caches"
 
 module Jekyll
   module WebmentionIO
@@ -17,6 +18,8 @@ module Jekyll
 
       def generate(site)
         @site = site
+        @caches = WebmentionIO.caches
+
         @site_url = site.config["url"].to_s
 
         if @site.config['serving']
@@ -43,18 +46,13 @@ module Jekyll
         # add an arbitrarily high perPage to trump pagination
         WebmentionIO.api_suffix = "&perPage=9999"
 
-        @cached_webmentions = WebmentionIO.read_cached_webmentions "incoming"
-
-        @lookups = WebmentionIO.read_lookup_dates
-
         posts = WebmentionIO.gather_documents(@site)
         posts.each do |post|
           check_for_webmentions(post)
         end
 
-        WebmentionIO.cache_lookup_dates @lookups
-
-        WebmentionIO.cache_webmentions "incoming", @cached_webmentions
+        @caches.site_lookups.write
+        @caches.incoming_webmentions.write
       end # generate
 
       private
@@ -62,11 +60,14 @@ module Jekyll
       def check_for_webmentions(post)
         WebmentionIO.log "info", "Checking for webmentions of #{post.url}."
 
-        last_webmention = @cached_webmentions.dig(post.url, @cached_webmentions.dig(post.url)&.keys&.last)
+        last_webmention = 
+          @caches
+          .incoming_webmentions
+          .dig(post.url, @caches.incoming_webmentions.dig(post.url)&.keys&.last)
 
         # get the last webmention
-        last_lookup = if @lookups[post.url]
-                        @lookups[post.url]
+        last_lookup = if @caches.site_lookups[post.url]
+                        @caches.site_lookups[post.url]
                       elsif last_webmention
                         Date.parse last_webmention.dig("raw", "verified_date")
                       end
@@ -88,13 +89,15 @@ module Jekyll
         # execute the API
         response = WebmentionIO.get_response assemble_api_params(targets, since_id)
         webmentions = response.dig("links")
+
         if webmentions && !webmentions.empty?
           WebmentionIO.log "info", "Here’s what we got back:\n\n#{response.inspect}\n\n"
         else
           WebmentionIO.log "info", "No webmentions found."
         end
 
-        @lookups[post.url] = Date.today
+        @caches.site_lookups[post.url] = Date.today
+
         cache_new_webmentions(post.url, response)
       end
 
@@ -147,11 +150,7 @@ module Jekyll
 
       def cache_new_webmentions(post_uri, response)
         # Get cached webmentions
-        webmentions = if @cached_webmentions.key? post_uri
-                        @cached_webmentions[post_uri]
-                      else
-                        {}
-                      end
+        webmentions = @caches.incoming_webmentions[post_uri] || {}
 
         if response && response["links"]
           response["links"].reverse_each do |link|
@@ -167,7 +166,8 @@ module Jekyll
             webmentions[webmention.id] = webmention.to_hash
           end # each link
         end # if response
-        @cached_webmentions[post_uri] = webmentions
+
+        @caches.incoming_webmentions[post_uri] = webmentions
       end # process_webmentions
     end
   end

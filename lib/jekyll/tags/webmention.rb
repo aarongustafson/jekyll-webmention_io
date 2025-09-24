@@ -14,12 +14,6 @@ module Jekyll
     class WebmentionTag < Liquid::Tag
       def initialize(tag_name, text, tokens)
         super
-        cache_file = WebmentionIO.get_cache_file_path "incoming"
-        @cached_webmentions = if File.exist? cache_file
-                                WebmentionIO.load_yaml(cache_file)
-                              else
-                                {}
-                              end
       end
 
       def lookup(context, name)
@@ -79,8 +73,10 @@ module Jekyll
         uri = args.shift
         uri = lookup(context, uri)
 
-        if @cached_webmentions.key? uri
-          all_webmentions = @cached_webmentions[uri].clone
+        cached_webmentions = WebmentionIO.caches.incoming_webmentions
+
+        if cached_webmentions.key? uri
+          all_webmentions = cached_webmentions[uri].clone
           WebmentionIO.log "info", "#{all_webmentions.length} total webmentions for #{uri}"
 
           if args.length.positive?

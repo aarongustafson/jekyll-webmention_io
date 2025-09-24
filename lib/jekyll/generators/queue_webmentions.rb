@@ -18,6 +18,8 @@ module Jekyll
 
       def generate(site)
         @site = site
+        @caches = WebmentionIO.caches
+
         @site_url = site.config["url"].to_s
         @syndication = site.config.dig("webmentions", "syndication")
 
@@ -37,8 +39,6 @@ module Jekyll
         compile_jsonpath_expressions() if ! @syndication.nil?
 
         WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
-
-        upgrade_outgoing_webmention_cache
 
         posts = WebmentionIO.gather_documents(@site).select { |p| ! p.data["draft"] }
         gather_webmentions(posts)
@@ -120,7 +120,7 @@ module Jekyll
       end
 
       def gather_webmentions(posts)
-        webmentions = WebmentionIO.read_cached_webmentions "outgoing"
+        outgoing = @caches.outgoing_webmentions
 
         posts.each do |post|
           # Collect potential outgoing webmentions in this post.
@@ -140,8 +140,8 @@ module Jekyll
             # Old cached responses might use either the full or short URIs so
             # we need to check for both.
             cached_response =
-              webmentions.dig(shorturi, mentioned_uri) ||
-              webmentions.dig(fulluri, mentioned_uri)
+              outgoing.dig(shorturi, mentioned_uri) ||
+              outgoing.dig(fulluri, mentioned_uri)
 
             if cached_response.nil?
               if ! target.nil?
@@ -154,8 +154,8 @@ module Jekyll
                 uri = fulluri
               end
 
-              webmentions[uri] ||= {}
-              webmentions[uri][mentioned_uri] = response
+              outgoing[uri] ||= {}
+              outgoing[uri][mentioned_uri] = response
             elsif ! target.nil? and target.key? "response_mapping"
               process_syndication(post, target, cached_response)
             end
@@ -170,7 +170,7 @@ module Jekyll
           WebmentionIO.log "info", "Webmention lookups are currently paused."
           return
         else
-          WebmentionIO.cache_webmentions "outgoing", webmentions
+          outgoing.write
         end
       end
 
@@ -222,31 +222,6 @@ module Jekyll
         end
 
         return uris
-      end
-
-      def upgrade_outgoing_webmention_cache
-        old_sent_file = WebmentionIO.cache_file("sent.yml")
-        old_outgoing_file = WebmentionIO.cache_file("queued.yml")
-        unless File.exist? old_sent_file
-          return
-        end
-        sent_webmentions = WebmentionIO.load_yaml(old_sent_file)
-        outgoing_webmentions = WebmentionIO.load_yaml(old_outgoing_file)
-        merged = {}
-        outgoing_webmentions.each do |source_url, webmentions|
-          collection = {}
-          webmentions.each do |target_url|
-            collection[target_url] = if sent_webmentions.dig(source_url, target_url)
-                                       ""
-                                     else
-                                       false
-                                     end
-          end
-          merged[source_url] = collection
-        end
-        WebmentionIO.cache_webmentions "outgoing", merged
-        File.delete old_sent_file, old_outgoing_file
-        WebmentionIO.log "msg", "Upgraded your sent webmentions cache."
       end
     end
   end
