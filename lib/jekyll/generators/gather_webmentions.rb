@@ -42,10 +42,6 @@ module Jekyll
 
         WebmentionIO.log "msg", "Beginning to gather webmentions of your posts. This may take a while."
 
-        WebmentionIO.api_path = "mentions"
-        # add an arbitrarily high perPage to trump pagination
-        WebmentionIO.api_suffix = "&perPage=9999"
-
         posts = WebmentionIO.gather_documents(@site)
         posts.each do |post|
           check_for_webmentions(post)
@@ -87,7 +83,7 @@ module Jekyll
         targets = get_webmention_target_urls(post)
 
         # execute the API
-        response = WebmentionIO.get_response assemble_api_params(targets, since_id)
+        response = WebmentionIO.webmentions.get_webmentions(targets, since_id)
         webmentions = response.dig("links")
 
         if webmentions && !webmentions.empty?
@@ -139,13 +135,6 @@ module Jekyll
             targets.push(legacy)
           end
         end
-      end
-
-      def assemble_api_params(targets, since_id)
-        api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
-        api_params << "&since_id=#{since_id}" if since_id
-        api_params << "&sort-by=published"
-        api_params
       end
 
       def cache_new_webmentions(post_uri, response)

@@ -53,12 +53,8 @@ module Jekyll
                   outgoing[source][target] = response
                 end
 
-                # get the endpoint
-                endpoint = WebmentionIO.get_webmention_endpoint(escaped)
-                next unless endpoint
-
                 # get the response
-                response = WebmentionIO.webmention(source, target)
+                response = WebmentionIO.webmentions.send_webmention(source, target)
                 next unless response
 
                 # capture JSON responses in case site wants to do anything with them

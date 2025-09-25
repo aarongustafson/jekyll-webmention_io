@@ -11,14 +11,13 @@ require_relative "webmention_io/version"
 require_relative "webmention_io/webmention_item"
 require_relative "webmention_io/js_handler"
 require_relative "webmention_policy"
+require_relative "webmentions"
 
 require "json"
 require "net/http"
 require "uri"
 require "openssl"
 require "active_support"
-require "indieweb/endpoints"
-require "webmention"
 
 module Jekyll
   module WebmentionIO
@@ -26,14 +25,10 @@ module Jekyll
       # define simple getters and setters
       attr_reader :config, :jekyll_config, :cache_files, :cache_folder,
                   :file_prefix, :types, :supported_templates, :js_handler,
-                  :policy, :caches
+                  :policy, :caches, :webmentions
     end
 
     @logger_prefix = "[jekyll-webmention_io]"
-
-    @api_url = "https://webmention.io/api"
-    @api_endpoint = @api_url
-    @api_suffix = ""
 
     @types = %w(bookmarks likes links posts replies reposts rsvps).freeze
     @supported_templates = (@types + %w(count webmentions)).freeze
@@ -49,11 +44,12 @@ module Jekyll
       OpenSSL::SSL::SSLError,
     ].freeze
 
-    def self.bootstrap(site, caches = nil, policy = nil)
+    def self.bootstrap(site, caches = nil, policy = nil, webmentions = nil)
       @site = site
 
       @caches = caches || Caches.new(@site)
       @policy = policy || WebmentionPolicy.new(@site, @caches)
+      @webmentions = webmentions || Webmentions.new(@policy)
 
       @jekyll_config = site.config
       @config = @jekyll_config["webmentions"] || {}
@@ -63,11 +59,6 @@ module Jekyll
       if @config['html_proofer'] == true
         @config['html_proofer_ignore'] = "templates"
       end
-    end
-
-    # Setter
-    def self.api_path=(path)
-      @api_endpoint = "#{@api_url}/#{path}"
     end
 
     def self.max_attempts()
@@ -96,18 +87,6 @@ module Jekyll
       end
 
       return documents
-    end
-
-    def self.get_response(api_params)
-      api_params << @api_suffix
-      url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")
-      log "info", "Sending request to #{url}."
-      source = get_uri_source(url)
-      if source
-        JSON.parse(source)
-      else
-        {}
-      end
     end
 
     TIMEFRAMES = {
@@ -153,52 +132,6 @@ module Jekyll
       return today.send "prev_#{unit}", n
     end
 
-    def self.get_webmention_endpoint(uri)
-      # log "info", "Looking for webmention endpoint at #{uri}"
-      begin
-        endpoint = IndieWeb::Endpoints.get(uri)[:webmention]
-        unless endpoint
-          log("info", "Could not find a webmention endpoint at #{uri}")
-          update_uri_cache(uri, UriState::UNSUPPORTED)
-        end
-      rescue StandardError => e
-        log "info", "Endpoint lookup failed for #{uri}: #{e.message}"
-        update_uri_cache(uri, UriState::FAILURE)
-        endpoint = false
-      end
-      endpoint
-    end
-
-    def self.webmention(source, target)
-      log "info", "Sending webmention of #{target} in #{source}"
-      # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-      response = Webmention.send_webmention(source, target)
-
-      case response.code
-      when 200, 201, 202
-        log "info", "Webmention successful!"
-        update_uri_cache(target, UriState::SUCCESS)
-        response.body
-      else
-        log "info", response.inspect
-        log "info", "Webmention failed, but will remain queued for next time"
-
-        if response.body
-          begin
-            body = JSON.parse(response.body)
-
-            if body.key? "error"
-              log "msg", "Endpoint returned error: #{body['error']}"
-            end
-          rescue
-          end
-        end
-
-        update_uri_cache(target, UriState::ERROR)
-        false
-      end
-    end
-
     def self.template_file(template)
       @template_file_cache[template] ||= begin
         configured_template = @config.dig("templates", template)
@@ -237,31 +170,6 @@ module Jekyll
       end
     end
 
-    # Connections
-    def self.get_uri_source(uri, redirect_limit = 10, original_uri = false)
-      original_uri ||= uri
-      return false unless uri_ok?(uri)
-
-      if redirect_limit.positive?
-        response = get_http_response(uri)
-        case response
-        when Net::HTTPSuccess then
-          return response.body.force_encoding("UTF-8")
-        when Net::HTTPRedirection then
-          redirect_to = URI::Parser.new.parse(response["location"])
-          redirect_to = redirect_to.relative? ? "#{original_uri.scheme}://#{original_uri.host}" + redirect_to.to_s : redirect_to.to_s
-          return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
-        else
-          update_uri_cache(uri, UriState::FAILURE)
-          return false
-        end
-      else
-        log("warn", "too many redirects for #{original_uri}") if original_uri
-        update_uri_cache(uri, UriState::FAILURE)
-        return false
-      end
-    end
-
     def self.log(type, message)
       debug = !!@config.dig("debug")
       if debug || %w(error msg).include?(type)
@@ -269,32 +177,6 @@ module Jekyll
         Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
       end
     end
-
-    # Private Methods
-
-    def self.get_http_response(uri)
-      uri = URI::Parser.new.parse(uri)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.read_timeout = 10
-
-      if uri.scheme == "https"
-        http.use_ssl = true
-        http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      end
-
-      begin
-        request  = Net::HTTP::Get.new(uri.request_uri)
-        response = http.request(request)
-        return response
-      rescue *EXCEPTIONS => e
-        log "warn", "Got an error checking #{uri}: #{e}"
-        update_uri_cache(uri, UriState::FAILURE)
-        return false
-      end
-    end
-
-    private_class_method :get_http_response 
   end
 end
 
