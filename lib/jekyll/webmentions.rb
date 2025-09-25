@@ -55,7 +55,7 @@ module Jekyll
       end
 
       # Connections
-      def get_uri_source(uri, redirect_limit = 10, original_uri = false)
+      def get_body_from_uri(uri, redirect_limit = 10, original_uri = false)
         original_uri ||= uri
         return false unless @policy.uri_ok?(uri)
 
@@ -67,7 +67,7 @@ module Jekyll
           when Net::HTTPRedirection then
             redirect_to = URI::Parser.new.parse(response["location"])
             redirect_to = redirect_to.relative? ? "#{original_uri.scheme}://#{original_uri.host}" + redirect_to.to_s : redirect_to.to_s
-            return get_uri_source(redirect_to, redirect_limit - 1, original_uri)
+            return get_body_from_uri(redirect_to, redirect_limit - 1, original_uri)
           else
             @policy.failure(uri)
             return false
@@ -101,7 +101,7 @@ module Jekyll
         api_params << @api_suffix
         url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")
         Jekyll::WebmentionIO.log "info", "Sending request to #{url}."
-        source = get_uri_source(url)
+        source = get_body_from_uri(url)
         if source
           JSON.parse(source)
         else
