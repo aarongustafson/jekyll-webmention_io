@@ -46,12 +46,23 @@ module Jekyll
         end
       end
 
+      # Returns WebmentionIO::WebmentionItem instances
       def get_webmentions(targets, since_id)
         api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
         api_params << "&since_id=#{since_id}" if since_id
         api_params << "&sort-by=published"
 
-        get_webmention_io_response(api_params)
+        response = get_webmention_io_response(api_params)
+
+        links = response["links"] || []
+
+        if links.empty?
+          WebmentionIO.log "info", "No webmentions found."
+        else
+          WebmentionIO.log "info", "Here’s what we got back:\n\n#{response.inspect}\n\n"
+        end
+
+        links.reverse.map { |wm| WebmentionIO::WebmentionItem.new(link) }
       end
 
       # Connections

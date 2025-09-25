@@ -12,9 +12,8 @@ module Jekyll
     class WebmentionItem
       attr_reader :id, :hash
 
-      def initialize(mention, site)
+      def initialize(mention)
         @raw = mention
-        @site = site
 
         @uri = determine_uri
         @source = determine_source

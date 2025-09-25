@@ -83,18 +83,11 @@ module Jekyll
         targets = get_webmention_target_urls(post)
 
         # execute the API
-        response = WebmentionIO.webmentions.get_webmentions(targets, since_id)
-        webmentions = response.dig("links")
-
-        if webmentions && !webmentions.empty?
-          WebmentionIO.log "info", "Here’s what we got back:\n\n#{response.inspect}\n\n"
-        else
-          WebmentionIO.log "info", "No webmentions found."
-        end
+        webmentions = WebmentionIO.webmentions.get_webmentions(targets, since_id)
 
         @caches.site_lookups[post.url] = Date.today
 
-        cache_new_webmentions(post.url, response)
+        cache_new_webmentions(post.url, webmentions)
       end
 
       def get_webmention_target_urls(post)
@@ -137,27 +130,17 @@ module Jekyll
         end
       end
 
-      def cache_new_webmentions(post_uri, response)
-        # Get cached webmentions
+      def cache_new_webmentions(post_uri, wms)
         webmentions = @caches.incoming_webmentions[post_uri] || {}
 
-        if response && response["links"]
-          response["links"].reverse_each do |link|
-            webmention = WebmentionIO::WebmentionItem.new(link, @site)
+        wms.filter { |wm| !webmentions.key?(wm.id) }.each do |wm|
+          WebmentionIO.log "info", wm.to_hash.inspect
 
-            # Do we already have it?
-            if webmentions.key? webmention.id
-              next
-            end
-
-            # Add it to the list
-            WebmentionIO.log "info", webmention.to_hash.inspect
-            webmentions[webmention.id] = webmention.to_hash
-          end # each link
-        end # if response
+          webmentions[wm.id] = wm.to_hash
+        end
 
         @caches.incoming_webmentions[post_uri] = webmentions
-      end # process_webmentions
+      end
     end
   end
 end
