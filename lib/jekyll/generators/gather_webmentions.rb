@@ -74,7 +74,7 @@ module Jekyll
 
         # should we throttle?
         if post.respond_to? "date" # Some docs have no date
-          if last_lookup && WebmentionIO.post_should_be_throttled?(post, post.date, last_lookup)
+          if last_lookup && WebmentionIO.policy.post_should_be_throttled?(post, post.date, last_lookup)
             WebmentionIO.log "info", "Throttling this post."
             return
           end

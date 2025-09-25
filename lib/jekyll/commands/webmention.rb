@@ -40,7 +40,7 @@ module Jekyll
                 escaped = URI::Parser.new.escape(target);
 
                 # skip bad URLs
-                next unless WebmentionIO.uri_ok?(escaped)
+                next unless WebmentionIO.policy.uri_ok?(escaped)
 
                 # give up if we've attempted this too many times
                 response = (response || 0) + 1
