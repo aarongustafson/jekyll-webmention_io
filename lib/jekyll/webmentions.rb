@@ -47,7 +47,11 @@ module Jekyll
       end
 
       def get_webmentions(targets, since_id)
-        get_response(assemble_api_params(targets, since_id))
+        api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
+        api_params << "&since_id=#{since_id}" if since_id
+        api_params << "&sort-by=published"
+
+        get_webmention_io_response(api_params)
       end
 
       # Connections
@@ -93,14 +97,7 @@ module Jekyll
         !endpoint.nil?
       end
 
-      def assemble_api_params(targets, since_id)
-        api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
-        api_params << "&since_id=#{since_id}" if since_id
-        api_params << "&sort-by=published"
-        api_params
-      end
-
-      def get_response(api_params)
+      def get_webmention_io_response(api_params)
         api_params << @api_suffix
         url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")
         Jekyll::WebmentionIO.log "info", "Sending request to #{url}."
