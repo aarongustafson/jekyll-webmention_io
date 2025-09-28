@@ -160,7 +160,7 @@ module Jekyll
       end
 
       class JsConfig
-        attr_reader :destination, :source, :deploy, :uglify, :resource_name, :resource_url
+        attr_reader :destination, :resource_name, :resource_url
 
         def initialize(base_url, js_config)
           if js_config == false
