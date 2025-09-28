@@ -23,7 +23,7 @@ module Jekyll
           WebmentionIO.log "msg", "Getting ready to send webmentions (this may take a while)."
 
           count = 0
-          max_attempts = WebmentionIO.max_attempts
+          max_attempts = WebmentionIO.config.max_attempts
           outgoing = WebmentionIO.caches.outgoing_webmentions
 
           if ! outgoing.empty?

@@ -63,11 +63,6 @@ module Jekyll
         # Capture the types in case JS needs them
         types = []
 
-        # Retrieve the html_proofer_ignore config setting so we can pass
-        # it into the templates.
-        site = context.registers[:site]
-        html_proofer_ignore = site.config.dig("webmentions", "html_proofer_ignore") || "none"
-
         # Get the URI
         args = @text.split(/\s+/).map(&:strip)
         uri = args.shift
@@ -100,7 +95,7 @@ module Jekyll
           webmentions = sort_webmentions(webmentions)
         end
 
-        set_data(webmentions, types, html_proofer_ignore)
+        set_data(webmentions, types, WebmentionIO.config.html_proofer_ignore)
         render_into_template(context.registers)
       end
 

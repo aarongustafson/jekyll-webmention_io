@@ -1,0 +1,239 @@
+# frozen_string_literal: true
+
+module Jekyll
+  module WebmentionIO
+    class Config
+      module HtmlProofer
+        NONE = 'none'
+        ALL = 'all'
+        TEMPLATES = 'templates'
+
+        def self.get_const(val)
+          constants.find { |sym| const_get(sym) == val }
+        end
+      end
+
+      module UriPolicy
+        BAN = 'ban'
+        IGNORE = 'ignore'
+        RETRY = 'retry'
+      end
+
+      attr_reader :html_proofer_ignore, :max_attempts, :pages, :collections,
+                  :templates, :bad_uri_policy, :cache_folder,
+                  :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
+                  :username
+
+      def initialize(site = nil)
+        config = (site.nil? ? nil : site.config['webmentions']) || {}
+        base_url = site.nil? ? "" : site.config['baseurl'].to_s
+
+        @site_url = site.nil? ? "" : site.config['url'].to_s
+        @username = config['username']
+
+        @pause_lookups =
+          if site.config['serving']
+            Jekyll::WebmentionIO.log 'msg', 'Webmentions won’t be gathered when running `jekyll serve`.'
+
+            true
+          elsif @site_url.include? 'localhost'
+            Jekyll::WebmentionIO.log 'msg', 'Webmentions won’t be gathered on localhost.'
+
+            true
+          else
+            config['pause_lookups']
+          end
+
+        @cache_folder = config['cache_folder'] || '.jekyll-cache'
+        @cache_folder = site.in_source_dir(@cache_folder) if !site.nil?
+
+        @pages = config['pages']
+        @collections = config['collections'] || []
+        @templates = config['templates'] || {}
+
+        @js = JsConfig.new(base_url, config['js'] || {})
+
+        @html_proofer_ignore = HtmlProofer.get_const(
+          config['html_proofer_ignore'] ||
+          (config['html_proofer'] ? 'templates' : nil) ||
+          'none'
+        )
+
+        @max_attempts = config['max_attempts']
+
+        @bad_uri_policy = BadUriPolicy.new(config)
+
+        @throttle_lookups = config['throttle_lookups'] || {}
+
+        @legacy_domains = config['legacy_domains'] || []
+
+        @syndication = (config['syndication'] || {}).transform_values { |entry| SyndicationRule.new(entry) }
+      end
+
+      def next_lookup_date(date)
+        age = get_timeframe_from_date(date)
+
+        throttle = @config.throttle_lookups[age]
+
+        throttle.nil? ? nil : get_date_from_string(throttle)
+      end
+
+      # Given a webmention endpoint, find the corresponding syndication rule
+      # Yes, this is a kind of reverse lookup so we can figure out of a given
+      # queued webmention was a result of a syndication rule.
+      def syndication_rule_for_uri(uri)
+        @syndication.values.detect { |rule| rule.endpoint == uri }
+      end
+
+      private
+
+      class BadUriPolicy
+        BadUriPolicyEntry = Struct.new(:policy, :max_attempts, :retry_delay)
+
+        def initialize(site_config)
+          @bad_uri_policy = site_config['bad_uri_policy'] || {}
+        end
+
+        # Given the provided state value (see WebmentionPolicy::State),
+        # retrieve the policy entry.  If no entry exists, return a new default
+        # entry that indicates unlimited retries.
+        def for_state(state)
+          default_policy = { 'policy' => UriPolicy::RETRY }
+
+          # Retrieve the policy entry, the default entry, or the canned default
+          policy_entry = @bad_uri_policy[state] || @bad_uri_policy['default'] || default_policy
+
+          # Convert shorthand entry to full policy record
+          if policy_entry.instance_of? String
+            policy_entry = { 'policy' => policy_entry }
+          end
+
+          if policy_entry['policy'] == UriPolicy::RETRY && !policy_entry.key?('retry_delay')
+            # If this is a retry policy and no delay is set, set up the default
+            # delay policy.  This inherits from the legacy cache_bad_uris_for
+            # setting to enable backward compatibility with older configurations.
+            #
+            # We do this here to make the rule enforcement logic a little tidier.
+
+            policy_entry['retry_delay'] = [(@bad_uri_policy['cache_bad_uris_for'] || 1) * 24]
+          end
+
+          # Now finally convert into a proper policy entry structure
+          BadUriPolicyEntry.new(
+            policy_entry['policy'],
+            policy_entry['max_attempts'],
+            policy_entry['retry_delay']
+          )
+        end
+
+        def whitelist
+          @whitelist ||=
+            @bad_uri_policy
+            .fetch('whitelist', [])
+            .clone
+            .insert(-1, '^https?://webmention.io/')
+            .map { |expr| Regexp.new(expr) }
+        end
+
+        def blacklist
+          @blacklist ||=
+            @bad_uri_policy
+            .fetch('blacklist', [])
+            .map { |expr| Regexp.new(expr) }
+        end
+      end
+
+      class SyndicationRule
+        attr_accessor :endpoint, :response_mapping
+
+        def initialize(entry)
+          @endpoint = entry[endpoint]
+          @response_mapping = {}
+
+          if entry.key?('response_mapping')
+            entry['response_mapping'].each do |key, pattern|
+              begin
+                @response_mapping[key] = JsonPath.new(pattern)
+              rescue StandardError => e
+                WebmentionIO.log "error", "Ignoring invalid JsonPath expression #{pattern}: #{e}"
+              end
+            end
+          end
+        end
+      end
+
+      class JsConfig
+        attr_reader :destination, :source, :deploy, :uglify, :resource_name, :resource_url
+
+        def initialize(base_url, js_config)
+          if js_config == false
+            @disabled = true
+            return
+          end
+
+          @disabled = false
+          @destination = js_config['destination'] || 'js'
+          @deploy = js_config['deploy'] || true
+          @source = js_config['source'] || true
+          @uglify = js_config['uglify'] || true
+
+          @resource_name = "JekyllWebmentionIO.js"
+          @resource_url = File.join("", base_url, @destination, @resource_name)
+        end
+
+        def disabled?; @disabled; end
+        def source?; @source; end
+        def deploy?; @deploy; end
+        def uglify?; @uglify; end
+      end
+
+      TIMEFRAMES = {
+        'last_week' => 'weekly',
+        'last_month' => 'monthly',
+        'last_year' => 'yearly',
+      }.freeze
+
+      def get_timeframe_from_date(time)
+        date = time.to_date
+
+        timeframe = nil
+
+        TIMEFRAMES.each do |key, value|
+          if date.to_date > get_date_from_string(value)
+            timeframe = key
+            break
+          end
+        end
+
+        timeframe ||= 'older'
+      end
+
+      def get_date_from_string(text)
+        today = Date.today
+        pattern = /every\s(?:(\d+)\s)?(day|week|month|year)s?/
+        matches = text.match(pattern)
+
+        unless matches
+          text = if text == 'daily'
+                   'every 1 day'
+                 else
+                   "every 1 #{text.sub('ly', '')}"
+                 end
+          matches = text.match(pattern)
+        end
+
+        n = matches[1] ? matches[1].to_i : 1
+        unit = matches[2]
+
+        # weeks aren't natively supported in Ruby
+        if unit == 'week'
+          n *= 7
+          unit = 'day'
+        end
+
+        # dynamic method call
+        today.send "prev_#{unit}", n
+      end
+    end
+  end
+end

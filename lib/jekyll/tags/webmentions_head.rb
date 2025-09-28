@@ -18,7 +18,8 @@ module Jekyll
 
         page = context["page"]
         site = context.registers[:site]
-        site_url = site.config["url"].to_s
+        site_url = WebmentionIO.config.site_url
+
         if page["redirect_from"]
           if page["redirect_from"].is_a? String
             redirect = site_url + page["redirect_from"]
@@ -28,7 +29,8 @@ module Jekyll
           head << "<meta property=\"webmention:redirected_from\" content=\"#{redirect}\">"
         end
 
-        username = site.config.dig("webmentions", "username")
+        username = WebmentionIO.config.username
+
         if username
           head << "<link rel=\"pingback\" href=\"https://webmention.io/#{username}/xmlrpc\">"
           head << "<link rel=\"webmention\" href=\"https://webmention.io/#{username}/webmention\">"

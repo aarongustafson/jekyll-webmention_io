@@ -20,23 +20,7 @@ module Jekyll
         @site = site
         @caches = WebmentionIO.caches
 
-        @site_url = site.config["url"].to_s
-        @syndication = site.config.dig("webmentions", "syndication")
-
-        if @site.config['serving']
-          Jekyll::WebmentionIO.log "msg", "Webmentions lookups are not run when running `jekyll serve`."
-
-          @site.config['webmentions'] ||= {}
-          @site.config['webmentions']['pause_lookups'] = true
-          return
-        end
-
-        if @site_url.include? "localhost"
-          WebmentionIO.log "msg", "Webmentions lookups are not run on localhost."
-          return
-        end
-
-        compile_jsonpath_expressions() if ! @syndication.nil?
+        return if WebmentionIO.config.pause_lookups
 
         WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
 
@@ -45,24 +29,6 @@ module Jekyll
       end
 
       private
-
-      def compile_jsonpath_expressions()
-        @syndication.each do | target, config |
-          next if ! config.key? "response_mapping"
-
-          mapping = config["response_mapping"]
-
-          mapping.clone.each do | key, pattern |
-            begin
-              mapping[key] = JsonPath.new(pattern)
-            rescue StandardError => e
-              WebmentionIO.log "error", "Ignoring invalid JsonPath expression #{pattern}: #{e}"
-
-              mapping.delete(key)
-            end
-          end
-        end
-      end
 
       def combine_values(a, b)
         return case [ a.instance_of?(Array), b.instance_of?(Array) ]
@@ -85,11 +51,11 @@ module Jekyll
 
         response = JSON.generate(response)
 
-        target["response_mapping"].each do |key, pattern|
+        target.response_mapping.each do |key, pattern|
           result = pattern.on(response)
 
           if ! result
-            WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target['endpoint']} for #{uri}"
+            WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target.endpoint} for #{uri}"
             next
           elsif result.length == 1
             result = result.first
@@ -113,12 +79,6 @@ module Jekyll
         return nil
       end
 
-      def get_syndication_target(uri)
-        return nil if @syndication.nil?
-
-        @syndication.values.detect { |t| t["endpoint"] == uri }
-      end
-
       def gather_webmentions(posts)
         outgoing = @caches.outgoing_webmentions
 
@@ -132,9 +92,9 @@ module Jekyll
             # target config out.
             #
             # If this is just a normal webmention, this will return nil.
-            target = get_syndication_target(mentioned_uri)
+            target = WebmentionIO.config.syndication_rule_for_uri(mentioned_uri)
 
-            fulluri = File.join(@site_url, post.url)
+            fulluri = File.join(WebmentionIO.config.site_url, post.url)
             shorturi = post.data["shorturl"] || fulluri
 
             # Old cached responses might use either the full or short URIs so
@@ -156,7 +116,7 @@ module Jekyll
 
               outgoing[uri] ||= {}
               outgoing[uri][mentioned_uri] = response
-            elsif ! target.nil? and target.key? "response_mapping"
+            elsif ! target.nil?
               process_syndication(post, target, cached_response)
             end
           end
@@ -166,12 +126,9 @@ module Jekyll
         # above to populate frontmatter during the site build, even
         # if we're not going to modify the webmention cache.
 
-        if @site.config.dig("webmentions", "pause_lookups")
-          WebmentionIO.log "info", "Webmention lookups are currently paused."
-          return
-        else
-          outgoing.write
-        end
+        return if WebmentionIO.config.pause_lookups
+
+        outgoing.write
       end
 
       def get_mentioned_uris(post)
@@ -188,8 +145,10 @@ module Jekyll
         end
 
         syndication_targets.each do |endpoint|
-          if @syndication.key? endpoint
-            uris[@syndication[endpoint]["endpoint"]] = false
+          syn_rule = WebmentionIO.syndication[endpoint]
+
+          if !syn_rule.nil?
+            uris[syn_rule.endpoint] = false
           else
             WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
           end

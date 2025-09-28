@@ -17,39 +17,24 @@ module Jekyll
       priority :high
 
       def generate(site)
-        @site = site
         @caches = WebmentionIO.caches
 
-        @site_url = site.config["url"].to_s
-
-        if @site.config['serving']
-          Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered when running `jekyll serve`."
-
-          @site.config['webmentions'] ||= {}
-          @site.config['webmentions']['pause_lookups'] = true
-          return
-        end
-
-        if @site_url.include? "localhost"
-          Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered on localhost."
-          return
-        end
-
-        if @site.config.dig("webmentions", "pause_lookups") == true
+        if WebmentionIO.config.pause_lookups
           WebmentionIO.log "msg", "Webmention gathering is currently paused."
+
           return
         end
 
         WebmentionIO.log "msg", "Beginning to gather webmentions of your posts. This may take a while."
 
-        posts = WebmentionIO.gather_documents(@site)
+        posts = WebmentionIO.gather_documents(site)
         posts.each do |post|
           check_for_webmentions(post)
         end
 
         @caches.site_lookups.write
         @caches.incoming_webmentions.write
-      end # generate
+      end
 
       private
 
@@ -92,7 +77,7 @@ module Jekyll
 
       def get_webmention_target_urls(post)
         targets = []
-        uri = File.join(@site_url, post.url)
+        uri = File.join(WebmentionIO.config.site_url, post.url)
         targets.push(uri)
 
         # Redirection?
@@ -120,13 +105,12 @@ module Jekyll
       end
 
       def gather_legacy_targets(uri, targets)
-        if WebmentionIO.config.key? "legacy_domains"
-          WebmentionIO.log "info", "adding legacy URIs"
-          WebmentionIO.config["legacy_domains"].each do |domain|
-            legacy = uri.sub(@site_url, domain)
-            WebmentionIO.log "info", "adding URI #{legacy}"
-            targets.push(legacy)
-          end
+        WebmentionIO.log "info", "Adding any legacy URIs"
+
+        WebmentionIO.config.legacy_domains.each do |domain|
+          legacy = uri.sub(WebmentionIO.config.site_url, domain)
+          WebmentionIO.log "info", "Adding legacy URI #{legacy}"
+          targets.push(legacy)
         end
       end
 

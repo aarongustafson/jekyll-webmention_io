@@ -12,6 +12,7 @@ require_relative "webmention_io/webmention_item"
 require_relative "webmention_io/js_handler"
 require_relative "webmention_policy"
 require_relative "webmentions"
+require_relative "config"
 
 require "json"
 require "net/http"
@@ -23,7 +24,7 @@ module Jekyll
   module WebmentionIO
     class << self
       # define simple getters and setters
-      attr_reader :config, :jekyll_config, :cache_files, :cache_folder,
+      attr_reader :config, :cache_files, :cache_folder,
                   :file_prefix, :types, :supported_templates, :js_handler,
                   :policy, :caches, :webmentions
     end
@@ -44,43 +45,33 @@ module Jekyll
       OpenSSL::SSL::SSLError,
     ].freeze
 
-    def self.bootstrap(site, caches = nil, policy = nil, webmentions = nil)
+    def self.bootstrap(site, config = nil, caches = nil, policy = nil, webmentions = nil)
       @site = site
 
-      @caches = caches || Caches.new(@site)
-      @policy = policy || WebmentionPolicy.new(@site, @caches)
+      @config = config || Config.new(@site)
+      @caches = caches || Caches.new(@config)
+      @policy = policy || WebmentionPolicy.new(@config, @caches)
       @webmentions = webmentions || Webmentions.new(@policy)
 
-      @jekyll_config = site.config
-      @config = @jekyll_config["webmentions"] || {}
-
-      @js_handler = WebmentionIO::JSHandler.new(site)
-
-      if @config['html_proofer'] == true
-        @config['html_proofer_ignore'] = "templates"
-      end
-    end
-
-    def self.max_attempts()
-      @config.dig("max_attempts")
+      @js_handler = WebmentionIO::JSHandler.new()
     end
 
     def self.gather_documents(site)
       documents = site.posts.docs.clone
 
-      if @config.dig("pages") == true
+      if @config.pages == true
         log "info", "Including site pages."
         documents.concat site.pages.clone
       end
 
-      collections = @config.dig("collections")
-      if collections
+      if !@config.collections.empty?
         log "info", "Adding collections."
+
         site.collections.each do |name, collection|
           # skip _posts
           next if name == "posts"
 
-          unless collections.is_a?(Array) && !collections.include?(name)
+          if @config.collections.include?(name)
             documents.concat collection.docs.clone
           end
         end
@@ -89,52 +80,10 @@ module Jekyll
       return documents
     end
 
-    TIMEFRAMES = {
-      "last_week"  => "weekly",
-      "last_month" => "monthly",
-      "last_year"  => "yearly",
-    }.freeze
-
-    def self.get_timeframe_from_date(time)
-      date = time.to_date
-      timeframe = nil
-      TIMEFRAMES.each do |key, value|
-        if date.to_date > get_date_from_string(value)
-          timeframe = key
-          break
-        end
-      end
-      timeframe ||= "older"
-      return timeframe
-    end
-
-    # supported: daily, weekly, monthly, yearly, every X days|weeks|months|years
-    def self.get_date_from_string(text)
-      today = Date.today
-      pattern = /every\s(?:(\d+)\s)?(day|week|month|year)s?/
-      matches = text.match(pattern)
-      unless matches
-        text = if text == "daily"
-                 "every 1 day"
-               else
-                 "every 1 #{text.sub("ly", "")}"
-               end
-        matches = text.match(pattern)
-      end
-      n = matches[1] ? matches[1].to_i : 1
-      unit = matches[2]
-      # weeks aren't natively supported in Ruby
-      if unit == "week"
-        n *= 7
-        unit = "day"
-      end
-      # dynamic method call
-      return today.send "prev_#{unit}", n
-    end
-
     def self.template_file(template)
       @template_file_cache[template] ||= begin
-        configured_template = @config.dig("templates", template)
+        configured_template = @config.templates[template]
+
         if configured_template
           log "info", "Using custom #{template} template from site source"
           @site.in_source_dir configured_template
@@ -153,8 +102,8 @@ module Jekyll
     end
 
     def self.html_templates
-      setting = @config['html_proofer_ignore']
-      proofer = if setting == "all" || setting == "templates"
+      setting = @config.html_proofer_ignore
+      proofer = if setting == Config::HtmlProofer.ALL || setting == Config::HtmlProofer.TEMPLATES
                   ' data-proofer-ignore'
                 else
                   ''

@@ -23,11 +23,9 @@ module Jekyll
       priority :low
 
       def generate(site)
-        handler = WebmentionIO.js_handler
         @site = site
-        @file_name = handler.resource_name
 
-        if handler.disabled?
+        if WebmentionIO.config.js.disabled?
           WebmentionIO.log "info", "Skipping JavaScript inclusion."
           return
         end
@@ -36,13 +34,15 @@ module Jekyll
           Jekyll::WebmentionIO.log "msg", "A WebmentionIO.js source file will not be generated during `jekyll serve`."
         end
 
-        @source_file_base_dir = if handler.source? && !@site.config['serving']
+        @file_name = WebmentionIO.config.js.resource_name 
+
+        @source_file_base_dir = if WebmentionIO.config.js.source? && !@site.config['serving']
                                   @site.in_source_dir()
                                 else
                                   Dir.mktmpdir
                                 end
 
-        @destination = handler.destination
+        @destination = WebmentionIO.config.js.destination
         @source_file_destination = File.join(@source_file_base_dir, @destination)
 
         @javascript = +"" # unfrozen String
@@ -50,9 +50,9 @@ module Jekyll
         concatenate_asset_files
         add_webmention_types
 
-        uglify if handler.uglify?
+        uglify if WebmentionIO.config.js.uglify?
         create_js_file
-        deploy_js_file if handler.deploy?
+        deploy_js_file if WebmentionIO.config.js.deploy?
       end
 
       private
