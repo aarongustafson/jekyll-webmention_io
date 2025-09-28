@@ -19,11 +19,7 @@ module Jekyll
       def generate(site)
         @caches = WebmentionIO.caches
 
-        if WebmentionIO.config.pause_lookups
-          WebmentionIO.log "msg", "Webmention gathering is currently paused."
-
-          return
-        end
+        return if WebmentionIO.config.pause_lookups
 
         WebmentionIO.log "msg", "Beginning to gather webmentions of your posts. This may take a while."
 
