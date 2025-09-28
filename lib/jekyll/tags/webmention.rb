@@ -25,11 +25,11 @@ module Jekyll
       end
 
       def template=(template)
-        unless WebmentionIO.supported_templates.include? template
+        unless WebmentionIO.templates.supported_templates.include? template
           WebmentionIO.log "error", "#{template.capitalize} is not supported"
         end
         @template_name = template
-        @template = WebmentionIO.get_template_contents(template)
+        @template = WebmentionIO.templates.template_contents(template)
         WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"
       end
 

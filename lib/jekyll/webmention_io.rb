@@ -13,6 +13,7 @@ require_relative "webmention_io/js_handler"
 require_relative "webmention_policy"
 require_relative "webmentions"
 require_relative "config"
+require_relative "templates"
 
 require "json"
 require "net/http"
@@ -24,18 +25,13 @@ module Jekyll
   module WebmentionIO
     class << self
       # define simple getters and setters
-      attr_reader :config, :cache_files, :cache_folder,
-                  :file_prefix, :types, :supported_templates, :js_handler,
-                  :policy, :caches, :webmentions
+      attr_reader :types, :config, :cache_files, :cache_folder, :js_handler,
+                  :policy, :caches, :webmentions, :templates
     end
 
-    @logger_prefix = "[jekyll-webmention_io]"
-
     @types = %w(bookmarks likes links posts replies reposts rsvps).freeze
-    @supported_templates = (@types + %w(count webmentions)).freeze
 
-    @template_file_cache = {}
-    @template_content_cache = {}
+    @logger_prefix = "[jekyll-webmention_io]"
     @webmention_data_cache = {}
 
     EXCEPTIONS = [
@@ -45,13 +41,14 @@ module Jekyll
       OpenSSL::SSL::SSLError,
     ].freeze
 
-    def self.bootstrap(site, config = nil, caches = nil, policy = nil, webmentions = nil)
+    def self.bootstrap(site, config = nil, caches = nil, policy = nil, webmentions = nil, templates = nil)
       @site = site
 
       @config = config || Config.new(@site)
       @caches = caches || Caches.new(@config)
       @policy = policy || WebmentionPolicy.new(@config, @caches)
       @webmentions = webmentions || Webmentions.new(@policy)
+      @templates = templates || Templates.new(site)
 
       @js_handler = WebmentionIO::JSHandler.new()
     end
@@ -78,45 +75,6 @@ module Jekyll
       end
 
       return documents
-    end
-
-    def self.template_file(template)
-      @template_file_cache[template] ||= begin
-        configured_template = @config.templates[template]
-
-        if configured_template
-          log "info", "Using custom #{template} template from site source"
-          @site.in_source_dir configured_template
-        else
-          File.expand_path("templates/#{template}.html", __dir__)
-        end
-      end
-    end
-
-    def self.get_template_contents(template)
-      template_file = template_file(template)
-      @template_content_cache[template_file] ||= begin
-        log "info", "Template file: #{template_file}"
-        File.read(template_file)
-      end
-    end
-
-    def self.html_templates
-      setting = @config.html_proofer_ignore
-      proofer = if setting == Config::HtmlProofer.ALL || setting == Config::HtmlProofer.TEMPLATES
-                  ' data-proofer-ignore'
-                else
-                  ''
-                end
-      @html_templates ||= begin
-        templates = +"" # unfrozen String
-        supported_templates.each do |template|
-          templates << "<template style=\"display:none\" id=\"webmention-#{template}\"#{proofer}>"
-          templates << get_template_contents(template)
-          templates << "</template>"
-        end
-        templates
-      end
     end
 
     def self.log(type, message)

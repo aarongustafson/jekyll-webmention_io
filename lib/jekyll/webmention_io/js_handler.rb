@@ -19,7 +19,7 @@ module Jekyll
 
         WebmentionIO.log "info", "Gathering templates for JavaScript."
 
-        "#{js_file}\n#{WebmentionIO.html_templates}"
+        "#{js_file}\n#{WebmentionIO.templates.html_templates}"
       end
     end
   end
