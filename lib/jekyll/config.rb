@@ -73,7 +73,7 @@ module Jekyll
       def next_lookup_date(date)
         age = get_timeframe_from_date(date)
 
-        throttle = @config.throttle_lookups[age]
+        throttle = @throttle_lookups[age]
 
         throttle.nil? ? nil : get_date_from_string(throttle)
       end
