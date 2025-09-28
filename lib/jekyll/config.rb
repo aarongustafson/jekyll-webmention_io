@@ -90,8 +90,21 @@ module Jekyll
       class BadUriPolicy
         BadUriPolicyEntry = Struct.new(:policy, :max_attempts, :retry_delay)
 
+        attr_accessor :whitelist, :blacklist
+
         def initialize(site_config)
           @bad_uri_policy = site_config['bad_uri_policy'] || {}
+
+          @bad_uri_policy['whitelist'] ||= []
+          @bad_uri_policy['blacklist'] ||= []
+
+          # We always want to collection webmentions from webmention.io, so we
+          # explicitly flag it. This way if there's a service outage, we don't
+          # end up banning the URL.
+          @bad_uri_policy['whitelist'].insert(-1, '^https?://webmention.io/')
+
+          @whitelist = @bad_uri_policy['whitelist'].map { |expr| Regexp.new(expr) }
+          @blacklist = @bad_uri_policy['blacklist'].map { |expr| Regexp.new(expr) }
         end
 
         # Given the provided state value (see WebmentionPolicy::State),
@@ -124,22 +137,6 @@ module Jekyll
             policy_entry['max_attempts'],
             policy_entry['retry_delay']
           )
-        end
-
-        def whitelist
-          @whitelist ||=
-            @bad_uri_policy
-            .fetch('whitelist', [])
-            .clone
-            .insert(-1, '^https?://webmention.io/')
-            .map { |expr| Regexp.new(expr) }
-        end
-
-        def blacklist
-          @blacklist ||=
-            @bad_uri_policy
-            .fetch('blacklist', [])
-            .map { |expr| Regexp.new(expr) }
         end
       end
 
