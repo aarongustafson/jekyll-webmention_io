@@ -19,7 +19,7 @@ module Jekyll
         RETRY = 'retry'
       end
 
-      attr_reader :html_proofer_ignore, :max_attempts, :pages, :collections,
+      attr_reader :html_proofer_ignore, :max_attempts,
                   :templates, :bad_uri_policy, :cache_folder,
                   :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
                   :username
@@ -92,12 +92,12 @@ module Jekyll
       def documents
         documents = @site.posts.docs.clone
 
-        if pages == true
+        if @pages == true
           WebmentionIO.log "info", "Including site pages."
           documents.concat @site.pages.clone
         end
 
-        if collections.empty?
+        if @collections.empty?
           WebmentionIO.log "info", "Adding collections."
 
           @site.collections.each do |name, collection|
