@@ -90,7 +90,7 @@ module Jekyll
       class BadUriPolicy
         BadUriPolicyEntry = Struct.new(:policy, :max_attempts, :retry_delay)
 
-        attr_accessor :whitelist, :blacklist
+        attr_reader :whitelist, :blacklist
 
         def initialize(site_config)
           @bad_uri_policy = site_config['bad_uri_policy'] || {}
@@ -141,7 +141,7 @@ module Jekyll
       end
 
       class SyndicationRule
-        attr_accessor :endpoint, :response_mapping
+        attr_reader :endpoint, :response_mapping
 
         def initialize(entry)
           @endpoint = entry[endpoint]
