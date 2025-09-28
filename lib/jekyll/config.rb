@@ -25,19 +25,21 @@ module Jekyll
                   :username
 
       def initialize(site = nil)
-        config = (site.nil? ? nil : site.config['webmentions']) || {}
-        base_url = site.nil? ? "" : site.config['baseurl'].to_s
+        @site = site
 
-        @site_url = site.nil? ? "" : site.config['url'].to_s
+        config = (@site.nil? ? nil : @site.config['webmentions']) || {}
+        base_url = @site.nil? ? "" : @site.config['baseurl'].to_s
+
+        @site_url = @site.nil? ? "" : @site.config['url'].to_s
         @username = config['username']
 
         @pause_lookups =
-          if site.config['serving']
-            Jekyll::WebmentionIO.log 'msg', 'Webmentions won’t be gathered when running `jekyll serve`.'
+          if @site.config['serving']
+            WebmentionIO.log 'msg', 'Webmentions won’t be gathered when running `jekyll serve`.'
 
             true
           elsif @site_url.include? 'localhost'
-            Jekyll::WebmentionIO.log 'msg', 'Webmentions won’t be gathered on localhost.'
+            WebmentionIO.log 'msg', 'Webmentions won’t be gathered on localhost.'
 
             true
           else
@@ -45,7 +47,7 @@ module Jekyll
           end
 
         @cache_folder = config['cache_folder'] || '.jekyll-cache'
-        @cache_folder = site.in_source_dir(@cache_folder) if !site.nil?
+        @cache_folder = @site.in_source_dir(@cache_folder) if !@site.nil?
 
         @pages = config['pages']
         @collections = config['collections'] || []
@@ -83,6 +85,32 @@ module Jekyll
       # queued webmention was a result of a syndication rule.
       def syndication_rule_for_uri(uri)
         @syndication.values.detect { |rule| rule.endpoint == uri }
+      end
+
+      # Based on the specified configuration, return the list of documents for
+      # the site that should be processed.
+      def documents
+        documents = @site.posts.docs.clone
+
+        if pages == true
+          WebmentionIO.log "info", "Including site pages."
+          documents.concat @site.pages.clone
+        end
+
+        if collections.empty?
+          WebmentionIO.log "info", "Adding collections."
+
+          @site.collections.each do |name, collection|
+            # skip _posts
+            next if name == "posts"
+
+            if collections.include?(name)
+              documents.concat collection.docs.clone
+            end
+          end
+        end
+
+        documents
       end
 
       private

@@ -23,8 +23,7 @@ module Jekyll
 
         WebmentionIO.log "msg", "Beginning to gather webmentions of your posts. This may take a while."
 
-        posts = WebmentionIO.gather_documents(site)
-        posts.each do |post|
+        WebmentionIO.config.documents.each do |post|
           check_for_webmentions(post)
         end
 

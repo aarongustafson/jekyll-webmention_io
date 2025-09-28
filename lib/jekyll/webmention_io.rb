@@ -39,30 +39,6 @@ module Jekyll
       @js_handler = WebmentionIO::JSHandler.new()
     end
 
-    def self.gather_documents(site)
-      documents = site.posts.docs.clone
-
-      if @config.pages == true
-        log "info", "Including site pages."
-        documents.concat site.pages.clone
-      end
-
-      if !@config.collections.empty?
-        log "info", "Adding collections."
-
-        site.collections.each do |name, collection|
-          # skip _posts
-          next if name == "posts"
-
-          if @config.collections.include?(name)
-            documents.concat collection.docs.clone
-          end
-        end
-      end
-
-      return documents
-    end
-
     def self.log(type, message)
       debug = !!@config.dig("debug")
       if debug || %w(error msg).include?(type)

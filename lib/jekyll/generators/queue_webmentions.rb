@@ -24,7 +24,8 @@ module Jekyll
 
         WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
 
-        posts = WebmentionIO.gather_documents(@site).select { |p| ! p.data["draft"] }
+        posts = WebmentionIO.config.documents.select { |p| !p.data['draft'] }
+
         gather_webmentions(posts)
       end
 
