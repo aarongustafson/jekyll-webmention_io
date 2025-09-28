@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 require "webmention"
 require "indieweb/endpoints"
+require "net/http"
+require "openssl"
 
 module Jekyll
   module WebmentionIO
@@ -91,6 +93,13 @@ module Jekyll
       end
 
       private
+
+      EXCEPTIONS = [
+        SocketError, Timeout::Error,
+        Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
+        Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
+        OpenSSL::SSL::SSLError,
+      ].freeze
 
       def webmention_endpoint?(uri)
         # log "info", "Looking for webmention endpoint at #{uri}"

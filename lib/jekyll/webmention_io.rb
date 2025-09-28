@@ -15,12 +15,6 @@ require_relative "webmentions"
 require_relative "config"
 require_relative "templates"
 
-require "json"
-require "net/http"
-require "uri"
-require "openssl"
-require "active_support"
-
 module Jekyll
   module WebmentionIO
     class << self
@@ -32,14 +26,6 @@ module Jekyll
     @types = %w(bookmarks likes links posts replies reposts rsvps).freeze
 
     @logger_prefix = "[jekyll-webmention_io]"
-    @webmention_data_cache = {}
-
-    EXCEPTIONS = [
-      SocketError, Timeout::Error,
-      Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
-      Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
-      OpenSSL::SSL::SSLError,
-    ].freeze
 
     def self.bootstrap(site, config = nil, caches = nil, policy = nil, webmentions = nil, templates = nil)
       @site = site

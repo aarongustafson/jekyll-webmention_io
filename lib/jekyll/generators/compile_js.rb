@@ -9,6 +9,7 @@
 
 require "uglifier"
 require "fileutils"
+require "active_support"
 
 module Jekyll
   module WebmentionIO
