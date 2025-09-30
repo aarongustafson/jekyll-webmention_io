@@ -19,26 +19,26 @@ module Jekyll
         RETRY = 'retry'
       end
 
-      attr_reader :html_proofer_ignore, :max_attempts,
-                  :templates, :bad_uri_policy, :cache_folder,
-                  :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
-                  :username
+      attr_accessor :html_proofer_ignore, :max_attempts,
+                    :templates, :bad_uri_policy, :throttle_lookups, :cache_folder,
+                    :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
+                    :username
 
       def initialize(site = nil)
         @site = site
 
         config = (@site.nil? ? nil : @site.config['webmentions']) || {}
-        base_url = @site.nil? ? "" : @site.config['baseurl'].to_s
+        base_url = @site.nil? ? '' : @site.config['baseurl'].to_s
 
-        @site_url = @site.nil? ? "" : @site.config['url'].to_s
+        @site_url = @site.nil? ? '' : @site.config['url'].to_s
         @username = config['username']
 
         @pause_lookups =
-          if @site.config['serving']
+          if !@site.nil? && @site.config['serving']
             WebmentionIO.log 'msg', 'Webmentions won’t be gathered when running `jekyll serve`.'
 
             true
-          elsif @site_url.include? 'localhost'
+          elsif !@site.nil? && @site_url.include?('localhost')
             WebmentionIO.log 'msg', 'Webmentions won’t be gathered on localhost.'
 
             true
@@ -112,8 +112,6 @@ module Jekyll
 
         documents
       end
-
-      private
 
       class BadUriPolicy
         BadUriPolicyEntry = Struct.new(:policy, :max_attempts, :retry_delay)
@@ -211,6 +209,8 @@ module Jekyll
         def deploy?; @deploy; end
         def uglify?; @uglify; end
       end
+
+      private
 
       TIMEFRAMES = {
         'last_week' => 'weekly',
