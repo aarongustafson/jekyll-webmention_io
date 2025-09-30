@@ -113,7 +113,7 @@ module Jekyll
 
         if @type == "post"
 
-          html_source = WebmentionIO.get_body_from_uri(@uri)
+          html_source = WebmentionIO.webmentions.get_body_from_uri(@uri)
           unless html_source
             return title
           end
