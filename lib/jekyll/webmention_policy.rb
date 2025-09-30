@@ -97,11 +97,11 @@ module Jekyll
       def post_should_be_throttled?(post, item_date, last_lookup)
         return unless item_date && last_lookup
 
-        next_lookup = @config.next_lookup_date(item_date)
+        lookup_threshold = @config.last_lookup_threshold(item_date)
 
-        return if next_lookup.nil? || (last_lookup < next_lookup)
+        return if lookup_threshold.nil? || (last_lookup <= lookup_threshold)
 
-        Jekyll::WebmentionIO.log 'info', "Throttling #{post.data['title']} due to policy (last was #{last_lookup}, next is #{next_lookup})"
+        Jekyll::WebmentionIO.log 'info', "Throttling #{post.data['title']} due to policy (last was #{last_lookup}, threshold is #{lookup_threshold})"
 
         true
       end

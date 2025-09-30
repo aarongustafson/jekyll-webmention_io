@@ -72,7 +72,9 @@ module Jekyll
         @syndication = (config['syndication'] || {}).transform_values { |entry| SyndicationRule.new(entry) }
       end
 
-      def next_lookup_date(date)
+      # The next lookup date has to be before this date to be allowed to
+      # request webmentions again.
+      def last_lookup_threshold(date)
         age = get_timeframe_from_date(date)
 
         throttle = @throttle_lookups[age]
