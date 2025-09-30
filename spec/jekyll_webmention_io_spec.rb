@@ -1,10 +1,10 @@
 require "spec_helper"
 
 describe Jekyll::WebmentionIO do
-  let(:page)      { make_page }
-  let(:site)      { make_site }
-  let(:post)      { make_post }
-  let(:context)   { make_context(:page => page, :site => site) }
+  let(:page)      { SpecHelper::make_page }
+  let(:site)      { SpecHelper::make_site }
+  let(:post)      { SpecHelper::make_post }
+  let(:context)   { SpecHelper::make_context(:page => page, :site => site) }
   let(:all)       { "webmentions" }
   let(:count)     { "webmention_count" }
   let(:like)      { "webmention_likes" }
@@ -20,10 +20,6 @@ describe Jekyll::WebmentionIO do
 
   before do
     Jekyll.logger.log_level = :error
-  end
-
-  it "builds" do
-    expect(o_all).to match(%r!!i)
   end
 
   it "outputs valid HTML" do
