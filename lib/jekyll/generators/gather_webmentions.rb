@@ -16,7 +16,7 @@ module Jekyll
       safe true
       priority :high
 
-      def generate(site)
+      def generate(_ = nil)
         @caches = WebmentionIO.caches
 
         return if WebmentionIO.config.pause_lookups
