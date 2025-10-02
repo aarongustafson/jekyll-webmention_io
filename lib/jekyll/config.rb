@@ -27,10 +27,17 @@ module Jekyll
       def initialize(site = nil)
         @site = site
 
-        config = (@site.nil? ? nil : @site.config['webmentions']) || {}
-        base_url = @site.nil? ? '' : @site.config['baseurl'].to_s
+        if !site.nil?
+          parse(@site.config['webmentions'], @site.config['baseurl'].to_s, @site.config['url'].to_s)
+        else
+          parse
+        end
+      end
 
-        @site_url = @site.nil? ? '' : @site.config['url'].to_s
+      def parse(config = nil, site_url = '', base_url = '')
+        config ||= {}
+
+        @site_url = site_url
         @username = config['username']
 
         @pause_lookups =
@@ -50,7 +57,7 @@ module Jekyll
         @cache_folder = @site.in_source_dir(@cache_folder) if !@site.nil?
 
         @pages = config['pages']
-        @collections = config['collections'] || []
+        @collections = config['collections'] || {}
         @templates = config['templates'] || {}
 
         @js = JsConfig.new(base_url, config['js'] || {})
@@ -113,6 +120,10 @@ module Jekyll
         end
 
         documents
+      end
+
+      def collections
+        @site.collections
       end
 
       class BadUriPolicy

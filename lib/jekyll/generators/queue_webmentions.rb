@@ -71,7 +71,7 @@ module Jekyll
       end
 
       def get_collection_for_post(post)
-        @site.collections.each do |name, collection|
+        WebmentionIO.config.collections.each do |name, collection|
           next if name == "posts"
 
           return collection if collection.docs.include? post
