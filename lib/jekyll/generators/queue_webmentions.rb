@@ -55,8 +55,8 @@ module Jekyll
         target.response_mapping.each do |key, pattern|
           result = pattern.on(response)
 
-          if ! result
-            WebmentionIO.log "msg", "The path #{skey} doesn't exist in the response from #{target.endpoint} for #{uri}"
+          if result.empty?
+            WebmentionIO.log "msg", "The path #{key} doesn't exist in the response from #{target.endpoint} for #{post.uri}"
             next
           elsif result.length == 1
             result = result.first
