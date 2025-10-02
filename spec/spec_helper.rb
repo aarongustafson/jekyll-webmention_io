@@ -22,14 +22,19 @@ CONFIG_DEFAULTS = {
 
 module SpecHelper
   class MockConfig < Jekyll::WebmentionIO::Config
-    def initialize(docs = nil)
+    def initialize(documents = nil, collections = nil)
       super()
 
-      @docs = docs || []
+      @documents = documents || []
+      @collections = collections || []
     end
 
     def documents
-      @docs
+      @documents
+    end
+
+    def collections
+      @collections
     end
   end
 
@@ -118,12 +123,13 @@ module SpecHelper
   end
 
   class MockPage
-    attr_reader :url, :date, :data
+    attr_reader :url, :date, :data, :content
 
-    def initialize(url:, data: {}, date: DateTime.now)
+    def initialize(url:, data: {}, date: DateTime.now, content: '')
       @url = url
       @date = date
       @data = data
+      @content = content
     end
 
     def uri
@@ -132,6 +138,10 @@ module SpecHelper
 
     def redirect
       File.join(Jekyll::WebmentionIO.config.site_url, data["redirect_from"]) if data.key?("redirect_from")
+    end
+
+    def path
+      url
     end
   end
 

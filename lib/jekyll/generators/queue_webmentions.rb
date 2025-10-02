@@ -16,10 +16,7 @@ module Jekyll
       safe true
       priority :low
 
-      def generate(site)
-        @site = site
-        @caches = WebmentionIO.caches
-
+      def generate(_ = nil)
         return if WebmentionIO.config.pause_lookups
 
         WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
