@@ -180,10 +180,12 @@ module Jekyll
       end
 
       class SyndicationRule
-        attr_reader :endpoint, :response_mapping
+        attr_reader :endpoint, :response_mapping, :shorturl, :fragment
 
         def initialize(entry)
-          @endpoint = entry[endpoint]
+          @endpoint = entry['endpoint']
+          @shorturl = entry['shorturl']
+          @fragment = entry['fragment']
           @response_mapping = {}
 
           if entry.key?('response_mapping')

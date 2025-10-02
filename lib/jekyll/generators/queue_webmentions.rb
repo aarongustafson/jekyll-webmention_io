@@ -81,7 +81,7 @@ module Jekyll
       end
 
       def gather_webmentions(posts)
-        outgoing = @caches.outgoing_webmentions
+        outgoing = WebmentionIO.caches.outgoing_webmentions
 
         posts.each do |post|
           # Collect potential outgoing webmentions in this post.
@@ -106,10 +106,10 @@ module Jekyll
 
             if cached_response.nil?
               if ! target.nil?
-                uri = target["shorturl"] ? shorturi : fulluri
+                uri = target.shorturl ? shorturi : fulluri
 
-                if target.key? "fragment"
-                  uri += "#" + target["fragment"]
+                if ! target.fragment.nil?
+                  uri += "#" + target.fragment
                 end
               else
                 uri = fulluri
@@ -146,7 +146,7 @@ module Jekyll
         end
 
         syndication_targets.each do |endpoint|
-          syn_rule = WebmentionIO.syndication[endpoint]
+          syn_rule = WebmentionIO.config.syndication[endpoint]
 
           if !syn_rule.nil?
             uris[syn_rule.endpoint] = false
