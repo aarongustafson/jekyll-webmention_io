@@ -3,6 +3,7 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'jekyll'
 require 'jekyll-webmention_io'
 require 'html-proofer'
+require 'json'
 
 def dest_dir
   File.expand_path("../tmp/dest", __dir__)
@@ -89,12 +90,13 @@ module SpecHelper
   end
 
   class MockWebmentions
-    attr_accessor :webmentions, :bodies, :last_targets, :last_since_id
+    attr_accessor :webmentions, :bodies, :last_targets, :last_since_id, :responses
 
     def initialize
       @webmentions = {}
       @bodies = {}
       @last_targets = []
+      @responses = {}
     end
 
     def add(uri:, source:, type: 'like')
@@ -118,7 +120,47 @@ module SpecHelper
       targets.map { |t| @webmentions[t] }.compact
     end
 
+    def send_webmention(source, target)
+      responses.dig(source, target)
+    end
+
+    def response(source, target, response)
+      responses[source] = { target => JSON.generate(response) }
+    end
+
     def get_body_from_uri(uri, redirect_limit = 10, original_uri = false)
+    end
+  end
+
+  class MockNetworkClient
+    attr_accessor :webmention_responses, :endpoint_responses, :http_responses
+
+    def initialize
+      @webmention_responses = {}
+      @endpoint_responses = {}
+      @http_responses = {}
+    end
+
+    def send_webmention(source, target)
+      @webmention_responses.dig(target, source)
+    end
+
+    def webmention_endpoint(uri)
+      resp = @endpoint_responses[uri]
+
+      if resp.instance_of?(StandardError)
+        throw resp
+      else
+        @endpoint_responses[uri]
+      end
+    end
+
+    def http_get(uri, _, _ = false)
+      @http_responses[uri]
+    end
+
+    def add_http_response(uri, body)
+      @http_responses[uri] = body
     end
   end
 
