@@ -19,7 +19,7 @@ module Jekyll
   module WebmentionIO
     class << self
       # define simple getters and setters
-      attr_reader :types, :config, :cache_files, :cache_folder, :js_handler,
+      attr_reader :types, :config, :cache_files, :js_handler,
                   :policy, :caches, :webmentions, :templates
     end
 
