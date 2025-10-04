@@ -31,7 +31,7 @@ module Jekyll
       private
 
       def cache_file_path(name)
-        Jekyll.sanitized_path(@config.cache_folder, "webmention_io_#{name}.yaml")
+        Jekyll.sanitized_path(@config.cache_folder, "webmention_io_#{name}.yml")
       end
 
       class Cache
