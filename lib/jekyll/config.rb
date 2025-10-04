@@ -22,7 +22,7 @@ module Jekyll
       attr_accessor :html_proofer_ignore, :max_attempts,
                     :templates, :bad_uri_policy, :throttle_lookups, :cache_folder,
                     :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
-                    :username
+                    :username, :bad_uri_policy
 
       def initialize(site = nil)
         @site = site
@@ -144,6 +144,14 @@ module Jekyll
 
           @whitelist = @bad_uri_policy['whitelist'].map { |expr| Regexp.new(expr) }
           @blacklist = @bad_uri_policy['blacklist'].map { |expr| Regexp.new(expr) }
+        end
+
+        def set_policy(state, policy, max_attempts = nil, retry_delay = nil)
+          @bad_uri_policy[state] = {
+            'policy' => policy,
+            'max_attempts' => max_attempts,
+            'retry_delay' => retry_delay
+          }
         end
 
         # Given the provided state value (see WebmentionPolicy::State),

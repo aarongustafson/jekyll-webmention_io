@@ -1,16 +1,15 @@
 # frozen_string_literal: true
-require "webmention"
-require "indieweb/endpoints"
-require "net/http"
-require "openssl"
+
+require_relative 'network_client'
 
 module Jekyll
   module WebmentionIO
     class Webmentions
       attr_writer :api_suffix
 
-      def initialize(policy, url = "https://webmention.io/api", path = "mentions", suffix = "&perPage=9999")
+      def initialize(policy, client = NetworkClient.new, url = "https://webmention.io/api", path = "mentions", suffix = "&perPage=9999")
         @policy = policy
+        @client = client
 
         @api_endpoint = "#{url}/#{path}"
         @api_suffix = "&perPage=9999"
@@ -21,7 +20,7 @@ module Jekyll
 
         Jekyll::WebmentionIO.log "info", "Sending webmention of #{target} in #{source}"
         # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
-        response = Webmention.send_webmention(source, target)
+        response = @client.send_webmention(source, target)
 
         case response.code
         when 200, 201, 202
@@ -68,43 +67,26 @@ module Jekyll
       end
 
       # Connections
-      def get_body_from_uri(uri, redirect_limit = 10, original_uri = false)
-        original_uri ||= uri
+      def get_body_from_uri(uri, redirect_limit = 10)
         return false unless @policy.uri_ok?(uri)
 
-        if redirect_limit.positive?
-          response = get_http_response(uri)
-          case response
-          when Net::HTTPSuccess then
-            return response.body.force_encoding("UTF-8")
-          when Net::HTTPRedirection then
-            redirect_to = URI::Parser.new.parse(response["location"])
-            redirect_to = redirect_to.relative? ? "#{original_uri.scheme}://#{original_uri.host}" + redirect_to.to_s : redirect_to.to_s
-            return get_body_from_uri(redirect_to, redirect_limit - 1, original_uri)
-          else
-            @policy.failure(uri)
-            return false
-          end
-        else
-          Jekyll::WebmentionIO.log("warn", "too many redirects for #{original_uri}") if original_uri
+        response = @client.http_get(uri, redirect_limit)
+
+        if response.nil?
           @policy.failure(uri)
-          return false
+
+          false
+        else
+          response
         end
       end
 
       private
 
-      EXCEPTIONS = [
-        SocketError, Timeout::Error,
-        Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
-        Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
-        OpenSSL::SSL::SSLError,
-      ].freeze
-
       def webmention_endpoint?(uri)
-        # log "info", "Looking for webmention endpoint at #{uri}"
         begin
-          endpoint = IndieWeb::Endpoints.get(uri)[:webmention]
+          endpoint = @client.webmention_endpoint(uri)
+
           unless endpoint
             Jekyll::WebmentionIO.log("info", "Could not find a webmention endpoint at #{uri}")
             @policy.unsupported(uri)
@@ -114,6 +96,7 @@ module Jekyll
           @policy.failure(uri)
           endpoint = nil
         end
+
         !endpoint.nil?
       end
 
@@ -126,28 +109,6 @@ module Jekyll
           JSON.parse(source)
         else
           {}
-        end
-      end
-
-      def get_http_response(uri)
-        uri = URI::Parser.new.parse(uri)
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.read_timeout = 10
-
-        if uri.scheme == "https"
-          http.use_ssl = true
-          http.ciphers = "ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM:-LOW"
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        end
-
-        begin
-          request  = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(request)
-          return response
-        rescue *EXCEPTIONS => e
-          Jekyll::WebmentionIO.log "warn", "Got an error checking #{uri}: #{e}"
-          @policy.failure(uri)
-          return false
         end
       end
     end

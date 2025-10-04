@@ -20,6 +20,11 @@ module Jekyll
           site = Jekyll::Site.new(options)
 
           WebmentionIO.bootstrap(site)
+
+          send_webmentions
+        end
+
+        def self.send_webmentions
           WebmentionIO.log "msg", "Getting ready to send webmentions (this may take a while)."
 
           count = 0
@@ -70,9 +75,9 @@ module Jekyll
 
             outgoing.write
             WebmentionIO.log "msg", "#{count} webmentions sent."
-          end # file exists (outgoing)
-        end # def process
-      end # WebmentionCommand
-    end # Commands
-  end # WebmentionIO
-end # Jekyll
+          end
+        end
+      end
+    end
+  end
+end
