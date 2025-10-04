@@ -104,7 +104,7 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
       target = 'http://www.test.com'
 
       @caches.outgoing_webmentions[source] = { target => false }
-      @client.endpoint_responses[target] = {}
+      @client.endpoint_responses[target] = nil
 
       @command.send_webmentions
 
