@@ -53,7 +53,7 @@ module Jekyll
           result = pattern.on(response)
 
           if result.empty?
-            WebmentionIO.log "msg", "The path #{key} doesn't exist in the response from #{target.endpoint} for #{post.uri}"
+            WebmentionIO.log "msg", "The path #{key} doesn't exist in the response from #{target.endpoint} for #{post.url}"
             next
           elsif result.length == 1
             result = result.first
