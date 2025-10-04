@@ -38,7 +38,8 @@ module Jekyll
                 next unless response == false or response.instance_of? Integer
 
                 # skip protocol-less links, we'll need to revisit this again later
-                next if target.index("//").zero?
+                idx = target.index("//")
+                next if idx.nil? || idx.zero?
 
                 # produce an escaped version of the target (in case of special
                 # characters, etc).
