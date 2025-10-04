@@ -22,7 +22,7 @@ module Jekyll
       attr_accessor :html_proofer_ignore, :max_attempts,
                     :templates, :bad_uri_policy, :throttle_lookups, :cache_folder,
                     :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
-                    :username, :bad_uri_policy, :debug
+                    :username, :debug
 
       def initialize(site = nil)
         @site = site
