@@ -14,17 +14,17 @@ module Jekyll
         @template_content_cache = {}
       end
 
-      def self.template_contents(template)
+      def template_contents(template)
         template_file = template_file(template)
         @template_content_cache[template_file] ||= begin
-          log "info", "Template file: #{template_file}"
+          WebmentionIO.log "info", "Template file: #{template_file}"
           File.read(template_file)
         end
       end
 
-      def self.html_templates
-        setting = @config.html_proofer_ignore
-        proofer = if setting == Config::HtmlProofer.ALL || setting == Config::HtmlProofer.TEMPLATES
+      def html_templates
+        setting = WebmentionIO.config.html_proofer_ignore
+        proofer = if setting == Config::HtmlProofer::ALL || setting == Config::HtmlProofer::TEMPLATES
                     ' data-proofer-ignore'
                   else
                     ''
@@ -42,12 +42,12 @@ module Jekyll
 
       private
 
-      def self.template_file(template)
+      def template_file(template)
         @template_file_cache[template] ||= begin
-          configured_template = @config.templates[template]
+          configured_template = WebmentionIO.config.templates[template]
 
           if configured_template
-            log "info", "Using custom #{template} template from site source"
+            WebmentionIO.log "info", "Using custom #{template} template from site source"
             @site.in_source_dir configured_template
           else
             File.expand_path("templates/#{template}.html", __dir__)
