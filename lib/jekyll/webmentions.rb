@@ -12,7 +12,7 @@ module Jekyll
         @client = client
 
         @api_endpoint = "#{url}/#{path}"
-        @api_suffix = "&perPage=9999"
+        @api_suffix = suffix
       end
 
       def send_webmention(source, target)
