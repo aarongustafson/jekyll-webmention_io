@@ -22,7 +22,7 @@ module Jekyll
       attr_accessor :html_proofer_ignore, :max_attempts,
                     :templates, :bad_uri_policy, :throttle_lookups, :cache_folder,
                     :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
-                    :username, :bad_uri_policy
+                    :username, :bad_uri_policy, :debug
 
       def initialize(site = nil)
         @site = site
@@ -39,6 +39,7 @@ module Jekyll
 
         @site_url = site_url
         @username = config['username']
+        @debug = config['debug']
 
         @pause_lookups =
           if !@site.nil? && @site.config['serving']
