@@ -40,7 +40,7 @@ module Jekyll
     end
 
     def self.log(type, message)
-      if @config.debug || %w(error msg).include?(type)
+      if @config.nil? || @config.debug || %w(error msg).include?(type)
         type = "info" if type == "msg"
         Jekyll.logger.method(type).call("#{@logger_prefix} #{message}")
       end
