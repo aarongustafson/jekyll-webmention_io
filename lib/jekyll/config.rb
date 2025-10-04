@@ -28,7 +28,7 @@ module Jekyll
         @site = site
 
         if !site.nil?
-          parse(@site.config['webmentions'], @site.config['baseurl'].to_s, @site.config['url'].to_s)
+          parse(@site.config['webmentions'], @site.config['url'].to_s, @site.config['baseurl'].to_s)
         else
           parse
         end
