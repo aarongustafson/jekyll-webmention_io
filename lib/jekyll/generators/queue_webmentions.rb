@@ -17,9 +17,11 @@ module Jekyll
       priority :low
 
       def generate(_ = nil)
-        return if WebmentionIO.config.pause_lookups
-
-        WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
+        if WebmentionIO.config.pause_lookups
+          WebmentionIO.log "msg", "Looking up new webmentions is disabled."
+        else
+          WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
+        end
 
         posts = WebmentionIO.config.documents.select { |p| !p.data['draft'] }
 
@@ -102,6 +104,8 @@ module Jekyll
               outgoing.dig(fulluri, mentioned_uri)
 
             if cached_response.nil?
+              next if WebmentionIO.config.pause_lookups
+
               if ! target.nil?
                 uri = target.shorturl ? shorturi : fulluri
 
