@@ -222,6 +222,35 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
     expect(page.data['syndication']).to match(url)
   end
 
+  it 'maps syndication frontmatter when pause_lookups is set' do
+    target = 'http://www.test.com'
+    url = 'http://yadda.yadda'
+    page = SpecHelper::MockPage.new(
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})"
+    )
+    webmention = { target => { 'url' => url } }
+
+    @config.parse(
+      {
+        'pause_lookups' => true,
+        'syndication' => {
+          'receiver' => {
+            'endpoint' => target,
+            'response_mapping' => { 'syndication' => '$.url' }
+          }
+        }
+      }
+    )
+    @caches.outgoing_webmentions[page.uri] = webmention
+    @config.documents.append(page)
+
+    @generator.generate
+
+    expect(@caches.outgoing_webmentions).to match({ page.uri => webmention })
+    expect(page.data['syndication']).to match(url)
+  end
+
   it 'handles bad syndication remapping rule' do
     # If the returned payload doesn't contain a given key, we should ignore it
     target = 'http://www.test.com'
