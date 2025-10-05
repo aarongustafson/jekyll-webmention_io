@@ -63,7 +63,7 @@ module Jekyll
           WebmentionIO.log 'info', "Here’s what we got back:\n\n#{response.inspect}\n\n"
         end
 
-        links.reverse.map { |wm| WebmentionIO::WebmentionItem.new(link) }
+        links.reverse.map { |wm| WebmentionIO::WebmentionItem.new(wm) }
       end
 
       # Connections
