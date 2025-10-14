@@ -7,6 +7,11 @@ module Jekyll
     class Webmentions
       attr_writer :api_suffix
 
+      # Initializes a Webmention.io client, taking a WebmentionPolicy instance
+      # that is being used to control retry behaviour, a NetworkClient instance
+      # that is used to perform low-level network operations, and a set of
+      # parameters that specifies the endpoint URL, path, and query parameters
+      # to use.
       def initialize(policy, client = NetworkClient.new, url = 'https://webmention.io/api', path = 'mentions', suffix = '&perPage=9999')
         @policy = policy
         @client = client
@@ -15,6 +20,13 @@ module Jekyll
         @api_suffix = suffix
       end
 
+      # Sends a webmention from the source URI to the specified target URI.
+      # Wraps up the logic for looking up the webmention endpoint, sending
+      # the webmention, and parsing the response.
+      #
+      # Depending on the success or failure of the request, also updates
+      # the supplied retry policy to reflect the state of the webmention
+      # target endpoint.
       def send_webmention(source, target)
         return nil if !webmention_endpoint?(URI::Parser.new.escape(target))
 
@@ -47,7 +59,17 @@ module Jekyll
         end
       end
 
-      # Returns WebmentionIO::WebmentionItem instances
+      # Reaches out to the webmention.io API to retrieve any new webmentions
+      # for the supplied set of target URIs, each of which is expected to
+      # be aliases or equivalent URLs for the same resource (e.g. legacy URLs,
+      # redirected URLs, etc).
+      #
+      # The API returns JSON response containing, among other things, a
+      # `links` key that's mapped to an array of originating source URLs
+      # for any webmentions sent to the target.
+      #
+      # The method returns a list of WebmentionItem instances for each of
+      # the supplied URLs.
       def get_webmentions(targets, since_id)
         api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
         api_params << "&since_id=#{since_id}" if since_id
@@ -66,7 +88,11 @@ module Jekyll
         links.reverse.map { |wm| WebmentionIO::WebmentionItem.new(wm) }
       end
 
-      # Connections
+      # High-level wrapper method for making an HTTP GET call that respects
+      # redirects.
+      #
+      # Critically, this method also updates the supplied WebmentionPolicy
+      # depending on whether the call succeeds or fails.
       def get_body_from_uri(uri, redirect_limit = 10)
         return false unless @policy.uri_ok?(uri)
 
@@ -83,6 +109,9 @@ module Jekyll
 
       private
 
+      # Gets the webmention endpoint for the supplied URI, while updating
+      # the WebmentionPolicy instance depending on the result of the
+      # attempt.
       def webmention_endpoint?(uri)
         begin
           endpoint = @client.webmention_endpoint(uri)
@@ -100,6 +129,9 @@ module Jekyll
         !endpoint.nil?
       end
 
+      # Helper method for making a suitable call to the webmention.io
+      # API by constructing the request using the configured URL,
+      # path, and query attributes.
       def get_webmention_io_response(api_params)
         api_params << @api_suffix
         url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")

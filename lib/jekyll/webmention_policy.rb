@@ -2,6 +2,8 @@
 
 module Jekyll
   module WebmentionIO
+    # The WebmentionPolicy class encapsulates all the configuration and
+    # state management logic for dealing with request failures.
     class WebmentionPolicy
       module State
         UNSUPPORTED = "unsupported"
@@ -76,22 +78,35 @@ module Jekyll
         return true
       end
 
+      # Update our URI cache to indicate that the last request for the given
+      # URI was a success.
       def success(uri)
         update_uri_cache(uri, State::SUCCESS)
       end
 
+      # Update our URI cache to indicate that the last request for the given
+      # URI resulted in an error being returned from the target.
       def error(uri)
         update_uri_cache(uri, State::ERROR)
       end
 
+      # Update our URI cache to indicate that the last request for the given
+      # URI resulted in an failure in accessing the given resource.
       def failure(uri)
         update_uri_cache(uri, State::FAILURE)
       end
 
+      # Update our URI cache to indicate that endpoint indicated by the given
+      # URI is not available/supported (for example, if an attempt was made to
+      # send a webmention to a site that doesn't support them).
       def unsupported(uri)
         update_uri_cache(uri, State::UNSUPPORTED)
       end
 
+      # Determines webmention gathering for the given post should or should not
+      # be delayed/throttled in order to minimize load on webmention.io based
+      # on the configured throttling policy.
+      #
       # allowed throttles: last_week, last_month, last_year, older
       # allowed values:  daily, weekly, monthly, yearly, every X days|weeks|months|years
       def post_should_be_throttled?(post, item_date, last_lookup)

@@ -18,14 +18,30 @@ module Jekyll
         OpenSSL::SSL::SSLError,
       ].freeze
 
+      # Send a webmention to the target URL from the source URL indicated.
+      #
+      # Returns a response object with a code attribute indicating the numeric
+      # HTTP response code, and a body attribute containing the response
+      # payload. Webmentions contain no specific spec for what that response
+      # must look like, though services like webmention.io return JSON.
       def send_webmention(source, target)
         Webmention.send_webmention(source, target)
       end
 
+      # For a give URI on a site, returns the specific URI to be used when
+      # posting webmentions to that site.
+      #
+      # e.g. for "https://www.site.com" this might return
+      # "https://www.site.com/webmentions"
       def webmention_endpoint(uri)
         IndieWeb::Endpoints.get(uri)[:webmention]
       end
 
+      # A helper function which performs an HTTP GET operate on the target
+      # URI while handling 302 redirects (up to a specific limit).
+      #
+      # Returns the body if a 200 OK was received or nil if an error occurred
+      # (including if the redirect limit was reached).
       def http_get(uri, redirect_limit, original_uri = false)
         if !redirect_limit.positive?
           Jekyll::WebmentionIO.log('warn', "too many redirects for #{original_uri}") if original_uri
