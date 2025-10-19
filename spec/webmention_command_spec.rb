@@ -65,9 +65,11 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
       command.send_webmentions
       expect(outgoing_webmentions).to match({ source => { target => 1 } })
-      expect(bad_uris).to match(hash_including(
-                                  'www.test.com' => hash_including('state' => 'failure', 'attempts' => 1)
-                                ))
+      expect(bad_uris).to match(
+        hash_including(
+          'www.test.com' => hash_including('state' => 'failure', 'attempts' => 1)
+        )
+      )
     end
 
     it 'handles webmentions unsupported' do
@@ -75,9 +77,11 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
       allow(client).to receive(:webmention_endpoint).with(target).and_return(nil)
       command.send_webmentions
       expect(outgoing_webmentions).to match({ source => { target => 1 } })
-      expect(bad_uris).to match(hash_including(
-                                  'www.test.com' => hash_including('state' => 'unsupported', 'attempts' => 1)
-                                ))
+      expect(bad_uris).to match(
+        hash_including(
+          'www.test.com' => hash_including('state' => 'unsupported', 'attempts' => 1)
+        )
+      )
     end
 
     it 'handles webmention failure' do
@@ -86,9 +90,11 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
       allow(client).to receive(:send_webmention).with(source, target).and_return(Struct.new(:code, :body).new(404))
       command.send_webmentions
       expect(outgoing_webmentions).to match({ source => { target => 1 } })
-      expect(bad_uris).to match(hash_including(
-                                  'www.test.com' => hash_including('state' => 'error', 'attempts' => 1)
-                                ))
+      expect(bad_uris).to match(
+        hash_including(
+          'www.test.com' => hash_including('state' => 'error', 'attempts' => 1)
+        )
+      )
     end
 
     it 'handles ignore on failure' do
@@ -128,7 +134,15 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
     it 'handles retry while inside delay period' do
       outgoing_webmentions[source] = { target => false }
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
-      config.parse({ 'bad_uri_policy' => { 'failure' => { 'policy' => 'retry', 'max_attempts' => 2, 'retry_delay' => [1] } } })
+      config.parse({ 
+        'bad_uri_policy' => { 
+          'failure' => { 
+            'policy' => 'retry', 
+            'max_attempts' => 2, 
+            'retry_delay' => [1] 
+          } 
+        } 
+      })
       command.send_webmentions
       command.send_webmentions
       expect(outgoing_webmentions).to match({ source => { target => 1 } })
@@ -137,7 +151,15 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
     it 'handles retry outside delay period' do
       outgoing_webmentions[source] = { target => false }
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
-      config.parse({ 'bad_uri_policy' => { 'failure' => { 'policy' => 'retry', 'max_attempts' => 2, 'retry_delay' => [1] } } })
+      config.parse({ 
+        'bad_uri_policy' => { 
+          'failure' => { 
+            'policy' => 'retry', 
+            'max_attempts' => 2, 
+            'retry_delay' => [1] 
+          } 
+        } 
+      })
       command.send_webmentions
       Timecop.freeze(DateTime.now + (1.0 / 24.0)) { command.send_webmentions }
       expect(outgoing_webmentions).to match({ source => { target => 2 } })
@@ -146,7 +168,15 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
     it 'handles retry with multiple delay periods' do
       outgoing_webmentions[source] = { target => false }
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
-      config.parse({ 'bad_uri_policy' => { 'failure' => { 'policy' => 'retry', 'max_attempts' => 5, 'retry_delay' => [1, 2] } } })
+      config.parse({ 
+        'bad_uri_policy' => { 
+          'failure' => { 
+            'policy' => 'retry', 
+            'max_attempts' => 5, 
+            'retry_delay' => [1, 2] 
+          } 
+        } 
+      })
 
       command.send_webmentions
       Timecop.freeze(DateTime.now + (1.0 / 24.0)) { command.send_webmentions }
