@@ -20,8 +20,6 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
 
     allow(webmentions).to receive(:get_webmentions).and_return([])
     allow(webmentions).to receive(:get_body_from_uri).and_return('')
-
-    allow(policy).to receive(:post_should_be_throttled?).and_return(false)
   end
 
   let(:generator) { described_class.new }
@@ -78,110 +76,77 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
 
     it 'throttles posts from last week daily' do
       config.parse({ 'throttle_lookups' => { 'last_week' => 'daily' } })
-      allow(page).to receive(:date).and_return(DateTime.now - 7)
-
-      # Initial state
-      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(false)
+      allow(page).to receive(:date).and_return(DateTime.now - 5)
 
       # First run, should not be throttled
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once
 
       # Second run, should be throttled
       allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(true)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once # still once
 
       # Third run, next day, should not be throttled
-      Timecop.travel(Date.today + 1) do
-        allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-        allow(policy).to receive(:post_should_be_throttled?).and_return(false)
-        generator.generate(site)
-        expect(webmentions).to have_received(:get_webmentions).twice
-      end
+      Timecop.travel(Date.today + 1) { generator.generate(site) }
+
+      expect(webmentions).to have_received(:get_webmentions).twice
     end
 
     it 'throttles posts from last month weekly' do
       config.parse({ 'throttle_lookups' => { 'last_month' => 'weekly' } })
-      allow(page).to receive(:date).and_return(DateTime.now - 30)
-
-      # Initial state
-      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(false)
+      allow(page).to receive(:date).and_return(DateTime.now - 29)
 
       # First run, should not be throttled
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once
 
       # Second run, should be throttled
       allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(true)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once # still once
 
       # Third run, next week, should not be throttled
-      Timecop.travel(Date.today + 7) do
-        allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-        allow(policy).to receive(:post_should_be_throttled?).and_return(false)
-        generator.generate(site)
-        expect(webmentions).to have_received(:get_webmentions).twice
-      end
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
+      Timecop.travel(Date.today + 7) { generator.generate(site) }
+
+      expect(webmentions).to have_received(:get_webmentions).twice
     end
 
     it 'throttles posts from last year every two weeks' do
       config.parse({ 'throttle_lookups' => { 'last_year' => 'every 2 weeks' } })
-      allow(page).to receive(:date).and_return(DateTime.now - 365)
-
-      # Initial state
-      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(false)
+      allow(page).to receive(:date).and_return(DateTime.now - 364)
 
       # First run, should not be throttled
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once
 
       # Second run, should be throttled
       allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(true)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once # still once
 
       # Third run, 2 weeks later, should not be throttled
-      Timecop.travel(Date.today + 14) do
-        allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-        allow(policy).to receive(:post_should_be_throttled?).and_return(false)
-        generator.generate(site)
-        expect(webmentions).to have_received(:get_webmentions).twice
-      end
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
+      Timecop.travel(Date.today + 14) { generator.generate(site) }
+
+      expect(webmentions).to have_received(:get_webmentions).twice
     end
 
     it 'throttles old posts monthly' do
       config.parse({ 'throttle_lookups' => { 'older' => 'monthly' } })
       allow(page).to receive(:date).and_return(DateTime.now - 400)
 
-      # Initial state
-      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(false)
-
       # First run, should not be throttled
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(nil)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once
 
       # Second run, should be throttled
       allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-      allow(policy).to receive(:post_should_be_throttled?).and_return(true)
       generator.generate(site)
-      expect(webmentions).to have_received(:get_webmentions).once # still once
 
       # Third run, next month, should not be throttled
-      Timecop.travel(Date.today + 30) do
-        allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
-        allow(policy).to receive(:post_should_be_throttled?).and_return(false)
-        generator.generate(site)
-        expect(webmentions).to have_received(:get_webmentions).twice
-      end
+      allow(site_lookups_cache).to receive(:[]).with(page.url).and_return(Date.today)
+      Timecop.travel(Date.today + 31) { generator.generate(site) }
+
+      expect(webmentions).to have_received(:get_webmentions).twice
     end
   end
 

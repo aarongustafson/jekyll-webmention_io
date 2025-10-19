@@ -4,7 +4,7 @@ RSpec.shared_context 'webmention_io_stubs' do
   let(:config) { Jekyll::WebmentionIO::Config.new }
   let(:caches) { instance_double('Jekyll::WebmentionIO::Caches') }
   let(:webmentions) { instance_double('Jekyll::WebmentionIO::Webmentions') }
-  let(:policy) { instance_double('Jekyll::WebmentionIO::WebmentionPolicy') }
+  let(:policy) { Jekyll::WebmentionIO::WebmentionPolicy.new(config, caches) }
   let(:site) { instance_double('Jekyll::Site') }
 
   before do
