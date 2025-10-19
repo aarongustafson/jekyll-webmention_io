@@ -1,117 +1,156 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Jekyll::WebmentionIO::QueueWebmentions do
   before do
     Jekyll.logger.log_level = :error
 
-    @config = SpecHelper::MockConfig.new
-    @caches = SpecHelper::MockCaches.new
-    @webmentions = SpecHelper::MockWebmentions.new
+    @config = Jekyll::WebmentionIO::Config.new()
 
-    Jekyll::WebmentionIO.bootstrap(nil, @config, @caches, nil, @webmentions)
+    # Just stub this so we don't have to configure it repeatedly
+    allow(@config).to receive(:site_url).and_return("http://example.com")
+
+    # The real_config.documents and .collections will be empty initially,
+    # so we need to ensure the mocked @config returns the test-specific arrays.
+    # This overrides the proxy for documents and collections for test control.
+    @documents_array = []
+    @collections_hash = {}
+
+    allow(@config).to receive(:documents).and_return(@documents_array)
+    allow(@config).to receive(:collections).and_return(@collections_hash)
+
+    outgoing_webmentions_cache = {}
+
+    @caches = instance_double(Jekyll::WebmentionIO::Caches)
+
+    allow(outgoing_webmentions_cache).to receive(:write)
+    allow(@caches).to receive(:outgoing_webmentions).and_return(outgoing_webmentions_cache)
+
+    @webmentions = instance_double(Jekyll::WebmentionIO::Webmentions)
+
+    allow(Jekyll::WebmentionIO).to receive(:config).and_return(@config)
+    allow(Jekyll::WebmentionIO).to receive(:caches).and_return(@caches)
+    allow(Jekyll::WebmentionIO).to receive(:webmentions).and_return(@webmentions)
 
     @generator = Jekyll::WebmentionIO::QueueWebmentions.new
   end
 
   it 'supports inline URLs' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports in_reply_to front matter' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      data: { 'in_reply_to' => target }
-    )
+    page_data = { 'in_reply_to' => target }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports bookmark_of front matter' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      data: { 'bookmark_of' => target }
-    )
+    page_data = { 'bookmark_of' => target }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports syndicate_to front matter in post' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      data: { 'syndicate_to' => ['receiver'] }
-    )
+    page_data = { 'syndicate_to' => ['receiver'] }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
     @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports syndicate_to front matter in collection' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
+
     collection = Struct.new(:docs, :metadata).new([page], { 'syndicate_to' => ['receiver'] })
 
     @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
-    @config.documents.append(page)
-    @config.collections['test'] = collection
+    @documents_array.append(page)
+    @collections_hash['test'] = collection
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'ignores shorturi if setting not enabled' do
     # In this case the full URI is used even if a shorturi is specified
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      data: { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' }
-    )
+    page_data = { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
     @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports shorturi if setting enabled' do
     # In this case the shorturi is used as the source instead of the full uri
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      data: { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' }
-    )
+    page_data = { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
     @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'shorturl' => true } } })
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
@@ -121,28 +160,32 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'supports fragment setting' do
     # In this case a fragment specifier is appended to the source uri
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      data: { 'syndicate_to' => ['receiver'] }
-    )
+    page_data = { 'syndicate_to' => ['receiver'] }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: '',
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
     @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'fragment' => 'foo' } } })
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match("#{page.uri}#foo" => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url + '#foo' => { target => false })
   end
 
   it 'honours pause_lookups setting' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
     @config.pause_lookups = true
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
@@ -151,28 +194,32 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'ignores mentions already sent' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.uri => { target => false })
+    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'rejects malformed url' do
     # From issue #178, using the sample URL '//_'
     target = '//_'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
@@ -181,13 +228,14 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'ignores drafts' do
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})",
-      data: { 'draft' => true }
-    )
+    page_data = { 'draft' => true }
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    @config.documents.append(page)
+    @documents_array.append(page)
 
     @generator.generate
 
@@ -197,10 +245,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'maps syndication frontmatter for single mention' do
     target = 'http://www.test.com'
     url = 'http://yadda.yadda'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
     webmention = { target => { 'url' => url } }
 
     @config.parse(
@@ -213,22 +263,24 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    @caches.outgoing_webmentions[page.uri] = webmention
-    @config.documents.append(page)
+    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmention
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ page.uri => webmention })
+    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmention })
     expect(page.data['syndication']).to match(url)
   end
 
   it 'maps syndication frontmatter when pause_lookups is set' do
     target = 'http://www.test.com'
     url = 'http://yadda.yadda'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
     webmention = { target => { 'url' => url } }
 
     @config.parse(
@@ -242,22 +294,24 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    @caches.outgoing_webmentions[page.uri] = webmention
-    @config.documents.append(page)
+    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmention
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ page.uri => webmention })
+    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmention })
     expect(page.data['syndication']).to match(url)
   end
 
   it 'handles bad syndication remapping rule' do
     # If the returned payload doesn't contain a given key, we should ignore it
     target = 'http://www.test.com'
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
     webmention = { target => { 'foo' => 'bar' } }
 
     @config.parse(
@@ -270,12 +324,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    @caches.outgoing_webmentions[page.uri] = webmention
-    @config.documents.append(page)
+    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmention
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ page.uri => webmention })
+    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmention })
     expect(page.data['syndication']).to be_nil
   end
 
@@ -288,12 +342,14 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
     first_url = 'http://yadda.yadda'
     second_url = 'http://etc.etc'
 
-    page = SpecHelper::MockPage.new(
-      url: 'foo.bar.baz',
-      content: "This is a [test](#{first_target}) and [another test](#{second_target})"
-    )
+    page_data = {}
+    page = instance_double(Jekyll::Page,
+                           url: 'foo.bar.baz',
+                           content: "This is a [test](#{first_target}) and [another test](#{second_target})",
+                           data: page_data,
+                           path: 'foo.bar.baz')
 
-    webmentions = { 
+    webmentions = {
       first_target => { 'url' => first_url },
       second_target => { 'url' => second_url }
     }
@@ -313,12 +369,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
       }
     )
 
-    @caches.outgoing_webmentions[page.uri] = webmentions
-    @config.documents.append(page)
+    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmentions
+    @documents_array.append(page)
 
     @generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ page.uri => webmentions })
+    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmentions })
 
     expect(page.data['syndication']).to contain_exactly(first_url, second_url)
   end
