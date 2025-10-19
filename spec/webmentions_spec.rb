@@ -110,7 +110,7 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
 
   describe '#get_webmentions' do
     let(:targets) { ['https://example.com/page1', 'https://example.com/page2'] }
-    let(:since_id) { 12345 }
+    let(:since_id) { 12_345 }
     let(:api_response) do
       {
         'links' => [

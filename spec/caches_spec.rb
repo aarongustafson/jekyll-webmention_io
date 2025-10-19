@@ -113,7 +113,7 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
 
         collected = []
         cache.each { |k, v| collected << [k, v] }
-        expect(collected).to contain_exactly(['key1', 'value1'], ['key2', 'value2'])
+        expect(collected).to contain_exactly(%w[key1 value1], %w[key2 value2])
       end
 
       it 'supports key existence checking' do
