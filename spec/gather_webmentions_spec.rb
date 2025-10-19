@@ -5,13 +5,14 @@ require 'securerandom'
 require 'timecop'
 
 describe Jekyll::WebmentionIO::GatherWebmentions do
-  let(:config) { double('Jekyll::WebmentionIO::Config') }
-  let(:caches) { double('Jekyll::WebmentionIO::Caches') }
+  let(:config) { Jekyll::WebmentionIO::Config.new }
+  let(:caches) { instance_double('Jekyll::WebmentionIO::Caches') }
   let(:webmentions) { instance_double('Jekyll::WebmentionIO::Webmentions') }
   let(:site) { instance_double('Jekyll::Site') }
   let(:policy) { double('Jekyll::WebmentionIO::WebmentionPolicy') }
   let(:incoming_webmentions_cache) { spy('Cache') }
   let(:site_lookups_cache) { spy('Cache') }
+  let(:documents) { [] }
 
   before do
     Jekyll.logger.log_level = :error
@@ -25,9 +26,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     allow(caches).to receive(:incoming_webmentions).and_return(incoming_webmentions_cache)
     allow(caches).to receive(:site_lookups).and_return(site_lookups_cache)
 
-    allow(config).to receive(:pause_lookups).and_return(false)
-    allow(config).to receive(:legacy_domains).and_return([])
-    allow(config).to receive(:throttle_lookups).and_return({})
+    allow(config).to receive(:documents).and_return(documents)
     allow(config).to receive(:site_url).and_return('https://example.com')
 
     allow(webmentions).to receive(:get_webmentions).and_return([])
@@ -47,7 +46,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     end
 
     before do
-      allow(config).to receive(:documents).and_return([page])
+      documents << page
       allow(webmentions).to receive(:get_webmentions).and_return([webmention])
       allow(incoming_webmentions_cache).to receive(:dig).and_return(nil)
       allow(site_lookups_cache).to receive(:[]).and_return(nil)
@@ -67,7 +66,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     end
 
     it 'handles legacy domain' do
-      allow(config).to receive(:legacy_domains).and_return(['http://legacy.com'])
+      config.parse({ 'legacy_domains' => ['http://legacy.com'] })
       legacy_uri = 'http://legacy.com/page.html'
       generator.generate(site)
       expect(webmentions).to have_received(:get_webmentions).with([page.uri, legacy_uri], anything)
@@ -84,12 +83,12 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     let(:page) { double('Jekyll::Page', url: '/page.html', data: {}, uri: 'https://example.com/page.html', date: DateTime.now) }
 
     before do
-      allow(config).to receive(:documents).and_return([page])
+      documents << page
       allow(incoming_webmentions_cache).to receive(:dig).and_return(nil)
     end
 
     it 'throttles posts from last week daily' do
-      allow(config).to receive(:throttle_lookups).and_return({ 'last_week' => 'daily' })
+      config.parse({ 'throttle_lookups' => { 'last_week' => 'daily' } })
       allow(page).to receive(:date).and_return(DateTime.now - 7)
 
       # Initial state
@@ -116,7 +115,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     end
 
     it 'throttles posts from last month weekly' do
-      allow(config).to receive(:throttle_lookups).and_return({ 'last_month' => 'weekly' })
+      config.parse({ 'throttle_lookups' => { 'last_month' => 'weekly' } })
       allow(page).to receive(:date).and_return(DateTime.now - 30)
 
       # Initial state
@@ -143,7 +142,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     end
 
     it 'throttles posts from last year every two weeks' do
-      allow(config).to receive(:throttle_lookups).and_return({ 'last_year' => 'every 2 weeks' })
+      config.parse({ 'throttle_lookups' => { 'last_year' => 'every 2 weeks' } })
       allow(page).to receive(:date).and_return(DateTime.now - 365)
 
       # Initial state
@@ -170,7 +169,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     end
 
     it 'throttles old posts monthly' do
-      allow(config).to receive(:throttle_lookups).and_return({ 'older' => 'monthly' })
+      config.parse({ 'throttle_lookups' => { 'older' => 'monthly' } })
       allow(page).to receive(:date).and_return(DateTime.now - 400)
 
       # Initial state
@@ -198,7 +197,7 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
   end
 
   it 'honours pause_lookups setting' do
-    allow(config).to receive(:pause_lookups).and_return(true)
+    config.parse({ 'pause_lookups' => true })
     generator.generate(site)
     expect(webmentions).not_to have_received(:get_webmentions)
   end
