@@ -22,12 +22,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'supports inline URLs' do
     target = 'http://www.test.com'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
 
     documents.append(page)
 
@@ -38,12 +39,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'supports in_reply_to front matter' do
     target = 'http://www.test.com'
-    page_data = { 'in_reply_to' => target }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: { 'in_reply_to' => target },
+      path: 'foo.bar.baz'
+    )
 
     documents.append(page)
 
@@ -54,12 +56,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'supports bookmark_of front matter' do
     target = 'http://www.test.com'
-    page_data = { 'bookmark_of' => target }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: { 'bookmark_of' => target },
+      path: 'foo.bar.baz'
+    )
 
     documents.append(page)
 
@@ -70,12 +73,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'supports syndicate_to front matter in post' do
     target = 'http://www.test.com'
-    page_data = { 'syndicate_to' => ['receiver'] }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: { 'syndicate_to' => ['receiver'] },
+      path: 'foo.bar.baz'
+    )
 
     config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
     documents.append(page)
@@ -87,12 +91,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'supports syndicate_to front matter in collection' do
     target = 'http://www.test.com'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: {},
+      path: 'foo.bar.baz'
+    )
 
     collection = Struct.new(:docs, :metadata).new([page], { 'syndicate_to' => ['receiver'] })
 
@@ -108,12 +113,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'ignores shorturi if setting not enabled' do
     # In this case the full URI is used even if a shorturi is specified
     target = 'http://www.test.com'
-    page_data = { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' },
+      path: 'foo.bar.baz'
+    )
 
     config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
     documents.append(page)
@@ -126,12 +132,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'supports shorturi if setting enabled' do
     # In this case the shorturi is used as the source instead of the full uri
     target = 'http://www.test.com'
-    page_data = { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: { 'syndicate_to' => ['receiver'], 'shorturl' => 'shortie' },
+      path: 'foo.bar.baz'
+    )
 
     config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'shorturl' => true } } })
     documents.append(page)
@@ -144,29 +151,31 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'supports fragment setting' do
     # In this case a fragment specifier is appended to the source uri
     target = 'http://www.test.com'
-    page_data = { 'syndicate_to' => ['receiver'] }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: '',
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: '',
+      data: { 'syndicate_to' => ['receiver'] },
+      path: 'foo.bar.baz'
+    )
 
     config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'fragment' => 'foo' } } })
     documents.append(page)
 
     generator.generate
 
-    expect(outgoing_webmentions_cache).to match("http://example.com/#{page.url}" + '#foo' => { target => false })
+    expect(outgoing_webmentions_cache).to match("http://example.com/#{page.url}#foo" => { target => false })
   end
 
   it 'honours pause_lookups setting' do
     target = 'http://www.test.com'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
 
     config.parse({ 'pause_lookups' => true })
     documents.append(page)
@@ -178,12 +187,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'ignores mentions already sent' do
     target = 'http://www.test.com'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
 
     documents.append(page)
 
@@ -196,12 +206,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'rejects malformed url' do
     # From issue #178, using the sample URL '//_'
     target = '//_'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
 
     documents.append(page)
 
@@ -212,12 +223,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
   it 'ignores drafts' do
     target = 'http://www.test.com'
-    page_data = { 'draft' => true }
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: { 'draft' => true },
+      path: 'foo.bar.baz'
+    )
 
     documents.append(page)
 
@@ -229,12 +241,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'maps syndication frontmatter for single mention' do
     target = 'http://www.test.com'
     url = 'http://yadda.yadda'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
     webmention = { target => { 'url' => url } }
 
     config.parse(
@@ -259,12 +272,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'maps syndication frontmatter when pause_lookups is set' do
     target = 'http://www.test.com'
     url = 'http://yadda.yadda'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
     webmention = { target => { 'url' => url } }
 
     config.parse(
@@ -278,6 +292,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
+
     outgoing_webmentions_cache["http://example.com/#{page.url}"] = webmention
     documents.append(page)
 
@@ -290,12 +305,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
   it 'handles bad syndication remapping rule' do
     # If the returned payload doesn't contain a given key, we should ignore it
     target = 'http://www.test.com'
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
     webmention = { target => { 'foo' => 'bar' } }
 
     config.parse(
@@ -326,12 +342,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
     first_url = 'http://yadda.yadda'
     second_url = 'http://etc.etc'
 
-    page_data = {}
-    page = instance_double(Jekyll::Page,
-                           url: 'foo.bar.baz',
-                           content: "This is a [test](#{first_target}) and [another test](#{second_target})",
-                           data: page_data,
-                           path: 'foo.bar.baz')
+    page = instance_double(
+      Jekyll::Page,
+      url: 'foo.bar.baz',
+      content: "This is a [test](#{first_target}) and [another test](#{second_target})",
+      data: {},
+      path: 'foo.bar.baz'
+    )
 
     webmentions = {
       first_target => { 'url' => first_url },
