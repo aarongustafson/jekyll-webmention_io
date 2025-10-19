@@ -3,38 +3,22 @@
 require 'spec_helper'
 
 describe Jekyll::WebmentionIO::QueueWebmentions do
+  include_context 'webmention_io_stubs'
+
+  let(:outgoing_webmentions_cache) { {} }
+  let(:documents) { [] }
+  let(:collections) { {} }
+
   before do
-    Jekyll.logger.log_level = :error
+    allow(config).to receive(:documents).and_return(documents)
+    allow(config).to receive(:collections).and_return(collections)
+    allow(config).to receive(:site_url).and_return('http://example.com')
 
-    @config = Jekyll::WebmentionIO::Config.new()
-
-    # Just stub this so we don't have to configure it repeatedly
-    allow(@config).to receive(:site_url).and_return("http://example.com")
-
-    # The real_config.documents and .collections will be empty initially,
-    # so we need to ensure the mocked @config returns the test-specific arrays.
-    # This overrides the proxy for documents and collections for test control.
-    @documents_array = []
-    @collections_hash = {}
-
-    allow(@config).to receive(:documents).and_return(@documents_array)
-    allow(@config).to receive(:collections).and_return(@collections_hash)
-
-    outgoing_webmentions_cache = {}
-
-    @caches = instance_double(Jekyll::WebmentionIO::Caches)
-
+    allow(caches).to receive(:outgoing_webmentions).and_return(outgoing_webmentions_cache)
     allow(outgoing_webmentions_cache).to receive(:write)
-    allow(@caches).to receive(:outgoing_webmentions).and_return(outgoing_webmentions_cache)
-
-    @webmentions = instance_double(Jekyll::WebmentionIO::Webmentions)
-
-    allow(Jekyll::WebmentionIO).to receive(:config).and_return(@config)
-    allow(Jekyll::WebmentionIO).to receive(:caches).and_return(@caches)
-    allow(Jekyll::WebmentionIO).to receive(:webmentions).and_return(@webmentions)
-
-    @generator = Jekyll::WebmentionIO::QueueWebmentions.new
   end
+
+  let(:generator) { described_class.new }
 
   it 'supports inline URLs' do
     target = 'http://www.test.com'
@@ -45,11 +29,11 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @documents_array.append(page)
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports in_reply_to front matter' do
@@ -61,11 +45,11 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @documents_array.append(page)
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports bookmark_of front matter' do
@@ -77,11 +61,11 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @documents_array.append(page)
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports syndicate_to front matter in post' do
@@ -93,12 +77,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
-    @documents_array.append(page)
+    config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports syndicate_to front matter in collection' do
@@ -112,13 +96,13 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
     collection = Struct.new(:docs, :metadata).new([page], { 'syndicate_to' => ['receiver'] })
 
-    @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
-    @documents_array.append(page)
-    @collections_hash['test'] = collection
+    config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
+    documents.append(page)
+    collections['test'] = collection
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'ignores shorturi if setting not enabled' do
@@ -131,12 +115,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
-    @documents_array.append(page)
+    config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target } } })
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'supports shorturi if setting enabled' do
@@ -149,12 +133,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'shorturl' => true } } })
-    @documents_array.append(page)
+    config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'shorturl' => true } } })
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match(page.data['shorturl'] => { target => false })
+    expect(outgoing_webmentions_cache).to match(page.data['shorturl'] => { target => false })
   end
 
   it 'supports fragment setting' do
@@ -167,12 +151,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'fragment' => 'foo' } } })
-    @documents_array.append(page)
+    config.parse({ 'syndication' => { 'receiver' => { 'endpoint' => target, 'fragment' => 'foo' } } })
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url + '#foo' => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url + '#foo' => { target => false })
   end
 
   it 'honours pause_lookups setting' do
@@ -184,12 +168,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @config.pause_lookups = true
-    @documents_array.append(page)
+    config.parse({ 'pause_lookups' => true })
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to be_empty
+    expect(outgoing_webmentions_cache).to be_empty
   end
 
   it 'ignores mentions already sent' do
@@ -201,12 +185,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @documents_array.append(page)
+    documents.append(page)
 
-    @generator.generate
-    @generator.generate
+    generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match('http://example.com/' + page.url => { target => false })
+    expect(outgoing_webmentions_cache).to match('http://example.com/' + page.url => { target => false })
   end
 
   it 'rejects malformed url' do
@@ -219,11 +203,11 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @documents_array.append(page)
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to be_empty
+    expect(outgoing_webmentions_cache).to be_empty
   end
 
   it 'ignores drafts' do
@@ -235,11 +219,11 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            data: page_data,
                            path: 'foo.bar.baz')
 
-    @documents_array.append(page)
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to be_empty
+    expect(outgoing_webmentions_cache).to be_empty
   end
 
   it 'maps syndication frontmatter for single mention' do
@@ -253,7 +237,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            path: 'foo.bar.baz')
     webmention = { target => { 'url' => url } }
 
-    @config.parse(
+    config.parse(
       {
         'syndication' => {
           'receiver' => {
@@ -263,12 +247,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmention
-    @documents_array.append(page)
+    outgoing_webmentions_cache['http://example.com/' + page.url] = webmention
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmention })
+    expect(outgoing_webmentions_cache).to match({ 'http://example.com/' + page.url => webmention })
     expect(page.data['syndication']).to match(url)
   end
 
@@ -283,7 +267,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            path: 'foo.bar.baz')
     webmention = { target => { 'url' => url } }
 
-    @config.parse(
+    config.parse(
       {
         'pause_lookups' => true,
         'syndication' => {
@@ -294,12 +278,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmention
-    @documents_array.append(page)
+    outgoing_webmentions_cache['http://example.com/' + page.url] = webmention
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmention })
+    expect(outgoing_webmentions_cache).to match({ 'http://example.com/' + page.url => webmention })
     expect(page.data['syndication']).to match(url)
   end
 
@@ -314,7 +298,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
                            path: 'foo.bar.baz')
     webmention = { target => { 'foo' => 'bar' } }
 
-    @config.parse(
+    config.parse(
       {
         'syndication' => {
           'receiver' => {
@@ -324,12 +308,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmention
-    @documents_array.append(page)
+    outgoing_webmentions_cache['http://example.com/' + page.url] = webmention
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmention })
+    expect(outgoing_webmentions_cache).to match({ 'http://example.com/' + page.url => webmention })
     expect(page.data['syndication']).to be_nil
   end
 
@@ -354,7 +338,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
       second_target => { 'url' => second_url }
     }
 
-    @config.parse(
+    config.parse(
       {
         'syndication' => {
           'receiver' => {
@@ -369,12 +353,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
       }
     )
 
-    @caches.outgoing_webmentions['http://example.com/' + page.url] = webmentions
-    @documents_array.append(page)
+    outgoing_webmentions_cache['http://example.com/' + page.url] = webmentions
+    documents.append(page)
 
-    @generator.generate
+    generator.generate
 
-    expect(@caches.outgoing_webmentions).to match({ 'http://example.com/' + page.url => webmentions })
+    expect(outgoing_webmentions_cache).to match({ 'http://example.com/' + page.url => webmentions })
 
     expect(page.data['syndication']).to contain_exactly(first_url, second_url)
   end

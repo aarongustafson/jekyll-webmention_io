@@ -5,6 +5,9 @@ require 'jekyll-webmention_io'
 require 'html-proofer'
 require 'json'
 
+Dir[File.expand_path("support/**/*.rb", __dir__)].each { |f| require f }
+
+
 def dest_dir
   File.expand_path("../tmp/dest", __dir__)
 end

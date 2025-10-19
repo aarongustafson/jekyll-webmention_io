@@ -4,22 +4,15 @@ require 'spec_helper'
 require 'timecop'
 
 describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
-  let(:config) { Jekyll::WebmentionIO::Config.new }
-  let(:caches) { instance_double(Jekyll::WebmentionIO::Caches) }
+  include_context 'webmention_io_stubs'
+
+  let(:policy) { Jekyll::WebmentionIO::WebmentionPolicy.new(config, caches) }
+
   let(:outgoing_webmentions) { {} }
   let(:bad_uris) { {} }
-  let(:webmentions) { instance_double(Jekyll::WebmentionIO::Webmentions) }
-  let(:policy) { Jekyll::WebmentionIO::WebmentionPolicy.new(config, caches) }
-  let(:command) { Jekyll::WebmentionIO::Commands::WebmentionCommand }
+  let(:command) { described_class }
 
   before do
-    Jekyll.logger.log_level = :error
-
-    allow(Jekyll::WebmentionIO).to receive(:config).and_return(config)
-    allow(Jekyll::WebmentionIO).to receive(:caches).and_return(caches)
-    allow(Jekyll::WebmentionIO).to receive(:webmentions).and_return(webmentions)
-    allow(Jekyll::WebmentionIO).to receive(:policy).and_return(policy)
-
     allow(caches).to receive(:outgoing_webmentions).and_return(outgoing_webmentions)
     allow(caches).to receive(:bad_uris).and_return(bad_uris)
     allow(outgoing_webmentions).to receive(:write)
