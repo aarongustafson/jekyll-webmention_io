@@ -67,6 +67,7 @@ module Jekyll
         def_delegator :@data, :[]
         def_delegator :@data, :[]=
         def_delegator :@data, :empty?
+        def_delegator :@data, :map
 
         def initialize(path)
           # NOTE: This is a deviation from the old code! Previously if the configured
