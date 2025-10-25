@@ -67,7 +67,7 @@ module Jekyll
         @collections = config['collections'] || {}
         @templates = config['templates'] || {}
 
-        @js = JsConfig.new(base_url, config['js'] || {})
+        @js = JsConfig.new(base_url, config['js'] || false)
 
         @html_proofer_ignore = HtmlProofer.get_const(
           config['html_proofer_ignore'] ||
@@ -224,9 +224,13 @@ module Jekyll
 
           @disabled = false
           @destination = js_config['destination'] || 'js'
-          @deploy = js_config['deploy'] || true
-          @source = js_config['source'] || true
-          @uglify = js_config['uglify'] || true
+
+          # rubocop:disable Style/RedundantCondition
+          # Apparently this cop is broken...
+          @deploy = js_config['deploy'].nil? ? true : js_config['deploy']
+          @source = js_config['source'].nil? ? true : js_config['source']
+          @uglify = js_config['uglify'].nil? ? true : js_config['uglify']
+          # rubocop:enable Style/RedundantCondition
 
           @resource_name = 'JekyllWebmentionIO.js'
           @resource_url = File.join('', base_url, @destination, @resource_name)
