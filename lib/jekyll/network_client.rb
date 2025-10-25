@@ -44,7 +44,7 @@ module Jekyll
       #
       # Returns the body if a 200 OK was received or nil if an error occurred
       # (including if the redirect limit was reached).
-      def http_get(uri, redirect_limit, original_uri = false)
+      def http_get(uri, redirect_limit, original_uri: false)
         if !redirect_limit.positive?
           Jekyll::WebmentionIO.log('warn', "too many redirects for #{original_uri}") if original_uri
 
@@ -67,7 +67,7 @@ module Jekyll
               response[:body].to_s
             end
 
-          http_get(redirect_to, redirect_limit - 1, original_uri)
+          http_get(redirect_to, redirect_limit - 1, original_uri: original_uri)
         end
       end
 

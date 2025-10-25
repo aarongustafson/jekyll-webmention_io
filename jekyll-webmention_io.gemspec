@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.summary       = 'A Jekyll plugin for sending & receiving webmentions via Webmention.io.'
   s.description   = <<~DESCRIPTION
     This Gem includes a suite of tools for managing webmentions in Jekyll:
-    
+
     * Tags
       * Count of webmentions (filterable)
       * All webmentions (filterable)
@@ -54,6 +54,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'kramdown-parser-gfm', '~> 1.1'
   s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rspec', '~> 3.5'
-  s.add_development_dependency 'rubocop', '~> 0.48'
+  s.add_development_dependency 'rubocop', '~> 1.81'
   s.add_development_dependency 'timecop', '~> 0.9'
 end

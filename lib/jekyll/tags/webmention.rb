@@ -12,10 +12,6 @@ require 'htmlbeautifier'
 module Jekyll
   module WebmentionIO
     class WebmentionTag < Liquid::Tag
-      def initialize(tag_name, text, tokens)
-        super
-      end
-
       def lookup(context, name)
         lookup = context
         name&.split('.')&.each do |value|

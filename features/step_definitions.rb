@@ -61,10 +61,10 @@ Given(/^I have the following (draft|page|post)s?(?: (in|under) "([^"]+)")?:$/) d
 
     if status == 'post'
       parsed_date = begin
-                      Time.xmlschema(input_hash['date'])
-                    rescue StandardError
-                      Time.parse(input_hash['date'])
-                    end
+        Time.xmlschema(input_hash['date'])
+      rescue StandardError
+        Time.parse(input_hash['date'])
+      end
       input_hash['date'] = parsed_date
       filename = "#{parsed_date.strftime('%Y-%m-%d')}-#{title}.#{ext}"
     end
@@ -78,10 +78,10 @@ Given(/^I have the following (draft|post)s? within the "(.*)" directory:$/) do |
   table.hashes.each do |input_hash|
     title = slug(input_hash['title'])
     parsed_date = begin
-                    Time.xmlschema(input_hash['date'])
-                  rescue StandardError
-                    Time.parse(input_hash['date'])
-                  end
+      Time.xmlschema(input_hash['date'])
+    rescue StandardError
+      Time.parse(input_hash['date'])
+    end
 
     filename = type == 'draft' ? "#{title}.markdown" : "#{parsed_date.strftime('%Y-%m-%d')}-#{title}.markdown"
 
@@ -122,7 +122,7 @@ Given(/^I have a fixture configuration file with subkey "(.*)" set to:$/) do |ke
   File.write('_config.yml', YAML.dump(config))
 end
 
-Given(/^I have a fixture configuration file with "([^\"]*)" set to:$/) do |key, table|
+Given(/^I have a fixture configuration file with "([^"]*)" set to:$/) do |key, table|
   plugin_setting = %w(jekyll-webmention_io)
   File.open('_config.yml', 'w') do |f|
     f.write("plugins: #{plugin_setting}")
@@ -179,10 +179,10 @@ Then(/^I should (not )?see "(.*)" in the build output$/) do |negative, text|
   end
 end
 
-Then(/^I should get a zero exit(?:\-| )status$/) do
+Then(/^I should get a zero exit(?:-| )status$/) do
   step %(I should see "EXIT STATUS: 0" in the build output)
 end
 
-Then(/^I should get a non-zero exit(?:\-| )status$/) do
+Then(/^I should get a non-zero exit(?:-| )status$/) do
   step %(I should not see "EXIT STATUS: 0" in the build output)
 end

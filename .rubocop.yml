@@ -2,16 +2,12 @@
 
 AllCops:
   TargetRubyVersion: 2.7
+  SuggestExtensions: false
 
 # Legacy filename here, so we're just going to ignore it
 Naming/FileName:
   Exclude: 
     - lib/jekyll-webmention_io.rb
-
-# This cop, on this file, currently crashes Rubocop
-Layout/BlockAlignment:
-  Exclude:
-    - spec/support/shared_contexts.rb
 
 Naming/MethodParameterName:
   MinNameLength: 1

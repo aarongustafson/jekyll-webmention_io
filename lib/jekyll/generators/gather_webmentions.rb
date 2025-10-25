@@ -39,7 +39,7 @@ module Jekyll
         last_webmention =
           @caches
           .incoming_webmentions
-          .dig(post.url, @caches.incoming_webmentions.dig(post.url)&.keys&.last)
+          .dig(post.url, @caches.incoming_webmentions[post.url]&.keys&.last)
 
         # get the last webmention
         last_lookup = if @caches.site_lookups[post.url]
@@ -49,11 +49,9 @@ module Jekyll
                       end
 
         # should we throttle?
-        if post.respond_to? 'date' # Some docs have no date
-          if last_lookup && WebmentionIO.policy.post_should_be_throttled?(post, post.date, last_lookup)
-            WebmentionIO.log 'info', 'Throttling this post.'
-            return
-          end
+        if post.respond_to?('date') && last_lookup && WebmentionIO.policy.post_should_be_throttled?(post, post.date, last_lookup)
+          WebmentionIO.log 'info', 'Throttling this post.'
+          return
         end
 
         # Get the last id we have in the hash

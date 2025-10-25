@@ -109,7 +109,7 @@ module Jekyll
                 uri = target.shorturl ? shorturi : fulluri
 
                 if !target.fragment.nil?
-                  uri += '#' + target.fragment
+                  uri += "##{target.fragment}"
                 end
               else
                 uri = fulluri
