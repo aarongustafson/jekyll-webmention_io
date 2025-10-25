@@ -24,6 +24,7 @@ tmp
 _yardoc
 doc/
 .vscode/settings.json
+.overcommit.yml
 
 # IDE settings
 /.idea/
