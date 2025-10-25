@@ -6,6 +6,7 @@ RSpec.shared_context 'webmention_io_stubs' do
   let(:webmentions) { instance_double('Jekyll::WebmentionIO::Webmentions') }
   let(:policy) { Jekyll::WebmentionIO::WebmentionPolicy.new(config, caches) }
   let(:site) { instance_double('Jekyll::Site') }
+  let(:templates) { Jekyll::WebmentionIO::Templates.new(nil) }
 
   before do
     Jekyll.logger.log_level = :error
@@ -15,5 +16,6 @@ RSpec.shared_context 'webmention_io_stubs' do
     allow(Jekyll::WebmentionIO).to receive(:webmentions).and_return(webmentions)
     allow(Jekyll::WebmentionIO).to receive(:policy).and_return(policy)
     allow(Jekyll::WebmentionIO).to receive(:site).and_return(site)
+    allow(Jekyll::WebmentionIO).to receive(:templates).and_return(templates)
   end
 end
