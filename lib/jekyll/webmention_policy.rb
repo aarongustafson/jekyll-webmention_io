@@ -6,10 +6,10 @@ module Jekyll
     # state management logic for dealing with request failures.
     class WebmentionPolicy
       module State
-        UNSUPPORTED = "unsupported"
-        ERROR = "error"
-        FAILURE = "failure"
-        SUCCESS = "success"
+        UNSUPPORTED = 'unsupported'
+        ERROR = 'error'
+        FAILURE = 'failure'
+        SUCCESS = 'success'
       end
 
       def initialize(config, caches)
@@ -41,19 +41,19 @@ module Jekyll
         # First pull the retry policy given the type of the last error for the URI
         policy_entry = @config.bad_uri_policy.for_state(entry['state'])
 
-        if policy_entry.policy == Config::UriPolicy::BAN
-          return false
-        elsif policy_entry.policy == Config::UriPolicy::IGNORE
-          return true
-        elsif policy_entry.policy == Config::UriPolicy::RETRY
+        return false if policy_entry.policy == Config::UriPolicy::BAN
+
+        return true if policy_entry.policy == Config::UriPolicy::IGNORE
+
+        if policy_entry.policy == Config::UriPolicy::RETRY
           now = Time.now
 
-          attempts = entry["attempts"]
+          attempts = entry['attempts']
           max_attempts = policy_entry.max_attempts
 
-          if ! max_attempts.nil? and attempts >= max_attempts
+          if !max_attempts.nil? && (attempts >= max_attempts)
             # If there's a retry limit and we've hit it, URI is not ok.
-            Jekyll::WebmentionIO.log "msg", "Skipping #{uri}, attempted #{attempts} times and max is #{max_attempts}"
+            Jekyll::WebmentionIO.log 'msg', "Skipping #{uri}, attempted #{attempts} times and max is #{max_attempts}"
 
             return false
           end
@@ -64,18 +64,18 @@ module Jekyll
           # the retry_delay list is used for all remaining retries.
           delay = retry_delay[(attempts - 1).clamp(0, retry_delay.length - 1)]
 
-          recheck_at = (entry["last_checked"] + delay * 3600)
+          recheck_at = (entry['last_checked'] + delay * 3600)
 
           if recheck_at.to_r > now.to_r
-            Jekyll::WebmentionIO.log "msg", "Skipping #{uri}, next attempt will happen after #{recheck_at}"
+            Jekyll::WebmentionIO.log 'msg', "Skipping #{uri}, next attempt will happen after #{recheck_at}"
 
             return false
           end
         else
-          Jekyll::WebmentionIO.log "error", "Invalid bad URI policy type: #{policy}"
+          Jekyll::WebmentionIO.log 'error', "Invalid bad URI policy type: #{policy}"
         end
 
-        return true
+        true
       end
 
       # Update our URI cache to indicate that the last request for the given
@@ -131,7 +131,7 @@ module Jekyll
       def get_bad_uri_cache_entry(uri)
         bad_uris = @caches.bad_uris
 
-        return nil if ! bad_uris.key? uri.host
+        return nil if !bad_uris.key? uri.host
 
         entry = bad_uris[uri.host].clone
 
@@ -140,9 +140,9 @@ module Jekyll
           # "sensible" defaults.
 
           entry = {
-            "state" => State::UNSUPPORTED,
-            "last_checked" => DateTime.parse(entry).to_time,
-            "attempts" => 1
+            'state' => State::UNSUPPORTED,
+            'last_checked' => DateTime.parse(entry).to_time,
+            'attempts' => 1
           }
         else
           # Otherwise, parse the check time into a real Time object before
@@ -150,10 +150,10 @@ module Jekyll
           #
           # We convert to a Time object so we can do arithmetic on it later.
 
-          entry["last_checked"] = DateTime.parse(entry["last_checked"]).to_time
+          entry['last_checked'] = DateTime.parse(entry['last_checked']).to_time
         end
 
-        return entry
+        entry
       end
 
       # Update the URI cache for this entry.
@@ -180,9 +180,9 @@ module Jekyll
           old_entry = get_bad_uri_cache_entry(uri) || {}
 
           bad_uris[uri.host] = {
-            "state" => state,
-            "attempts" => old_entry.fetch("attempts", 0) + 1,
-            "last_checked" => Time.now.to_s
+            'state' => state,
+            'attempts' => old_entry.fetch('attempts', 0) + 1,
+            'last_checked' => Time.now.to_s
           }
         end
 

@@ -11,20 +11,19 @@ module Jekyll
   module WebmentionIO
     class WebmentionHeadTag < Liquid::Tag
       def render(context)
-        head = +"" # unfrozen String
+        head = +'' # unfrozen String
         head << '<link rel="dns-prefetch" href="https://webmention.io">'
         head << '<link rel="preconnect" href="https://webmention.io">'
         head << '<link rel="preconnect" href="ws://webmention.io:8080">'
 
-        page = context["page"]
-        site = context.registers[:site]
+        page = context['page']
         site_url = WebmentionIO.config.site_url
 
-        if page["redirect_from"]
-          if page["redirect_from"].is_a? String
-            redirect = site_url + page["redirect_from"]
-          elsif page["redirect_from"].is_a? Array
-            redirect = site_url + page["redirect_from"].join(",#{site_url}")
+        if page['redirect_from']
+          if page['redirect_from'].is_a? String
+            redirect = site_url + page['redirect_from']
+          elsif page['redirect_from'].is_a? Array
+            redirect = site_url + page['redirect_from'].join(",#{site_url}")
           end
           head << "<meta property=\"webmention:redirected_from\" content=\"#{redirect}\">"
         end
@@ -42,4 +41,4 @@ module Jekyll
   end
 end
 
-Liquid::Template.register_tag("webmentions_head", Jekyll::WebmentionIO::WebmentionHeadTag)
+Liquid::Template.register_tag('webmentions_head', Jekyll::WebmentionIO::WebmentionHeadTag)

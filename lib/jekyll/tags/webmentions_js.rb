@@ -17,4 +17,4 @@ module Jekyll
   end
 end
 
-Liquid::Template.register_tag("webmentions_js", Jekyll::WebmentionIO::WebmentionJSTag)
+Liquid::Template.register_tag('webmentions_js', Jekyll::WebmentionIO::WebmentionJSTag)

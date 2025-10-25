@@ -14,7 +14,7 @@ module Jekyll
     class WebmentionTypeTag < WebmentionTag
       def set_data(data, _types, html_proofer_ignore)
         webmentions = extract_type @template_name, data
-        @data = { "webmentions" => webmentions.values, "html_proofer_ignore" => html_proofer_ignore }
+        @data = { 'webmentions' => webmentions.values, 'html_proofer_ignore' => html_proofer_ignore }
       end
     end
   end

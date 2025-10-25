@@ -7,9 +7,9 @@
 #  This generator gathers webmentions of your pages
 #
 
-require "uglifier"
-require "fileutils"
-require "active_support"
+require 'uglifier'
+require 'fileutils'
+require 'active_support'
 
 module Jekyll
   module WebmentionIO
@@ -27,18 +27,18 @@ module Jekyll
         @site = site
 
         if WebmentionIO.config.js.disabled?
-          WebmentionIO.log "info", "Skipping JavaScript inclusion."
+          WebmentionIO.log 'info', 'Skipping JavaScript inclusion.'
           return
         end
 
         if @site.config['serving']
-          Jekyll::WebmentionIO.log "msg", "A WebmentionIO.js source file will not be generated during `jekyll serve`."
+          Jekyll::WebmentionIO.log 'msg', 'A WebmentionIO.js source file will not be generated during `jekyll serve`.'
         end
 
-        @file_name = WebmentionIO.config.js.resource_name 
+        @file_name = WebmentionIO.config.js.resource_name
 
         @source_file_base_dir = if WebmentionIO.config.js.source? && !@site.config['serving']
-                                  @site.in_source_dir()
+                                  @site.in_source_dir
                                 else
                                   Dir.mktmpdir
                                 end
@@ -46,7 +46,7 @@ module Jekyll
         @destination = WebmentionIO.config.js.destination
         @source_file_destination = File.join(@source_file_base_dir, @destination)
 
-        @javascript = +"" # unfrozen String
+        @javascript = +'' # unfrozen String
 
         concatenate_asset_files
         add_webmention_types
@@ -63,30 +63,30 @@ module Jekyll
         WebmentionIO.types.each do |type|
           js_types.push "'#{type}': '#{ActiveSupport::Inflector.singularize(type)}'"
         end
-        types_js = <<-EOF
+        types_js = <<-TYPES_JS
           ;(function(window,JekyllWebmentionIO){
             if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }
             JekyllWebmentionIO.types = { TYPES };
           }(this, this.JekyllWebmentionIO));
-        EOF
-        @javascript << types_js.sub("TYPES", js_types.join(","))
+        TYPES_JS
+        @javascript << types_js.sub('TYPES', js_types.join(','))
       end
 
       def concatenate_asset_files
-        assets_dir = File.expand_path("../assets/", __dir__)
+        assets_dir = File.expand_path('../assets/', __dir__)
         Dir["#{assets_dir}/*.js"].each do |file|
-          file_handler = File.open(file, "rb")
+          file_handler = File.open(file, 'rb')
           @javascript << File.read(file_handler)
         end
       end
 
       def uglify
-        @javascript = Uglifier.new(:harmony => true).compile(@javascript)
+        @javascript = Uglifier.new(harmony: true).compile(@javascript)
       end
 
       def create_js_file
         FileUtils.mkdir_p(@source_file_destination) unless File.exist?(@source_file_destination)
-        File.open(File.join(@source_file_destination, @file_name), "wb") { |f| f.write(@javascript) }
+        File.open(File.join(@source_file_destination, @file_name), 'wb') { |f| f.write(@javascript) }
       end
 
       def deploy_js_file

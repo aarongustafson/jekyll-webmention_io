@@ -50,7 +50,8 @@ module Jekyll
               if body.key? 'error'
                 Jekyll::WebmentionIO.log 'msg', "Endpoint returned error: #{body['error']}"
               end
-            rescue
+            rescue StandardError => e
+              WebmentionIO.log 'error', e.message
             end
           end
 

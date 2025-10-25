@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "json"
+require 'json'
 
 module Jekyll
   module WebmentionIO
@@ -8,8 +8,8 @@ module Jekyll
       class WebmentionCommand < Command
         def self.init_with_program(prog)
           prog.command(:webmention) do |c|
-            c.syntax "webmention"
-            c.description "Sends queued webmentions"
+            c.syntax 'webmention'
+            c.description 'Sends queued webmentions'
 
             c.action { |args, options| process args, options }
           end
@@ -25,58 +25,59 @@ module Jekyll
         end
 
         def self.send_webmentions
-          WebmentionIO.log "msg", "Getting ready to send webmentions (this may take a while)."
+          WebmentionIO.log 'msg', 'Getting ready to send webmentions (this may take a while).'
 
           count = 0
           max_attempts = WebmentionIO.config.max_attempts
           outgoing = WebmentionIO.caches.outgoing_webmentions
 
-          if ! outgoing.empty?
-            outgoing.each do |source, targets|
-              targets.each do |target, response|
-                # skip ones we’ve handled
-                next unless response == false or response.instance_of? Integer
+          return if outgoing.empty?
 
-                # skip protocol-less links, we'll need to revisit this again later
-                idx = target.index("//")
-                next if idx.nil? || idx.zero?
+          outgoing.each do |source, targets|
+            targets.each do |target, response|
+              # skip ones we’ve handled
+              next unless response == false || response.instance_of?(Integer)
 
-                # produce an escaped version of the target (in case of special
-                # characters, etc).
-                escaped = URI::Parser.new.escape(target);
+              # skip protocol-less links, we'll need to revisit this again later
+              idx = target.index('//')
+              next if idx.nil? || idx.zero?
 
-                # skip bad URLs
-                next unless WebmentionIO.policy.uri_ok?(escaped)
+              # produce an escaped version of the target (in case of special
+              # characters, etc).
+              escaped = URI::Parser.new.escape(target);
 
-                # give up if we've attempted this too many times
-                response = (response || 0) + 1
+              # skip bad URLs
+              next unless WebmentionIO.policy.uri_ok?(escaped)
 
-                if ! max_attempts.nil? and response > max_attempts
-                  outgoing[source][target] = ""
-                  WebmentionIO.log "msg", "Giving up sending from #{source} to #{target}."
-                  next
-                else
-                  outgoing[source][target] = response
-                end
+              # give up if we've attempted this too many times
+              response = (response || 0) + 1
 
-                # get the response
-                response = WebmentionIO.webmentions.send_webmention(source, target)
-                next unless response
-
-                # capture JSON responses in case site wants to do anything with them
-                begin
-                  response = JSON.parse response
-                rescue JSON::ParserError
-                  response = ""
-                end
+              if !max_attempts.nil? && response > max_attempts
+                outgoing[source][target] = ''
+                WebmentionIO.log 'msg', "Giving up sending from #{source} to #{target}."
+                next
+              else
                 outgoing[source][target] = response
-                count += 1
               end
-            end
 
-            outgoing.write
-            WebmentionIO.log "msg", "#{count} webmentions sent."
+              # get the response
+              response = WebmentionIO.webmentions.send_webmention(source, target)
+              next unless response
+
+              # capture JSON responses in case site wants to do anything with them
+              begin
+                response = JSON.parse response
+              rescue JSON::ParserError
+                response = ''
+              end
+
+              outgoing[source][target] = response
+              count += 1
+            end
           end
+
+          outgoing.write
+          WebmentionIO.log 'msg', "#{count} webmentions sent."
         end
       end
     end

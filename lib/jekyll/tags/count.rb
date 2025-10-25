@@ -15,15 +15,15 @@ module Jekyll
       def initialize(tag_name, text, tokens)
         super
         @text = text
-        self.template = "count"
+        self.template = 'count'
       end
 
-      def set_data(data, types, html_proofer_ignore)
-        @data = { "count" => data.length, "types" => types }
+      def set_data(data, types, _html_proofer_ignore)
+        @data = { 'count' => data.length, 'types' => types }
       end
     end
   end
 end
 
-Liquid::Template.register_tag("webmention_count", Jekyll::WebmentionIO::WebmentionCountTag)
-Liquid::Template.register_tag("webmentions_count", Jekyll::WebmentionIO::WebmentionCountTag)
+Liquid::Template.register_tag('webmention_count', Jekyll::WebmentionIO::WebmentionCountTag)
+Liquid::Template.register_tag('webmentions_count', Jekyll::WebmentionIO::WebmentionCountTag)

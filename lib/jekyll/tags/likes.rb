@@ -15,10 +15,10 @@ module Jekyll
       def initialize(tag_name, text, tokens)
         super
         @text = text
-        self.template = "likes"
+        self.template = 'likes'
       end
     end
   end
 end
 
-Liquid::Template.register_tag("webmention_likes", Jekyll::WebmentionIO::WebmentionLikesTag)
+Liquid::Template.register_tag('webmention_likes', Jekyll::WebmentionIO::WebmentionLikesTag)

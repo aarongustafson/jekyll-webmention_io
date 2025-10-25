@@ -7,10 +7,10 @@ module Jekyll
   module WebmentionIO
     # The Caches class is a utility service that provides access to the cache files used
     # by this plugin.
-    # 
+    #
     # It is initialized with a config object and creates a folder in the configured cache folder
     # to store the cache files.
-    # 
+    #
     # The class is a singleton and the instance is accessed via the WebmentionIO.caches method.
     class Caches
       def initialize(config)
@@ -50,9 +50,9 @@ module Jekyll
         Jekyll.sanitized_path(@config.cache_folder, "webmention_io_#{name}.yml")
       end
 
-      # A class that represents a single cache file. The initalizer takes a full path 
+      # A class that represents a single cache file. The initalizer takes a full path
       # where the cache data will be stored and retrieved.
-      # 
+      #
       # Upon initialization the current contents of the cache are loaded. Writes are not
       # saved until the `write` method is called.
       class Cache
@@ -76,7 +76,7 @@ module Jekyll
 
           begin
             @data = SafeYAML.load_file(path)
-          rescue
+          rescue StandardError
             @data = {}
           end
         end

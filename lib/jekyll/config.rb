@@ -103,16 +103,16 @@ module Jekyll
         documents = @site.posts.docs.clone
 
         if @pages == true
-          WebmentionIO.log "info", "Including site pages."
+          WebmentionIO.log 'info', 'Including site pages.'
           documents.concat @site.pages.clone
         end
 
         if @collections.empty?
-          WebmentionIO.log "info", "Adding collections."
+          WebmentionIO.log 'info', 'Adding collections.'
 
           @site.collections.each do |name, collection|
             # skip _posts
-            next if name == "posts"
+            next if name == 'posts'
 
             if collections.include?(name)
               documents.concat collection.docs.clone
@@ -197,14 +197,12 @@ module Jekyll
           @fragment = entry['fragment']
           @response_mapping = {}
 
-          if entry.key?('response_mapping')
-            entry['response_mapping'].each do |key, pattern|
-              begin
-                @response_mapping[key] = JsonPath.new(pattern)
-              rescue StandardError => e
-                WebmentionIO.log "error", "Ignoring invalid JsonPath expression #{pattern}: #{e}"
-              end
-            end
+          return unless entry.key?('response_mapping')
+
+          entry['response_mapping'].each do |key, pattern|
+            @response_mapping[key] = JsonPath.new(pattern)
+          rescue StandardError => e
+            WebmentionIO.log 'error', "Ignoring invalid JsonPath expression #{pattern}: #{e}"
           end
         end
       end
@@ -224,13 +222,16 @@ module Jekyll
           @source = js_config['source'] || true
           @uglify = js_config['uglify'] || true
 
-          @resource_name = "JekyllWebmentionIO.js"
-          @resource_url = File.join("", base_url, @destination, @resource_name)
+          @resource_name = 'JekyllWebmentionIO.js'
+          @resource_url = File.join('', base_url, @destination, @resource_name)
         end
 
         def disabled?; @disabled; end
+
         def source?; @source; end
+
         def deploy?; @deploy; end
+
         def uglify?; @uglify; end
       end
 

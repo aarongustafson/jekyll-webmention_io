@@ -1,4 +1,3 @@
-# coding: utf-8
 # frozen_string_literal: true
 
 #  (c) Aaron Gustafson
@@ -8,7 +7,7 @@
 #  This generator caches sites you mention so they can be mentioned
 #
 
-require "jsonpath"
+require 'jsonpath'
 
 module Jekyll
   module WebmentionIO
@@ -18,12 +17,12 @@ module Jekyll
 
       def generate(_ = nil)
         if WebmentionIO.config.pause_lookups
-          WebmentionIO.log "msg", "Looking up new webmentions is disabled."
+          WebmentionIO.log 'msg', 'Looking up new webmentions is disabled.'
         else
-          WebmentionIO.log "msg", "Collecting webmentions you’ve made. This may take a while."
+          WebmentionIO.log 'msg', 'Collecting webmentions you’ve made. This may take a while.'
         end
 
-        posts = WebmentionIO.config.documents.select { |p| !p.data['draft'] }
+        posts = WebmentionIO.config.documents.reject { |p| p.data['draft'] }
 
         gather_webmentions(posts)
       end
@@ -31,15 +30,15 @@ module Jekyll
       private
 
       def combine_values(a, b)
-        return case [ a.instance_of?(Array), b.instance_of?(Array) ]
-          when [ false, false ]
-            [ a, b ]
-          when [ false, true ]
-            [ a ] + b
-          when [ true, false ]
-            a << b
-          when [ true, true ]
-            a + b
+        case [a.instance_of?(Array), b.instance_of?(Array)]
+        when [false, false]
+          [a, b]
+        when [false, true]
+          [a] + b
+        when [true, false]
+          a << b
+        when [true, true]
+          a + b
         end
       end
 
@@ -55,28 +54,28 @@ module Jekyll
           result = pattern.on(response)
 
           if result.empty?
-            WebmentionIO.log "msg", "The path #{key} doesn't exist in the response from #{target.endpoint} for #{post.url}"
+            WebmentionIO.log 'msg', "The path #{key} doesn't exist in the response from #{target.endpoint} for #{post.url}"
             next
           elsif result.length == 1
             result = result.first
           end
 
-          if post.data[key].nil?
-            post.data[key] = result
-          else
-            post.data[key] = combine_values(post.data[key], result)
-          end
+          post.data[key] = if post.data[key].nil?
+                             result
+                           else
+                             combine_values(post.data[key], result)
+                           end
         end
       end
 
       def get_collection_for_post(post)
         WebmentionIO.config.collections.each do |name, collection|
-          next if name == "posts"
+          next if name == 'posts'
 
           return collection if collection.docs.include? post
         end
 
-        return nil
+        nil
       end
 
       def gather_webmentions(posts)
@@ -95,7 +94,7 @@ module Jekyll
             target = WebmentionIO.config.syndication_rule_for_uri(mentioned_uri)
 
             fulluri = File.join(WebmentionIO.config.site_url, post.url)
-            shorturi = post.data["shorturl"] || fulluri
+            shorturi = post.data['shorturl'] || fulluri
 
             # Old cached responses might use either the full or short URIs so
             # we need to check for both.
@@ -106,11 +105,11 @@ module Jekyll
             if cached_response.nil?
               next if WebmentionIO.config.pause_lookups
 
-              if ! target.nil?
+              if !target.nil?
                 uri = target.shorturl ? shorturi : fulluri
 
-                if ! target.fragment.nil?
-                  uri += "#" + target.fragment
+                if !target.fragment.nil?
+                  uri += '#' + target.fragment
                 end
               else
                 uri = fulluri
@@ -118,7 +117,7 @@ module Jekyll
 
               outgoing[uri] ||= {}
               outgoing[uri][mentioned_uri] = response
-            elsif ! target.nil?
+            elsif !target.nil?
               process_syndication(post, target, cached_response)
             end
           end
@@ -140,10 +139,10 @@ module Jekyll
         parser = URI::Parser.new
 
         syndication_targets = []
-        syndication_targets += post.data["syndicate_to"] || []
+        syndication_targets += post.data['syndicate_to'] || []
 
-        if ! collection.nil?
-          syndication_targets += collection.metadata["syndicate_to"] || []
+        if !collection.nil?
+          syndication_targets += collection.metadata['syndicate_to'] || []
         end
 
         syndication_targets.each do |endpoint|
@@ -152,37 +151,35 @@ module Jekyll
           if !syn_rule.nil?
             uris[syn_rule.endpoint] = false
           else
-            WebmentionIO.log "msg", "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
+            WebmentionIO.log 'msg', "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
           end
         end
 
-        if post.data["in_reply_to"]
-          uris[post.data["in_reply_to"]] = false
+        if post.data['in_reply_to']
+          uris[post.data['in_reply_to']] = false
         end
 
-        if post.data["bookmark_of"]
-          uris[post.data["bookmark_of"]] = false
+        if post.data['bookmark_of']
+          uris[post.data['bookmark_of']] = false
         end
 
-        post.content.scan(/(?:https?:)?\/\/[^\s)#\[\]{}<>%|\^"']+/) do |match|
-          begin
-            # We do this as a poor man's way to validate the URI.  We do most
-            # of the work with the regex scan above, then attempt a parse as
-            # the last test in case a bad URI fell through the cracks.
-            #
-            # Of course, better would be to fix the regex, but consider this
-            # belt-and-suspenders...
-            parser.parse(parser.escape(match))
+        post.content.scan(%r{(?:https?:)?//[^\s)#\[\]{}<>%|\^"']+}) do |match|
+          # We do this as a poor man's way to validate the URI.  We do most
+          # of the work with the regex scan above, then attempt a parse as
+          # the last test in case a bad URI fell through the cracks.
+          #
+          # Of course, better would be to fix the regex, but consider this
+          # belt-and-suspenders...
+          parser.parse(parser.escape(match))
 
-            unless uris.key? match
-              uris[match] = false
-            end
-          rescue => e
-            WebmentionIO.log "msg", "Encountered unexpected malformed URI '#{match}' in #{post.path}, skipping..."
+          unless uris.key? match
+            uris[match] = false
           end
+        rescue StandardError
+          WebmentionIO.log 'msg', "Encountered unexpected malformed URI '#{match}' in #{post.path}, skipping..."
         end
 
-        return uris
+        uris
       end
     end
   end

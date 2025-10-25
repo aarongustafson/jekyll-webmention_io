@@ -1,7 +1,9 @@
-require "webmention"
-require "indieweb/endpoints"
-require "net/http"
-require "openssl"
+# frozen_string_literal: true
+
+require 'webmention'
+require 'indieweb/endpoints'
+require 'net/http'
+require 'openssl'
 
 module Jekyll
   module WebmentionIO

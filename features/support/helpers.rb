@@ -1,23 +1,23 @@
 # frozen_string_literal: true
 
-require "fileutils"
-require "jekyll"
-require "time"
-require "safe_yaml/load"
+require 'fileutils'
+require 'jekyll'
+require 'time'
+require 'yaml'
 
 class Paths
-  SOURCE_DIR = Pathname.new(File.expand_path("../..", __dir__))
+  SOURCE_DIR = Pathname.new(File.expand_path('../..', __dir__))
 
   def self.test_dir
-    source_dir.join("tmp", "jekyll")
+    source_dir.join('tmp', 'jekyll')
   end
 
   def self.output_file
-    test_dir.join("jekyll_output.txt")
+    test_dir.join('jekyll_output.txt')
   end
 
   def self.status_file
-    test_dir.join("jekyll_status.txt")
+    test_dir.join('jekyll_status.txt')
   end
 
   def self.source_dir
@@ -25,37 +25,37 @@ class Paths
   end
 end
 
-WEBMENTIONS_DEFAULT_CONF = YAML.load(<<~CONFIG)
-baseurl: ""
-url: https://www.aaron-gustafson.com
-plugins: ["jekyll-webmention_io"]
-webmentions:
-  debug: false
-  username: aarongustafson
-  legacy_domains:
-    - http://aaron-gustafson.com
-    - http://www.aaron-gustafson.com
-  cache_bad_urls_for: 1
-  pages: true
+WEBMENTIONS_DEFAULT_CONF = YAML.safe_load(<<~CONFIG, permitted_classes: [Symbol])
+  baseurl: ""
+  url: https://www.aaron-gustafson.com
+  plugins: ["jekyll-webmention_io"]
+  webmentions:
+    debug: false
+    username: aarongustafson
+    legacy_domains:
+      - http://aaron-gustafson.com
+      - http://www.aaron-gustafson.com
+    cache_bad_urls_for: 1
+    pages: true
 CONFIG
 
 def file_content_from_hash(input_hash)
-  matter_hash = input_hash.reject { |k, _v| k == "content" }
+  matter_hash = input_hash.reject { |k, _v| k == 'content' }
   matter = matter_hash.map { |k, v| "#{k}: #{v}\n" }
   matter = matter.join.chomp
   content =
-    if !input_hash["input"] || !input_hash["filter"]
-      input_hash["content"]
+    if !input_hash['input'] || !input_hash['filter']
+      input_hash['content']
     else
-      "{{ #{input_hash["input"]} | #{input_hash["filter"]} }}"
+      "{{ #{input_hash['input']} | #{input_hash['filter']} }}"
     end
 
-  Jekyll::Utils.strip_heredoc(<<-EOF)
+  Jekyll::Utils.strip_heredoc(<<-CONTENT)
     ---
-    #{matter.gsub(%r!\n!, "\n    ")}
+    #{matter.gsub(/\n/, "\n    ")}
     ---
     #{content}
-  EOF
+  CONTENT
 end
 
 def source_dir(*files)
@@ -68,6 +68,7 @@ def all_steps_to_path(path)
 
   dest.ascend do |f|
     break if f == source_dir
+
     paths.unshift f.to_s
   end
 
@@ -83,16 +84,16 @@ def jekyll_run_status
 end
 
 def run_bundle(args)
-  run_in_shell("bundle", *args.strip.split(" "))
+  run_in_shell('bundle', *args.strip.split(' '))
 end
 
 def run_rubygem(args)
-  run_in_shell("gem", *args.strip.split(" "))
+  run_in_shell('gem', *args.strip.split(' '))
 end
 
 def run_jekyll(args)
-  args = args.strip.split(" ") # Shellwords?
-  process = run_in_shell("bundle", "exec", "jekyll", *args, "--trace")
+  args = args.strip.split(' ') # Shellwords?
+  process = run_in_shell('bundle', 'exec', 'jekyll', *args, '--trace')
   process.exitstatus.zero?
 end
 
@@ -100,9 +101,9 @@ def run_in_shell(*args)
   p, output = Jekyll::Utils::Exec.run(*args)
 
   File.write(Paths.status_file, p.exitstatus)
-  File.open(Paths.output_file, "wb") do |f|
-    f.print "$ "
-    f.puts args.join(" ")
+  File.open(Paths.output_file, 'wb') do |f|
+    f.print '$ '
+    f.puts args.join(' ')
     f.puts output
     f.puts "EXIT STATUS: #{p.exitstatus}"
   end
@@ -111,21 +112,21 @@ end
 
 def slug(title = nil)
   if title
-    title.downcase.gsub(%r![^\w]!, " ").strip.gsub(%r!\s+!, "-")
+    title.downcase.gsub(/[^\w]/, ' ').strip.gsub(/\s+/, '-')
   else
-    Time.now.strftime("%s%9N") # nanoseconds since the Epoch
+    Time.now.strftime('%s%9N') # nanoseconds since the Epoch
   end
 end
 
 def location(folder, direction)
   if folder
-    before = folder if direction == "in"
-    after  = folder if direction == "under"
+    before = folder if direction == 'in'
+    after  = folder if direction == 'under'
   end
 
   [
-    before || ".",
-    after  || ".",
+    before || '.',
+    after  || '.',
   ]
 end
 

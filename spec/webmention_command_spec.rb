@@ -134,15 +134,15 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
     it 'handles retry while inside delay period' do
       outgoing_webmentions[source] = { target => false }
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
-      config.parse({ 
-        'bad_uri_policy' => { 
-          'failure' => { 
-            'policy' => 'retry', 
-            'max_attempts' => 2, 
-            'retry_delay' => [1] 
-          } 
-        } 
-      })
+      config.parse({
+                     'bad_uri_policy' => {
+                       'failure' => {
+                         'policy' => 'retry',
+                         'max_attempts' => 2,
+                         'retry_delay' => [1]
+                       }
+                     }
+                   })
       command.send_webmentions
       command.send_webmentions
       expect(outgoing_webmentions).to match({ source => { target => 1 } })
@@ -151,15 +151,15 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
     it 'handles retry outside delay period' do
       outgoing_webmentions[source] = { target => false }
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
-      config.parse({ 
-        'bad_uri_policy' => { 
-          'failure' => { 
-            'policy' => 'retry', 
-            'max_attempts' => 2, 
-            'retry_delay' => [1] 
-          } 
-        } 
-      })
+      config.parse({
+                     'bad_uri_policy' => {
+                       'failure' => {
+                         'policy' => 'retry',
+                         'max_attempts' => 2,
+                         'retry_delay' => [1]
+                       }
+                     }
+                   })
       command.send_webmentions
       Timecop.freeze(DateTime.now + (1.0 / 24.0)) { command.send_webmentions }
       expect(outgoing_webmentions).to match({ source => { target => 2 } })
@@ -168,15 +168,15 @@ describe Jekyll::WebmentionIO::Commands::WebmentionCommand do
     it 'handles retry with multiple delay periods' do
       outgoing_webmentions[source] = { target => false }
       allow(client).to receive(:webmention_endpoint).with(target).and_raise(StandardError.new('No bueno'))
-      config.parse({ 
-        'bad_uri_policy' => { 
-          'failure' => { 
-            'policy' => 'retry', 
-            'max_attempts' => 5, 
-            'retry_delay' => [1, 2] 
-          } 
-        } 
-      })
+      config.parse({
+                     'bad_uri_policy' => {
+                       'failure' => {
+                         'policy' => 'retry',
+                         'max_attempts' => 5,
+                         'retry_delay' => [1, 2]
+                       }
+                     }
+                   })
 
       command.send_webmentions
       Timecop.freeze(DateTime.now + (1.0 / 24.0)) { command.send_webmentions }
