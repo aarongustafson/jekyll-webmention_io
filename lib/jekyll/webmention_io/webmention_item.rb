@@ -12,9 +12,8 @@ module Jekyll
     class WebmentionItem
       attr_reader :id, :hash
 
-      def initialize(mention, site)
+      def initialize(mention)
         @raw = mention
-        @site = site
 
         @uri = determine_uri
         @source = determine_source
@@ -114,7 +113,7 @@ module Jekyll
 
         if @type == "post"
 
-          html_source = WebmentionIO.get_uri_source(@uri)
+          html_source = WebmentionIO.webmentions.get_body_from_uri(@uri)
           unless html_source
             return title
           end

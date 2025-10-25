@@ -1,36 +1,37 @@
-require "spec_helper"
+# frozen_string_literal: true
+
+require 'spec_helper'
 
 describe Jekyll::WebmentionIO do
-  let(:page)      { make_page }
-  let(:site)      { make_site }
-  let(:post)      { make_post }
-  let(:context)   { make_context(:page => page, :site => site) }
-  let(:all)       { "webmentions" }
-  let(:count)     { "webmention_count" }
-  let(:like)      { "webmention_likes" }
-  let(:reply)     { "webmention_replies" }
-  let(:repost)    { "webmention_reposts" }
-  let(:rsvp)      { "webmention_rsvps" }
-  let(:url)       { "" }
-  let(:o_all)     { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
-  let(:o_count)   { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
-  let(:o_like)    { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
-  let(:o_reply)   { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
-  let(:o_repost)  { Liquid::Template.parse("{% #{tag} #{url} %}").render!(context, {}) }
+  let(:dest_dir) { File.expand_path('../tmp/dest', __dir__) }
+  let(:source_dir) { File.expand_path('fixtures', __dir__) }
+  let(:config_defaults) do
+    {
+      'source' => source_dir,
+      'destination' => dest_dir,
+      'gems' => ['jekyll-webmention_io']
+    }.freeze
+  end
+
+  let(:page) { Jekyll::Page.new site, config_defaults['source'], '', 'page.md' }
+  let(:post) do
+    Jekyll::Document.new(
+      File.expand_path('_posts/2001-01-01-post.md', config_defaults['source']),
+      { site: site, collection: site.collections['posts'] }
+    )
+  end
+  let(:site) { Jekyll::Site.new(Jekyll.configuration(config_defaults)) }
+  let(:context) { make_context(page: page, site: site) }
 
   before do
     Jekyll.logger.log_level = :error
   end
 
-  it "builds" do
-    expect(o_all).to match(%r!!i)
-  end
-
-  it "outputs valid HTML" do
+  it 'outputs valid HTML' do
     site.process
     options = {
-      :check_html       => true,
-      :checks_to_ignore => %w(ScriptCheck LinkCheck ImageCheck),
+      check_html: true,
+      checks_to_ignore: %w[ScriptCheck LinkCheck ImageCheck]
     }
     status = HTMLProofer.check_directory(dest_dir, options).run
     expect(status).to eql(true)

@@ -17,33 +17,36 @@ module Jekyll
 
         def self.process(_args = [], options = {})
           options = configuration_from_options(options)
-          WebmentionIO.bootstrap(Jekyll::Site.new(options))
+          site = Jekyll::Site.new(options)
 
-          if File.exist? WebmentionIO.cache_file("sent.yml")
-            WebmentionIO.log "error", "Your outgoing webmentions queue needs to be upgraded. Please re-build your project."
-          end
+          WebmentionIO.bootstrap(site)
 
+          send_webmentions
+        end
+
+        def self.send_webmentions
           WebmentionIO.log "msg", "Getting ready to send webmentions (this may take a while)."
 
           count = 0
-          max_attempts = WebmentionIO.max_attempts()
-          cached_outgoing = WebmentionIO.get_cache_file_path "outgoing"
-          if File.exist?(cached_outgoing)
-            outgoing = WebmentionIO.load_yaml(cached_outgoing)
+          max_attempts = WebmentionIO.config.max_attempts
+          outgoing = WebmentionIO.caches.outgoing_webmentions
+
+          if ! outgoing.empty?
             outgoing.each do |source, targets|
               targets.each do |target, response|
                 # skip ones we’ve handled
                 next unless response == false or response.instance_of? Integer
 
                 # skip protocol-less links, we'll need to revisit this again later
-                next if target.index("//").zero?
+                idx = target.index("//")
+                next if idx.nil? || idx.zero?
 
                 # produce an escaped version of the target (in case of special
                 # characters, etc).
                 escaped = URI::Parser.new.escape(target);
 
                 # skip bad URLs
-                next unless WebmentionIO.uri_ok?(escaped)
+                next unless WebmentionIO.policy.uri_ok?(escaped)
 
                 # give up if we've attempted this too many times
                 response = (response || 0) + 1
@@ -56,12 +59,8 @@ module Jekyll
                   outgoing[source][target] = response
                 end
 
-                # get the endpoint
-                endpoint = WebmentionIO.get_webmention_endpoint(escaped)
-                next unless endpoint
-
                 # get the response
-                response = WebmentionIO.webmention(source, target)
+                response = WebmentionIO.webmentions.send_webmention(source, target)
                 next unless response
 
                 # capture JSON responses in case site wants to do anything with them
@@ -74,11 +73,12 @@ module Jekyll
                 count += 1
               end
             end
-            WebmentionIO.dump_yaml(cached_outgoing, outgoing)
+
+            outgoing.write
             WebmentionIO.log "msg", "#{count} webmentions sent."
-          end # file exists (outgoing)
-        end # def process
-      end # WebmentionCommand
-    end # Commands
-  end # WebmentionIO
-end # Jekyll
+          end
+        end
+      end
+    end
+  end
+end

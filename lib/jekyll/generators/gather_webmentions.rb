@@ -8,6 +8,7 @@
 #
 
 require "time"
+require_relative "../caches"
 
 module Jekyll
   module WebmentionIO
@@ -15,65 +16,41 @@ module Jekyll
       safe true
       priority :high
 
-      def generate(site)
-        @site = site
-        @site_url = site.config["url"].to_s
+      def generate(_ = nil)
+        @caches = WebmentionIO.caches
 
-        if @site.config['serving']
-          Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered when running `jekyll serve`."
-
-          @site.config['webmentions'] ||= {}
-          @site.config['webmentions']['pause_lookups'] = true
-          return
-        end
-
-        if @site_url.include? "localhost"
-          Jekyll::WebmentionIO.log "msg", "Webmentions won’t be gathered on localhost."
-          return
-        end
-
-        if @site.config.dig("webmentions", "pause_lookups") == true
-          WebmentionIO.log "msg", "Webmention gathering is currently paused."
-          return
-        end
+        return if WebmentionIO.config.pause_lookups
 
         WebmentionIO.log "msg", "Beginning to gather webmentions of your posts. This may take a while."
 
-        WebmentionIO.api_path = "mentions"
-        # add an arbitrarily high perPage to trump pagination
-        WebmentionIO.api_suffix = "&perPage=9999"
-
-        @cached_webmentions = WebmentionIO.read_cached_webmentions "incoming"
-
-        @lookups = WebmentionIO.read_lookup_dates
-
-        posts = WebmentionIO.gather_documents(@site)
-        posts.each do |post|
+        WebmentionIO.config.documents.each do |post|
           check_for_webmentions(post)
         end
 
-        WebmentionIO.cache_lookup_dates @lookups
-
-        WebmentionIO.cache_webmentions "incoming", @cached_webmentions
-      end # generate
+        @caches.site_lookups.write
+        @caches.incoming_webmentions.write
+      end
 
       private
 
       def check_for_webmentions(post)
         WebmentionIO.log "info", "Checking for webmentions of #{post.url}."
 
-        last_webmention = @cached_webmentions.dig(post.url, @cached_webmentions.dig(post.url)&.keys&.last)
+        last_webmention = 
+          @caches
+          .incoming_webmentions
+          .dig(post.url, @caches.incoming_webmentions.dig(post.url)&.keys&.last)
 
         # get the last webmention
-        last_lookup = if @lookups[post.url]
-                        @lookups[post.url]
+        last_lookup = if @caches.site_lookups[post.url]
+                        @caches.site_lookups[post.url]
                       elsif last_webmention
                         Date.parse last_webmention.dig("raw", "verified_date")
                       end
 
         # should we throttle?
         if post.respond_to? "date" # Some docs have no date
-          if last_lookup && WebmentionIO.post_should_be_throttled?(post, post.date, last_lookup)
+          if last_lookup && WebmentionIO.policy.post_should_be_throttled?(post, post.date, last_lookup)
             WebmentionIO.log "info", "Throttling this post."
             return
           end
@@ -86,21 +63,16 @@ module Jekyll
         targets = get_webmention_target_urls(post)
 
         # execute the API
-        response = WebmentionIO.get_response assemble_api_params(targets, since_id)
-        webmentions = response.dig("links")
-        if webmentions && !webmentions.empty?
-          WebmentionIO.log "info", "Here’s what we got back:\n\n#{response.inspect}\n\n"
-        else
-          WebmentionIO.log "info", "No webmentions found."
-        end
+        webmentions = WebmentionIO.webmentions.get_webmentions(targets, since_id)
 
-        @lookups[post.url] = Date.today
-        cache_new_webmentions(post.url, response)
+        @caches.site_lookups[post.url] = Date.today
+
+        cache_new_webmentions(post.url, webmentions)
       end
 
       def get_webmention_target_urls(post)
         targets = []
-        uri = File.join(@site_url, post.url)
+        uri = File.join(WebmentionIO.config.site_url, post.url)
         targets.push(uri)
 
         # Redirection?
@@ -128,47 +100,26 @@ module Jekyll
       end
 
       def gather_legacy_targets(uri, targets)
-        if WebmentionIO.config.key? "legacy_domains"
-          WebmentionIO.log "info", "adding legacy URIs"
-          WebmentionIO.config["legacy_domains"].each do |domain|
-            legacy = uri.sub(@site_url, domain)
-            WebmentionIO.log "info", "adding URI #{legacy}"
-            targets.push(legacy)
-          end
+        WebmentionIO.log "info", "Adding any legacy URIs"
+
+        WebmentionIO.config.legacy_domains.each do |domain|
+          legacy = uri.sub(WebmentionIO.config.site_url, domain)
+          WebmentionIO.log "info", "Adding legacy URI #{legacy}"
+          targets.push(legacy)
         end
       end
 
-      def assemble_api_params(targets, since_id)
-        api_params = targets.collect { |v| "target[]=#{v}" }.join("&")
-        api_params << "&since_id=#{since_id}" if since_id
-        api_params << "&sort-by=published"
-        api_params
+      def cache_new_webmentions(post_uri, wms)
+        webmentions = @caches.incoming_webmentions[post_uri] || {}
+
+        wms.filter { |wm| !webmentions.key?(wm.id) }.each do |wm|
+          WebmentionIO.log "info", wm.to_hash.inspect
+
+          webmentions[wm.id] = wm.to_hash
+        end
+
+        @caches.incoming_webmentions[post_uri] = webmentions
       end
-
-      def cache_new_webmentions(post_uri, response)
-        # Get cached webmentions
-        webmentions = if @cached_webmentions.key? post_uri
-                        @cached_webmentions[post_uri]
-                      else
-                        {}
-                      end
-
-        if response && response["links"]
-          response["links"].reverse_each do |link|
-            webmention = WebmentionIO::WebmentionItem.new(link, @site)
-
-            # Do we already have it?
-            if webmentions.key? webmention.id
-              next
-            end
-
-            # Add it to the list
-            WebmentionIO.log "info", webmention.to_hash.inspect
-            webmentions[webmention.id] = webmention.to_hash
-          end # each link
-        end # if response
-        @cached_webmentions[post_uri] = webmentions
-      end # process_webmentions
     end
   end
 end

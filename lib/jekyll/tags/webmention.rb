@@ -14,12 +14,6 @@ module Jekyll
     class WebmentionTag < Liquid::Tag
       def initialize(tag_name, text, tokens)
         super
-        cache_file = WebmentionIO.get_cache_file_path "incoming"
-        @cached_webmentions = if File.exist? cache_file
-                                WebmentionIO.load_yaml(cache_file)
-                              else
-                                {}
-                              end
       end
 
       def lookup(context, name)
@@ -31,11 +25,11 @@ module Jekyll
       end
 
       def template=(template)
-        unless WebmentionIO.supported_templates.include? template
+        unless WebmentionIO.templates.supported_templates.include? template
           WebmentionIO.log "error", "#{template.capitalize} is not supported"
         end
         @template_name = template
-        @template = WebmentionIO.get_template_contents(template)
+        @template = WebmentionIO.templates.template_contents(template)
         WebmentionIO.log "info", "#{template.capitalize} template:\n\n#{@template}\n\n"
       end
 
@@ -69,18 +63,15 @@ module Jekyll
         # Capture the types in case JS needs them
         types = []
 
-        # Retrieve the html_proofer_ignore config setting so we can pass
-        # it into the templates.
-        site = context.registers[:site]
-        html_proofer_ignore = site.config.dig("webmentions", "html_proofer_ignore") || "none"
-
         # Get the URI
         args = @text.split(/\s+/).map(&:strip)
         uri = args.shift
         uri = lookup(context, uri)
 
-        if @cached_webmentions.key? uri
-          all_webmentions = @cached_webmentions[uri].clone
+        cached_webmentions = WebmentionIO.caches.incoming_webmentions
+
+        if cached_webmentions.key? uri
+          all_webmentions = cached_webmentions[uri].clone
           WebmentionIO.log "info", "#{all_webmentions.length} total webmentions for #{uri}"
 
           if args.length.positive?
@@ -104,7 +95,7 @@ module Jekyll
           webmentions = sort_webmentions(webmentions)
         end
 
-        set_data(webmentions, types, html_proofer_ignore)
+        set_data(webmentions, types, WebmentionIO.config.html_proofer_ignore)
         render_into_template(context.registers)
       end
 
