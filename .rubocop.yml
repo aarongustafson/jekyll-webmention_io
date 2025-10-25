@@ -3,6 +3,7 @@
 AllCops:
   TargetRubyVersion: 2.7
   SuggestExtensions: false
+  NewCops: enable
 
 # Legacy filename here, so we're just going to ignore it
 Naming/FileName:
@@ -168,3 +169,8 @@ Layout/LineLength:
 Metrics:
   Enabled: false
 
+Gemspec/DevelopmentDependencies:
+  Enabled: false
+
+Gemspec/RequireMFA:
+  Enabled: false

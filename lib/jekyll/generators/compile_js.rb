@@ -59,13 +59,12 @@ module Jekyll
       private
 
       def add_webmention_types
-        js_types = []
-        WebmentionIO.types.each do |type|
-          js_types.push "'#{type}': '#{ActiveSupport::Inflector.singularize(type)}'"
+        js_types = WebmentionIO.types.map do |type|
+          "'#{type}': '#{ActiveSupport::Inflector.singularize(type)}'"
         end
         types_js = <<-TYPES_JS
           ;(function(window,JekyllWebmentionIO){
-            if ( ! ( \'JekyllWebmentionIO\' in window ) ){ window.JekyllWebmentionIO = {}; }
+            if ( ! ( 'JekyllWebmentionIO' in window ) ){ window.JekyllWebmentionIO = {}; }
             JekyllWebmentionIO.types = { TYPES };
           }(this, this.JekyllWebmentionIO));
         TYPES_JS
@@ -85,8 +84,8 @@ module Jekyll
       end
 
       def create_js_file
-        FileUtils.mkdir_p(@source_file_destination) unless File.exist?(@source_file_destination)
-        File.open(File.join(@source_file_destination, @file_name), 'wb') { |f| f.write(@javascript) }
+        FileUtils.mkdir_p(@source_file_destination)
+        File.binwrite(File.join(@source_file_destination, @file_name), @javascript)
       end
 
       def deploy_js_file

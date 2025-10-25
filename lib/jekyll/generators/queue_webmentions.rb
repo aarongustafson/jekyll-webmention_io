@@ -105,14 +105,14 @@ module Jekyll
             if cached_response.nil?
               next if WebmentionIO.config.pause_lookups
 
-              if !target.nil?
+              if target.nil?
+                uri = fulluri
+              else
                 uri = target.shorturl ? shorturi : fulluri
 
                 if !target.fragment.nil?
                   uri += "##{target.fragment}"
                 end
-              else
-                uri = fulluri
               end
 
               outgoing[uri] ||= {}
@@ -148,10 +148,10 @@ module Jekyll
         syndication_targets.each do |endpoint|
           syn_rule = WebmentionIO.config.syndication[endpoint]
 
-          if !syn_rule.nil?
-            uris[syn_rule.endpoint] = false
-          else
+          if syn_rule.nil?
             WebmentionIO.log 'msg', "Found reference to syndication endpoint \"#{endpoint}\" without matching entry in configuration."
+          else
+            uris[syn_rule.endpoint] = false
           end
         end
 

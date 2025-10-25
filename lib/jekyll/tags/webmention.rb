@@ -36,9 +36,7 @@ module Jekyll
       def extract_type(type, webmentions)
         WebmentionIO.log 'info', "Looking for #{type}"
         keep = {}
-        if !WebmentionIO.types.include? type
-          WebmentionIO.log 'warn', "#{type} are not extractable"
-        else
+        if WebmentionIO.types.include? type
           type = ActiveSupport::Inflector.singularize(type)
           WebmentionIO.log 'info', "Searching #{webmentions.length} webmentions for type==#{type}"
           if webmentions.is_a? Hash
@@ -47,6 +45,8 @@ module Jekyll
           webmentions.each do |webmention|
             keep[webmention['id']] = webmention if webmention['type'] == type
           end
+        else
+          WebmentionIO.log 'warn', "#{type} are not extractable"
         end
         keep
       end

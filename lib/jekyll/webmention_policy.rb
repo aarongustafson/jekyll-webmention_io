@@ -64,7 +64,7 @@ module Jekyll
           # the retry_delay list is used for all remaining retries.
           delay = retry_delay[(attempts - 1).clamp(0, retry_delay.length - 1)]
 
-          recheck_at = (entry['last_checked'] + delay * 3600)
+          recheck_at = (entry['last_checked'] + (delay * 3600))
 
           if recheck_at.to_r > now.to_r
             Jekyll::WebmentionIO.log 'msg', "Skipping #{uri}, next attempt will happen after #{recheck_at}"
@@ -110,11 +110,11 @@ module Jekyll
       # allowed throttles: last_week, last_month, last_year, older
       # allowed values:  daily, weekly, monthly, yearly, every X days|weeks|months|years
       def post_should_be_throttled?(post, item_date, last_lookup)
-        return unless item_date && last_lookup
+        return false unless item_date && last_lookup
 
         lookup_threshold = @config.last_lookup_threshold(item_date)
 
-        return if lookup_threshold.nil? || (last_lookup <= lookup_threshold)
+        return false if lookup_threshold.nil? || (last_lookup <= lookup_threshold)
 
         Jekyll::WebmentionIO.log 'info', "Throttling #{post.data['title']} due to policy (last was #{last_lookup}, threshold is #{lookup_threshold})"
 

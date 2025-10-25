@@ -16,7 +16,7 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
   end
 
   after do
-    FileUtils.rm_rf(temp_dir) if Dir.exist?(temp_dir)
+    FileUtils.rm_rf(temp_dir)
   end
 
   describe 'accessor methods' do
@@ -111,8 +111,7 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
         cache['key1'] = 'value1'
         cache['key2'] = 'value2'
 
-        collected = []
-        cache.each { |k, v| collected << [k, v] }
+        collected = cache.map { |k, v| [k, v] }
         expect(collected).to contain_exactly(%w[key1 value1], %w[key2 value2])
       end
 

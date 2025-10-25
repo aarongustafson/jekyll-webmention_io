@@ -87,7 +87,7 @@ module Jekyll
 
         def clear
           @data = {}
-          File.delete(@path) if File.exist?(@path)
+          FileUtils.rm_f(@path)
         end
       end
 

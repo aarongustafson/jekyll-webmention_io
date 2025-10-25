@@ -19,6 +19,12 @@ module Jekyll
         RETRY = 'retry'
       end
 
+      TIMEFRAMES = {
+        'last_week' => 'weekly',
+        'last_month' => 'monthly',
+        'last_year' => 'yearly',
+      }.freeze
+
       attr_accessor :html_proofer_ignore, :max_attempts,
                     :templates, :bad_uri_policy, :throttle_lookups, :cache_folder,
                     :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
@@ -27,10 +33,10 @@ module Jekyll
       def initialize(site = nil)
         @site = site
 
-        if !site.nil?
-          parse(@site.config['webmentions'], @site.config['url'].to_s, @site.config['baseurl'].to_s)
-        else
+        if site.nil?
           parse
+        else
+          parse(@site.config['webmentions'], @site.config['url'].to_s, @site.config['baseurl'].to_s)
         end
       end
 
@@ -236,12 +242,6 @@ module Jekyll
       end
 
       private
-
-      TIMEFRAMES = {
-        'last_week' => 'weekly',
-        'last_month' => 'monthly',
-        'last_year' => 'yearly',
-      }.freeze
 
       def get_timeframe_from_date(time)
         date = time.to_date

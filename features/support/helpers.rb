@@ -52,7 +52,7 @@ def file_content_from_hash(input_hash)
 
   Jekyll::Utils.strip_heredoc(<<-CONTENT)
     ---
-    #{matter.gsub(/\n/, "\n    ")}
+    #{matter.gsub("\n", "\n    ")}
     ---
     #{content}
   CONTENT
@@ -84,17 +84,17 @@ def jekyll_run_status
 end
 
 def run_bundle(args)
-  run_in_shell('bundle', *args.strip.split(' '))
+  run_in_shell('bundle', *args.strip.split)
 end
 
 def run_rubygem(args)
-  run_in_shell('gem', *args.strip.split(' '))
+  run_in_shell('gem', *args.strip.split)
 end
 
 def run_jekyll(args)
-  args = args.strip.split(' ') # Shellwords?
-  process = run_in_shell('bundle', 'exec', 'jekyll', *args, '--trace')
-  process.exitstatus.zero?
+  args = args.strip.split # Shellwords?
+
+  run_in_shell('bundle', 'exec', 'jekyll', *args, '--trace')
 end
 
 def run_in_shell(*args)
