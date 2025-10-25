@@ -215,6 +215,71 @@ RSpec.describe Jekyll::WebmentionIO::Config do
     end
   end
 
+  context 'with pause_lookups' do
+    context 'when serving' do
+      let(:config_hash) do
+        {
+          'url' => 'https://example.com',
+          'baseurl' => '',
+          'serving' => true,
+          'webmentions' => webmentions_config,
+        }
+      end
+      let(:webmentions_config) { { 'pause_lookups' => false } }
+
+      it 'should pause lookups' do
+        expect(config.pause_lookups).to be true
+      end
+    end
+
+    context 'when on localhost' do
+      let(:config_hash) do
+        {
+          'url' => 'http://localhost:4000',
+          'baseurl' => '',
+          'webmentions' => webmentions_config,
+        }
+      end
+      let(:webmentions_config) { { 'pause_lookups' => false } }
+
+      it 'should pause lookups' do
+        expect(config.pause_lookups).to be true
+      end
+    end
+  end
+
+  context 'with an invalid syndication config' do
+    let(:webmentions_config) do
+      {
+        'syndication' => {
+          'mastodon' => {
+            'endpoint' => 'https://brid.gy/publish/mastodon',
+            'response_mapping' => {
+              'url' => '$.url',
+              'invalid' => '(',
+            },
+          },
+        },
+      }
+    end
+
+    before do
+      allow(Jekyll::WebmentionIO).to receive(:log)
+    end
+
+    it 'should log an error' do
+      config
+      expect(Jekyll::WebmentionIO).to have_received(:log).with('error', anything)
+    end
+
+    it 'should not create an invalid response mapping' do
+      syndication_rule = config.syndication['mastodon']
+
+      expect(syndication_rule.response_mapping).to have_key('url')
+      expect(syndication_rule.response_mapping).not_to have_key('invalid')
+    end
+  end
+
   describe '#documents' do
     let(:posts) { [instance_double('Jekyll::Document', collection: 'posts')] }
     let(:pages) { [instance_double('Jekyll::Document', collection: 'pages')] }
