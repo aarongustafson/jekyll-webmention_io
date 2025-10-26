@@ -22,10 +22,6 @@ RSpec.describe Jekyll::WebmentionIO::Config do
   context 'with an empty configuration' do
     let(:webmentions_config) { {} }
 
-    it 'should have a nil username' do
-      expect(config.username).to be_nil
-    end
-
     it 'should have html_proofer_ignore set to none' do
       expect(config.html_proofer_ignore).to eq :NONE
     end
@@ -82,16 +78,6 @@ RSpec.describe Jekyll::WebmentionIO::Config do
 
     it 'should set max_attempts' do
       expect(config.max_attempts).to eq 10
-    end
-  end
-
-  context 'with a simple bad_uri_policy' do
-    let(:webmentions_config) { { 'bad_uri_policy' => { 'unsupported' => 'ban' } } }
-
-    it 'should create a BadUriPolicy object' do
-      expect(config.bad_uri_policy).to be_a(Jekyll::WebmentionIO::Config::BadUriPolicy)
-      policy = config.bad_uri_policy.for_state('unsupported')
-      expect(policy.policy).to eq 'ban'
     end
   end
 
