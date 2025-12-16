@@ -48,7 +48,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'uglifier', '~> 4.1'
   s.add_dependency 'webmention', '~> 7.0'
 
-  s.add_development_dependency 'bundler', '~> 2.6'
   s.add_development_dependency 'capybara', '~> 3.35'
   s.add_development_dependency 'cucumber', '~> 3.1'
   s.add_development_dependency 'cuprite', '~> 0.14'
