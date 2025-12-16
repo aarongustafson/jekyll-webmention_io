@@ -19,10 +19,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
+
+    - name: Install Chrome dependencies (for Cuprite/Ferrum)
+      run: sudo apt-get update && sudo apt-get install -y libgbm-dev
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
     - name: Run tests
       run: bundle exec rake
