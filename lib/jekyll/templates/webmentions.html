@@ -1,10 +1,13 @@
-{% capture webmention_types %}{{ types | join: ',' }}{% endcapture %}
+{% if types %}
+  {% capture webmention_types %}{{ types | join: ',' }}{% endcapture %}
+{% endif %}
 
-{%- if html_proofer_ignore == "all" -%}
-{%- assign html_proofer_attr = " data-proofer-ignore" -%}
-{%- endif -%}
-<div class="webmentions"{{ html_proofer_attr }}{% unless webmention_types=="" %} data-webmention-types="{{ webmention_types }}"{% endunless %}>
-  {% if webmentions.size > 0 %}
+{% if html_proofer_ignore == "all" %}
+<div class="webmentions" data-proofer-ignore data-webmention-types="{{ webmention_types }}">
+{% else %}
+<div class="webmentions" data-webmention-types={{ webmention_types }}>
+{% endif %}
+  {% if webmentions[0] %}
     <ol class="webmentions__list">
       {% for webmention in webmentions %}
         <li id="webmention-{{ webmention.id }}" class="webmention webmentions__item webmention--{{ webmention.type }}">
@@ -20,9 +23,7 @@
                     class="webmention__author__photo u-photo"
                     src="{{ webmention.author.photo }}"
                     alt=""
-                    {% if webmention.author.name %}
                     title="{{ webmention.author.name }}"
-                    {% endif %}
                     >
                 {% endif %}
 

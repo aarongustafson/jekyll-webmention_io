@@ -1,8 +1,9 @@
-{%- if html_proofer_ignore == "all" -%}
-{%- assign html_proofer_attr = " data-proofer-ignore" -%}
-{%- endif -%}
-<div class="webmentions webmentions--replies"{{ html_proofer_attr }}>
-  {% if webmentions.size > 0 %}
+{% if html_proofer_ignore == "all" %}
+<div class="webmentions webmentions--replies" data-proofer-ignore>
+{% else %}
+<div class="webmentions webmentions--replies">
+{% endif %}
+  {% if webmentions[0] %}
     <ol class="webmentions__list">
       {% for webmention in webmentions %}
         <li id="webmention-{{ webmention.id }}" class="webmention webmentions__item webmention--{{ webmention.type }}">
@@ -18,9 +19,7 @@
                     class="webmention__author__photo u-photo"
                     src="{{ webmention.author.photo }}"
                     alt=""
-                    {% if webmention.author.name %}
                     title="{{ webmention.author.name }}"
-                    {% endif %}
                     >
                 {% endif %}
 
