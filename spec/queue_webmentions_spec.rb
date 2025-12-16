@@ -218,7 +218,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
 
     generator.generate
 
-    expect(outgoing_webmentions_cache).to match("http://example.com/#{page.url}" => { target => false })
+    expect(outgoing_webmentions_cache).to be_empty
   end
 
   it 'ignores drafts' do
