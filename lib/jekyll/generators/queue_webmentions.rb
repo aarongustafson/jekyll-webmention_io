@@ -170,7 +170,9 @@ module Jekyll
           #
           # Of course, better would be to fix the regex, but consider this
           # belt-and-suspenders...
-          parser.parse(parser.escape(match))
+          if parser.parse(parser.escape(match)).instance_of?(URI::Generic)
+            throw StandardError
+          end
 
           unless uris.key? match
             uris[match] = false
