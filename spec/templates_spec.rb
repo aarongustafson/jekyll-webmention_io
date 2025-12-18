@@ -83,11 +83,63 @@ RSpec.describe 'Template Rendering' do
           'url' => 'https://localhost'
         },
         'content' => 'Great post!',
-        'pubdate' => '2025-12-13T12:00:00Z',
+        'pubdate' => '2025-12-13T12:00:00-07:00',
         'uri' => 'https://localhost/mention'
       }],
       'types' => ['replies']
     }
+  end
+
+  # Helper for structural comparison
+  def structurally_equal?(doc1, doc2, &block)
+    return false unless doc1.instance_of?(doc2.class) &&
+                        doc1.name == doc2.name &&
+                        doc1.attributes.size == doc2.attributes.size
+
+    # Compare attributes, ignoring order
+    attrs1 = doc1.attributes.transform_values(&:to_s).sort.to_h
+    attrs2 = doc2.attributes.transform_values(&:to_s).sort.to_h
+    return false unless attrs1 == attrs2
+
+    # Compare children, ignoring whitespace-only text nodes
+    children1 = doc1.children.reject { |c| c.text? && c.text.strip.empty? }
+    children2 = doc2.children.reject { |c| c.text? && c.text.strip.empty? }
+
+    return false unless children1.size == children2.size
+
+    children1.zip(children2).all? do |c1, c2|
+      if c1.text? && c2.text?
+        c1.text.strip == c2.text.strip
+      elsif c1.element? && c2.element?
+        structurally_equal?(c1, c2, &block)
+      else
+        false # Mismatched node types
+      end
+    end
+  end
+
+  # Shared examples for structural equivalence between client and server rendering
+  shared_examples 'structurally equivalent' do
+    include_context 'capybara_browser'
+
+    let(:template_path) { File.expand_path("../lib/jekyll/templates/#{template_name}.html", __dir__) }
+    let(:template) { File.read(template_path) }
+
+    it 'produces structurally identical DOM trees' do
+      # 1. Server-side rendering
+      liquid = Liquid::Template.parse(template)
+      server_html = liquid.render(template_data)
+      server_doc = Nokogiri::HTML.fragment(server_html)
+
+      # 2. Client-side rendering
+      test_file = create_test_page(template, "#{template_name}_structural", template_data)
+      visit "file://#{test_file}"
+      client_html = evaluate_script("document.getElementById('output').innerHTML")
+      client_doc = Nokogiri::HTML.fragment(client_html)
+
+      # 3. Compare
+      expect(structurally_equal?(server_doc, client_doc)).to be(true), "DOM structures do not match.\n\nServer:\n#{server_doc.to_html}\n\nClient:\n#{client_doc.to_html}"
+    end
   end
 
   # Shared examples for server-side Ruby Liquid rendering
@@ -221,6 +273,10 @@ RSpec.describe 'Template Rendering' do
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
     end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
+    end
   end
 
   describe 'likes.html' do
@@ -234,6 +290,10 @@ RSpec.describe 'Template Rendering' do
 
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
+    end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
     end
   end
 
@@ -250,6 +310,10 @@ RSpec.describe 'Template Rendering' do
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
     end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
+    end
   end
 
   describe 'posts.html' do
@@ -264,6 +328,10 @@ RSpec.describe 'Template Rendering' do
 
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
+    end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
     end
   end
 
@@ -280,6 +348,10 @@ RSpec.describe 'Template Rendering' do
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
     end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
+    end
   end
 
   describe 'reposts.html' do
@@ -293,6 +365,10 @@ RSpec.describe 'Template Rendering' do
 
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
+    end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
     end
   end
 
@@ -308,6 +384,10 @@ RSpec.describe 'Template Rendering' do
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
     end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
+    end
   end
 
   describe 'webmentions.html' do
@@ -322,6 +402,10 @@ RSpec.describe 'Template Rendering' do
 
     describe 'Client-side', type: :feature do
       it_behaves_like 'renders correctly with liquid.js in browser'
+    end
+
+    describe 'Structural equivalence', type: :feature do
+      it_behaves_like 'structurally equivalent'
     end
   end
 end

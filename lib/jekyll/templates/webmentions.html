@@ -5,7 +5,7 @@
 {% if html_proofer_ignore == "all" %}
 <div class="webmentions" data-proofer-ignore data-webmention-types="{{ webmention_types }}">
 {% else %}
-<div class="webmentions" data-webmention-types={{ webmention_types }}>
+<div class="webmentions" data-webmention-types="{{ webmention_types }}">
 {% endif %}
   {% if webmentions[0] %}
     <ol class="webmentions__list">
@@ -51,7 +51,7 @@
             <div class="webmention__meta">
               {% if webmention.pubdate %}
                 <time class="webmention__pubdate dt-published"
-                      datetime="{{ webmention.pubdate | date: '%FT%T%:z' }}">{{ webmention.pubdate | date: '%d %B %Y' }}</time>
+                      datetime="{{ webmention.pubdate | date: '%Y-%m-%dT%H:%M:%S%z' }}">{{ webmention.pubdate | date: '%d %B %Y' }}</time>
               {% endif %}
               {% if webmention.pubdate and webmention.uri %}|{% endif %}
               {% if webmention.uri %}
