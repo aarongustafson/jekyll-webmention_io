@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rspec', '~> 3.5'
   s.add_development_dependency 'rubocop', '~> 1.81'
+  s.add_development_dependency 'simplecov', '~> 0.22'
   s.add_development_dependency 'timecop', '~> 0.9'
   s.add_development_dependency 'webrick', '~> 1.7'
 end
