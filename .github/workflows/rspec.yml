@@ -65,8 +65,8 @@ jobs:
           }
 
           const coverage = JSON.parse(fs.readFileSync(path, 'utf8'));
-          const lineCoverage = coverage.result.line;
-          const branchCoverage = coverage.result.branch;
+          const lineCoverage = Math.round(coverage.result.line);
+          const branchCoverage = Math.round(coverage.result.branch);
 
           function getIndicator(percentage) {
             if (percentage < 70) return '🔴';
