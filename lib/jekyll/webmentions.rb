@@ -34,7 +34,12 @@ module Jekyll
         # return `curl -s -i -d \"source=#{source}&target=#{target}\" -o /dev/null #{endpoint}`
         response = @client.send_webmention(source, target)
 
-        case response.code
+        # A Webmention::ErrorResponse (connection failure, no endpoint found,
+        # etc.) carries no HTTP code or body -- only a message -- so guard the
+        # accessors that only a Webmention::Response provides.
+        status = response.code if response.respond_to?(:code)
+
+        case status
         when 200, 201, 202
           Jekyll::WebmentionIO.log 'info', 'Webmention successful!'
           @policy.success(target)
@@ -43,7 +48,7 @@ module Jekyll
           Jekyll::WebmentionIO.log 'info', response.inspect
           Jekyll::WebmentionIO.log 'info', 'Webmention failed, but will remain queued for next time'
 
-          if response.body
+          if response.respond_to?(:body) && response.body
             begin
               body = JSON.parse(response.body)
 

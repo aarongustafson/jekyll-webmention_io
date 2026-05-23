@@ -105,6 +105,30 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
           end
         end
       end
+
+      context 'with a transport-level error (Webmention::ErrorResponse)' do
+        # A Webmention::ErrorResponse (connection failure, no endpoint found,
+        # etc.) exposes neither #code nor #body, only #message and #ok?.
+        let(:transport_error_response) { Webmention::ErrorResponse.new('Connection failed', nil) }
+
+        before do
+          allow(mock_client).to receive(:send_webmention).with(source, target).and_return(transport_error_response)
+          allow(mock_policy).to receive(:error).with(target)
+        end
+
+        it 'does not raise' do
+          expect { webmentions.send_webmention(source, target) }.not_to raise_error
+        end
+
+        it 'returns false' do
+          expect(webmentions.send_webmention(source, target)).to be false
+        end
+
+        it 'calls policy.error' do
+          webmentions.send_webmention(source, target)
+          expect(mock_policy).to have_received(:error).with(target)
+        end
+      end
     end
   end
 
