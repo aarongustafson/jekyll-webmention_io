@@ -10,7 +10,9 @@ require 'capybara/rspec'
 require 'capybara/cuprite'
 
 Capybara.register_driver(:cuprite) do |app|
-  Capybara::Cuprite::Driver.new(app, window_size: [1200, 800])
+  # process_timeout guards browser startup; the 10s default is occasionally too
+  # tight on loaded CI runners, producing flaky Ferrum::ProcessTimeoutError.
+  Capybara::Cuprite::Driver.new(app, window_size: [1200, 800], process_timeout: 30)
 end
 Capybara.javascript_driver = :cuprite
 Capybara.default_driver = :cuprite
