@@ -74,8 +74,7 @@ module Jekyll
       def concatenate_asset_files
         assets_dir = File.expand_path('../assets/', __dir__)
         Dir["#{assets_dir}/*.js"].each do |file|
-          file_handler = File.open(file, 'rb')
-          @javascript << File.read(file_handler)
+          @javascript << File.binread(file)
         end
       end
 
