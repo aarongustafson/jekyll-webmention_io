@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Test: bundle exec cucumber
+# Test: bundle exec rake
 # Push: gem bump jekyll-webmention_io -v patch -p -t -r
 
 require File.expand_path('lib/jekyll/webmention_io/version', __dir__)
@@ -49,7 +49,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'webmention', '>= 7.0', '< 10.0'
 
   s.add_development_dependency 'capybara', '~> 3.35'
-  s.add_development_dependency 'cucumber', '~> 3.1'
   s.add_development_dependency 'cuprite'
   s.add_development_dependency 'ferrum'
   s.add_development_dependency 'html-proofer', '>= 5.0', '< 6.0'
