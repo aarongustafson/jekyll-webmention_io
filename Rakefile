@@ -30,8 +30,10 @@ namespace :coverage do
     ENV['COVERAGE'] = 'true'
   end
 
-  desc 'Run all tests with coverage'
-  task all: %i[spec integration]
+  desc 'Run all tests with coverage (single process for accurate combined coverage)'
+  RSpec::Core::RakeTask.new(:all) do |_t|
+    ENV['COVERAGE'] = 'true'
+  end
 end
 
 desc 'Run all tests with coverage (shorthand)'
