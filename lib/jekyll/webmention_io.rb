@@ -33,7 +33,7 @@ module Jekyll
       @config = config || Config.new(@site)
       @caches = caches || Caches.new(@config)
       @policy = policy || WebmentionPolicy.new(@config, @caches)
-      @webmentions = webmentions || Webmentions.new(@policy)
+      @webmentions = webmentions || Webmentions.new(@policy, NetworkClient.new, @config.api_url)
       @templates = templates || Templates.new(site)
 
       @js_handler = WebmentionIO::JSHandler.new

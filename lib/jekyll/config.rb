@@ -28,7 +28,12 @@ module Jekyll
       attr_accessor :html_proofer_ignore, :max_attempts,
                     :templates, :bad_uri_policy, :throttle_lookups, :cache_folder,
                     :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
-                    :username, :debug
+                    :username, :debug, :api_url
+
+      # The default base URL for the Webmention.io API. Exposed as a config key
+      # so the endpoint can be pointed elsewhere (e.g. a local stand-in during
+      # integration testing) instead of being hard-coded in the network layer.
+      DEFAULT_API_URL = 'https://webmention.io/api'
 
       def initialize(site = nil)
         @site = site
@@ -46,6 +51,7 @@ module Jekyll
         @site_url = site_url
         @username = config['username']
         @debug = config['debug']
+        @api_url = config['api_url'] || DEFAULT_API_URL
 
         @pause_lookups =
           if !@site.nil? && @site.config['serving']

@@ -3,6 +3,16 @@
 require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 
-RSpec::Core::RakeTask.new(:spec)
+# Fast unit suite: everything except the end-to-end smoke tests.
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.rspec_opts = '--tag ~integration'
+end
 
-task default: :spec
+# End-to-end smoke test. Boots local WEBrick servers to stand in for the
+# webmention receiver and the webmention.io API -- no external services.
+RSpec::Core::RakeTask.new(:integration) do |t|
+  t.pattern = 'spec/integration/**/*_spec.rb'
+  t.rspec_opts = '--tag integration'
+end
+
+task default: %i[spec integration]
