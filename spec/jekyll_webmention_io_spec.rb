@@ -29,11 +29,14 @@ describe Jekyll::WebmentionIO do
 
   it 'outputs valid HTML' do
     site.process
+    # html-proofer 5.x dropped the old `check_html`/`checks_to_ignore` options and
+    # raises (rather than returning a boolean) when it finds failures. Keep the
+    # check offline and don't flag the fixtures' intentional non-HTTPS/external
+    # links, so we're asserting the plugin's *internal* markup is sound.
     options = {
-      check_html: true,
-      checks_to_ignore: %w[ScriptCheck LinkCheck ImageCheck]
+      disable_external: true,
+      enforce_https: false
     }
-    status = HTMLProofer.check_directory(dest_dir, options).run
-    expect(status).to eql(true)
+    expect { HTMLProofer.check_directory(dest_dir, options).run }.not_to raise_error
   end
 end

@@ -39,20 +39,20 @@ Gem::Specification.new do |s|
   s.files         = `git ls-files app lib`.split("\n")
   s.require_paths = ['lib']
 
-  s.add_dependency 'activesupport', '~> 7.0', '>= 7.0.4.3'
+  s.add_dependency 'activesupport', '>= 7.0.4.3', '< 9.0'
   s.add_dependency 'htmlbeautifier', '~> 1.1'
   s.add_dependency 'jekyll', '>= 3.2.0', '< 5.0'
   s.add_dependency 'json', '~> 2.0'
-  s.add_dependency 'jsonpath', '~> 1.0.1'
-  s.add_dependency 'openssl', '>= 2.0', '< 4.0'
+  s.add_dependency 'jsonpath', '>= 1.0.1', '< 2.0'
+  s.add_dependency 'openssl', '>= 2.0', '< 5.0'
   s.add_dependency 'uglifier', '~> 4.1'
-  s.add_dependency 'webmention', '~> 7.0'
+  s.add_dependency 'webmention', '>= 7.0', '< 10.0'
 
   s.add_development_dependency 'capybara', '~> 3.35'
   s.add_development_dependency 'cucumber', '~> 3.1'
   s.add_development_dependency 'cuprite'
   s.add_development_dependency 'ferrum'
-  s.add_development_dependency 'html-proofer', '~> 3.6'
+  s.add_development_dependency 'html-proofer', '>= 5.0', '< 6.0'
   s.add_development_dependency 'kramdown-parser-gfm', '~> 1.1'
   s.add_development_dependency 'nokogiri'
   s.add_development_dependency 'rake', '~> 13.0'
