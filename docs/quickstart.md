@@ -13,4 +13,6 @@ If you want to get up and running quickly, here’s the rundown of what you need
 6. (Optional) Add the [`{% webmentions_js %}`](/jekyll-webmention_io/tags/webmentions_js) tag to the bottom of your posts template (before the `</body>` tag)
 {% endraw %}
 
+**Using Jekyll 3?** Jekyll 3 doesn't ship the GFM Markdown parser that its default configuration expects, so on current Ruby versions you'll also need to add `gem 'kramdown-parser-gfm'` to your `Gemfile`. (Jekyll 4 already bundles it.)
+
 If you want to customize your install, consult the sidebar.
