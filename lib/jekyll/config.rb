@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 module Jekyll
   module WebmentionIO
     class Config
@@ -30,10 +32,29 @@ module Jekyll
                     :legacy_domains, :pause_lookups, :site_url, :syndication, :js,
                     :username, :debug, :api_url
 
+      # The scheme://host[:port] origin and bare host of the configured API,
+      # derived from api_url. Used to build the service links emitted into the
+      # page head (and the JS) so they track a custom endpoint instead of being
+      # hard-coded to webmention.io.
+      attr_reader :api_origin, :api_host
+
       # The default base URL for the Webmention.io API. Exposed as a config key
       # so the endpoint can be pointed elsewhere (e.g. a local stand-in during
       # integration testing) instead of being hard-coded in the network layer.
       DEFAULT_API_URL = 'https://webmention.io/api'
+
+      # Resolves a webmention API URL to a URI, falling back to the default
+      # endpoint when the configured value has no host.
+      def self.api_uri(url)
+        uri = URI.parse(url)
+        uri.host ? uri : URI.parse(DEFAULT_API_URL)
+      end
+
+      # The host of a parsed API URI, plus the port when it isn't the scheme's
+      # default (so custom/local endpoints still match the full URL).
+      def self.authority(uri)
+        uri.port == uri.default_port ? uri.host : "#{uri.host}:#{uri.port}"
+      end
 
       def initialize(site = nil)
         @site = site
@@ -52,6 +73,9 @@ module Jekyll
         @username = config['username']
         @debug = config['debug']
         @api_url = config['api_url'] || DEFAULT_API_URL
+        api_uri = self.class.api_uri(@api_url)
+        @api_host = api_uri.host
+        @api_origin = "#{api_uri.scheme}://#{self.class.authority(api_uri)}"
 
         @pause_lookups =
           if !@site.nil? && @site.config['serving']
@@ -150,10 +174,12 @@ module Jekyll
           @bad_uri_policy['whitelist'] ||= []
           @bad_uri_policy['blacklist'] ||= []
 
-          # We always want to collection webmentions from webmention.io, so we
-          # explicitly flag it. This way if there's a service outage, we don't
-          # end up banning the URL.
-          @bad_uri_policy['whitelist'].insert(-1, '^https?://webmention.io/')
+          # We always want to collect webmentions from the configured API host,
+          # so we explicitly whitelist it. This way a transient service outage
+          # won't get the endpoint banned by the bad-URI policy. Derived from the
+          # configured api_url (default webmention.io) so a custom endpoint gets
+          # the same protection.
+          @bad_uri_policy['whitelist'].insert(-1, api_host_pattern(site_config))
 
           @whitelist = @bad_uri_policy['whitelist'].map { |expr| Regexp.new(expr) }
           @blacklist = @bad_uri_policy['blacklist'].map { |expr| Regexp.new(expr) }
@@ -197,6 +223,17 @@ module Jekyll
             policy_entry['max_attempts'],
             policy_entry['retry_delay']
           )
+        end
+
+        private
+
+        # Builds an anchored host pattern for the configured webmention API so it
+        # is always exempt from the bad-URI policy, mirroring the api_url read in
+        # Config#parse. A non-default port is included so custom/local endpoints
+        # still match the full URL the network layer checks.
+        def api_host_pattern(site_config)
+          uri = Config.api_uri(site_config['api_url'] || DEFAULT_API_URL)
+          "^https?://#{Regexp.escape(Config.authority(uri))}/"
         end
       end
 

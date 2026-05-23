@@ -9,6 +9,7 @@
 
 require 'uglifier'
 require 'fileutils'
+require 'json'
 require 'active_support'
 
 module Jekyll
@@ -48,6 +49,7 @@ module Jekyll
 
         @javascript = +'' # unfrozen String
 
+        add_config
         concatenate_asset_files
         add_webmention_types
 
@@ -57,6 +59,19 @@ module Jekyll
       end
 
       private
+
+      # Injects build-time configuration onto the global before any asset runs,
+      # so the loader (which executes synchronously) can read the configured API
+      # base instead of a hard-coded webmention.io URL.
+      def add_config
+        config_js = <<-CONFIG_JS
+          ;(function(window){
+            if ( ! ( 'JekyllWebmentionIO' in window ) ){ window.JekyllWebmentionIO = {}; }
+            window.JekyllWebmentionIO.api_base = #{WebmentionIO.config.api_url.to_json};
+          }(this));
+        CONFIG_JS
+        @javascript << config_js
+      end
 
       def add_webmention_types
         js_types = WebmentionIO.types.map do |type|

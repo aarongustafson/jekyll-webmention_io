@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'config'
 require_relative 'network_client'
 
 module Jekyll
@@ -12,7 +13,7 @@ module Jekyll
       # that is used to perform low-level network operations, and a set of
       # parameters that specifies the endpoint URL, path, and query parameters
       # to use.
-      def initialize(policy, client = NetworkClient.new, url = 'https://webmention.io/api', path = 'mentions', suffix = '&perPage=9999')
+      def initialize(policy, client = NetworkClient.new, url = Config::DEFAULT_API_URL, path = 'mentions', suffix = '&perPage=9999')
         @policy = policy
         @client = client
 

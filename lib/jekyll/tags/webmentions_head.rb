@@ -11,13 +11,16 @@ module Jekyll
   module WebmentionIO
     class WebmentionHeadTag < Liquid::Tag
       def render(context)
+        config = WebmentionIO.config
+        origin = config.api_origin
+
         head = +'' # unfrozen String
-        head << '<link rel="dns-prefetch" href="https://webmention.io">'
-        head << '<link rel="preconnect" href="https://webmention.io">'
-        head << '<link rel="preconnect" href="ws://webmention.io:8080">'
+        head << "<link rel=\"dns-prefetch\" href=\"#{origin}\">"
+        head << "<link rel=\"preconnect\" href=\"#{origin}\">"
+        head << "<link rel=\"preconnect\" href=\"ws://#{config.api_host}:8080\">"
 
         page = context['page']
-        site_url = WebmentionIO.config.site_url
+        site_url = config.site_url
 
         if page['redirect_from']
           if page['redirect_from'].is_a? String
@@ -28,11 +31,11 @@ module Jekyll
           head << "<meta property=\"webmention:redirected_from\" content=\"#{redirect}\">"
         end
 
-        username = WebmentionIO.config.username
+        username = config.username
 
         if username
-          head << "<link rel=\"pingback\" href=\"https://webmention.io/#{username}/xmlrpc\">"
-          head << "<link rel=\"webmention\" href=\"https://webmention.io/#{username}/webmention\">"
+          head << "<link rel=\"pingback\" href=\"#{origin}/#{username}/xmlrpc\">"
+          head << "<link rel=\"webmention\" href=\"#{origin}/#{username}/webmention\">"
         end
 
         head

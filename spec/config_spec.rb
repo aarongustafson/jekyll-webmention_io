@@ -97,6 +97,53 @@ RSpec.describe Jekyll::WebmentionIO::Config do
     end
   end
 
+  context 'with the default api_url' do
+    let(:webmentions_config) { {} }
+
+    it 'defaults to the webmention.io endpoint' do
+      expect(config.api_url).to eq 'https://webmention.io/api'
+    end
+
+    it 'derives the service origin and host' do
+      expect(config.api_origin).to eq 'https://webmention.io'
+      expect(config.api_host).to eq 'webmention.io'
+    end
+
+    it 'whitelists the default api host and nothing else' do
+      whitelist = config.bad_uri_policy.whitelist
+      expect(whitelist.any? { |re| re.match?('https://webmention.io/foo') }).to be true
+      expect(whitelist.any? { |re| re.match?('https://evil.example/foo') }).to be false
+    end
+  end
+
+  context 'with a custom api_url' do
+    let(:webmentions_config) { { 'api_url' => 'http://127.0.0.1:9999/api' } }
+
+    it 'uses the configured api_url' do
+      expect(config.api_url).to eq 'http://127.0.0.1:9999/api'
+    end
+
+    it 'derives the service origin (with port) and host' do
+      expect(config.api_origin).to eq 'http://127.0.0.1:9999'
+      expect(config.api_host).to eq '127.0.0.1'
+    end
+
+    it 'whitelists the configured api host, not webmention.io' do
+      whitelist = config.bad_uri_policy.whitelist
+      expect(whitelist.any? { |re| re.match?('http://127.0.0.1:9999/api') }).to be true
+      expect(whitelist.any? { |re| re.match?('https://webmention.io/foo') }).to be false
+    end
+  end
+
+  context 'with a host-less api_url' do
+    let(:webmentions_config) { { 'api_url' => '/mentions' } }
+
+    it 'falls back to the default endpoint origin and host' do
+      expect(config.api_origin).to eq 'https://webmention.io'
+      expect(config.api_host).to eq 'webmention.io'
+    end
+  end
+
   context 'with a full js config' do
     let(:webmentions_config) do
       {
