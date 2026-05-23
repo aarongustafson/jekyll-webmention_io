@@ -2,7 +2,9 @@
 
 [![Gem](https://img.shields.io/gem/v/jekyll-webmention_io.svg?style=flat)](http://rubygems.org/gems/jekyll-webmention_io "View this project in Rubygems")
 &nbsp;&nbsp;&nbsp;
-[![Status](https://travis-ci.org/aarongustafson/jekyll-webmention_io.svg?branch=master)](https://travis-ci.org/aarongustafson/jekyll-webmention_io "View this project in Travis CI")
+[![RSpec](https://github.com/aarongustafson/jekyll-webmention_io/actions/workflows/rspec.yml/badge.svg)](https://github.com/aarongustafson/jekyll-webmention_io/actions/workflows/rspec.yml "View the RSpec workflow")
+&nbsp;&nbsp;&nbsp;
+[![Rubocop](https://github.com/aarongustafson/jekyll-webmention_io/actions/workflows/rubocop.yml/badge.svg)](https://github.com/aarongustafson/jekyll-webmention_io/actions/workflows/rubocop.yml "View the Rubocop workflow")
 
 This gem includes a suite of tools for managing [webmentions](https://indieweb.org/Webmention) in Jekyll. For complete details on using this plugin, [check out the docs](https://aarongustafson.github.io/jekyll-webmention_io/).
 

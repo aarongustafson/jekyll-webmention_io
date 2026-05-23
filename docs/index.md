@@ -24,6 +24,8 @@ A basic installation and setup of the plugin is pretty straightforward and invol
 6. Optionally, add the [`{% webmentions_js %}`](/jekyll-webmention_io/tags/webmentions_js) tag to the bottom of your posts template (before the `</body>` tag) to dynamically render webmentions on the client between site builds
 {% endraw %}
 
+**Using Jekyll 3?** Jekyll 3 doesn't ship the GFM Markdown parser that its default configuration expects, so on current Ruby versions you'll also need to add `gem 'kramdown-parser-gfm'` to your `Gemfile`. (Jekyll 4 already bundles it, so this only applies to Jekyll 3.)
+
 For information about more advanced configuration options, including controlling how inbound webmentions are rendered, outgoing webmentions are gathered, and so forth, see the [configuration documentation](/jekyll-webmention_io/configuration)
 
 # Using the plugin
