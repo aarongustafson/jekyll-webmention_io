@@ -11,13 +11,14 @@ module Jekyll
       module HTTPStatus
         SUCCESS = 0
         FAILURE = 1
+        REDIRECTION = 2
       end
 
       EXCEPTIONS = [
         SocketError, Timeout::Error,
         Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED, EOFError,
         Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
-        OpenSSL::SSL::SSLError,
+        OpenSSL::SSL::SSLError, URI::Error,
       ].freeze
 
       # Send a webmention to the target URL from the source URL indicated.
@@ -51,6 +52,9 @@ module Jekyll
           return nil
         end
 
+        # Callers pass a string, but the redirect branch below recurses with a
+        # URI instance, so normalise on the way in.
+        uri = URI::Parser.new.parse(uri) unless uri.is_a?(URI::Generic)
         original_uri ||= uri
 
         response = perform_http_request(uri)
@@ -60,12 +64,9 @@ module Jekyll
           response[:body]
 
         when HTTPStatus::REDIRECTION
-          redirect_to =
-            if response[:body].relative?
-              "#{original_uri.scheme}://#{original_uri.host}" + response.body.to_s
-            else
-              response[:body].to_s
-            end
+          # RFC 3986 resolution: an absolute Location replaces the URL we
+          # requested, a relative one is resolved against it.
+          redirect_to = URI.join(uri, response[:body])
 
           http_get(redirect_to, redirect_limit - 1, original_uri: original_uri)
         end
@@ -74,7 +75,7 @@ module Jekyll
       private
 
       def perform_http_request(uri)
-        uri = URI::Parser.new.parse(uri)
+        uri = URI::Parser.new.parse(uri) unless uri.is_a?(URI::Generic)
         http = Net::HTTP.new(uri.host, uri.port)
         http.read_timeout = 10
 
@@ -93,7 +94,14 @@ module Jekyll
             { status: HTTPStatus::SUCCESS, body: response.body.force_encoding('UTF-8') }
 
           when Net::HTTPRedirection
-            { status: HTTPStatus::REDIRECTION, body: URI::Parser.new.parse(response['location']) }
+            location = response['location'].to_s
+
+            # A redirect without a usable Location is a failure, not a crash.
+            if location.empty?
+              { status: HTTPStatus::FAILURE }
+            else
+              { status: HTTPStatus::REDIRECTION, body: URI::Parser.new.parse(location) }
+            end
 
           else
             { status: HTTPStatus::FAILURE }
