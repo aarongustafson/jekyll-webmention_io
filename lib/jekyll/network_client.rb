@@ -104,6 +104,8 @@ module Jekyll
             end
 
           else
+            Jekyll::WebmentionIO.log 'warn', "HTTP error returned #{uri}: #{response.inspect}"
+
             { status: HTTPStatus::FAILURE }
           end
         rescue *EXCEPTIONS => e
