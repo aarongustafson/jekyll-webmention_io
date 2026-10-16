@@ -8,7 +8,6 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
   let(:webmentions) { described_class.new(mock_policy, mock_client) }
 
   # Mock response objects
-  let(:success_response) { instance_double('Response', code: 200, body: '{"status": "success"}') }
   let(:error_response) { instance_double('Response', code: 400, body: '{"error": "Bad request"}') }
   let(:server_error_response) { instance_double('Response', code: 500, body: '{"error": "Internal server error"}') }
 
@@ -27,13 +26,10 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
         allow(mock_policy).to receive(:unsupported).with(target)
       end
 
-      it 'returns nil' do
+      it 'reports the endpoint as unsupported and returns nil' do
         result = webmentions.send_webmention(source, target)
-        expect(result).to be_nil
-      end
 
-      it 'calls policy.unsupported' do
-        webmentions.send_webmention(source, target)
+        expect(result).to be_nil
         expect(mock_policy).to have_received(:unsupported).with(target)
       end
     end
@@ -44,13 +40,10 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
         allow(mock_policy).to receive(:failure).with(target)
       end
 
-      it 'returns nil' do
+      it 'records a failure and returns nil' do
         result = webmentions.send_webmention(source, target)
-        expect(result).to be_nil
-      end
 
-      it 'calls policy.failure' do
-        webmentions.send_webmention(source, target)
+        expect(result).to be_nil
         expect(mock_policy).to have_received(:failure).with(target)
       end
     end
@@ -58,22 +51,23 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
     context 'when webmention endpoint is found' do
       before do
         allow(mock_client).to receive(:webmention_endpoint).with(target).and_return('https://example.com/webmention')
-        allow(mock_client).to receive(:send_webmention).with(source, target).and_return(success_response)
       end
 
-      context 'with successful response (200, 201, 202)' do
+      context 'with a successful response (200, 201, 202)' do
         before do
           allow(mock_policy).to receive(:success).with(target)
         end
 
-        it 'calls policy.success' do
-          webmentions.send_webmention(source, target)
-          expect(mock_policy).to have_received(:success).with(target)
-        end
+        it 'records a success for every 2xx code and returns the response body' do
+          responses = [200, 201, 202].map do |code|
+            response = instance_double('Response', code: code, body: '{"status": "success"}')
+            allow(mock_client).to receive(:send_webmention).with(source, target).and_return(response)
 
-        it 'returns the response body' do
-          result = webmentions.send_webmention(source, target)
-          expect(result).to eq('{"status": "success"}')
+            webmentions.send_webmention(source, target)
+          end
+
+          expect(responses).to eq(['{"status": "success"}'] * 3)
+          expect(mock_policy).to have_received(:success).with(target).exactly(3).times
         end
       end
 
@@ -83,14 +77,11 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
           allow(mock_policy).to receive(:error).with(target)
         end
 
-        it 'calls policy.error' do
-          webmentions.send_webmention(source, target)
-          expect(mock_policy).to have_received(:error).with(target)
-        end
-
-        it 'returns false' do
+        it 'records an error and returns false' do
           result = webmentions.send_webmention(source, target)
+
           expect(result).to be false
+          expect(mock_policy).to have_received(:error).with(target)
         end
 
         context 'when response body is not valid JSON' do
@@ -116,16 +107,11 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
           allow(mock_policy).to receive(:error).with(target)
         end
 
-        it 'does not raise' do
-          expect { webmentions.send_webmention(source, target) }.not_to raise_error
-        end
+        it 'records an error without raising and returns false' do
+          result = nil
 
-        it 'returns false' do
-          expect(webmentions.send_webmention(source, target)).to be false
-        end
-
-        it 'calls policy.error' do
-          webmentions.send_webmention(source, target)
+          expect { result = webmentions.send_webmention(source, target) }.not_to raise_error
+          expect(result).to be false
           expect(mock_policy).to have_received(:error).with(target)
         end
       end
@@ -143,53 +129,86 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
         ]
       }
     end
+    let(:json_body) { JSON.generate(api_response) }
 
     before do
-      allow(webmentions).to receive(:get_webmention_io_response).and_return(api_response)
+      allow(mock_client).to receive(:http_get) { json_body }
       allow(Jekyll::WebmentionIO).to receive(:log)
     end
 
-    it 'constructs correct API parameters' do
-      expected_params = 'target[]=https://example.com/page1&target[]=https://example.com/page2&since_id=12345&sort-by=published'
-      expect(webmentions).to receive(:get_webmention_io_response).with(expected_params)
-      webmentions.get_webmentions(targets, since_id)
-    end
+    it 'asks webmention.io for the given targets, since_id and page' do
+      targets_param = 'target[]=https://example.com/page1&target[]=https://example.com/page2&'
+      suffix = '&per-page=1000'
+      cases = [
+        [since_id, 0, "#{targets_param}since_id=12345&sort-by=published&page=0#{suffix}"],
+        [nil, 0, "#{targets_param}sort-by=published&page=0#{suffix}"],
+        [since_id, 2, "#{targets_param}since_id=12345&sort-by=published&page=2#{suffix}"]
+      ]
+      requested_uris = []
 
-    it 'constructs API parameters without since_id when nil' do
-      expected_params = 'target[]=https://example.com/page1&target[]=https://example.com/page2&sort-by=published'
-      expect(webmentions).to receive(:get_webmention_io_response).with(expected_params)
-      webmentions.get_webmentions(targets, nil)
+      allow(mock_client).to receive(:http_get) do |uri, _redirect_limit|
+        requested_uris << uri
+        json_body
+      end
+
+      cases.each { |id, page, _query| webmentions.get_webmentions(targets, id, page) }
+
+      expect(requested_uris).to eq(
+        cases.map { |_id, _page, query| "https://webmention.io/api/mentions?#{query}" }
+      )
     end
 
     it 'returns WebmentionItem instances' do
       result = webmentions.get_webmentions(targets, since_id)
-      expect(result).to all(be_a(Jekyll::WebmentionIO::WebmentionItem))
-      expect(result.length).to eq(2)
+      expect(result.items).to all(be_a(Jekyll::WebmentionIO::WebmentionItem))
+      expect(result.items.length).to eq(2)
     end
 
-    context 'when no webmentions are found' do
-      let(:empty_response) { { 'links' => [] } }
+    it 'reports the call as successful' do
+      expect(webmentions.get_webmentions(targets, since_id)).to be_success
+    end
 
+    context 'when the response reports paging' do
       before do
-        allow(webmentions).to receive(:get_webmention_io_response).and_return(empty_response)
+        api_response['paging'] = { 'per-page' => 1000, 'page' => 0, 'total' => 2500, 'total-pages' => 3 }
       end
 
-      it 'returns empty array' do
-        result = webmentions.get_webmentions(targets, since_id)
-        expect(result).to eq([])
+      it 'reports the total number of pages' do
+        expect(webmentions.get_webmentions(targets, since_id).total_pages).to eq(3)
       end
     end
 
-    context 'when response has no links key' do
-      let(:no_links_response) { {} }
+    context 'when the response has no paging block' do
+      it 'assumes a single page' do
+        expect(webmentions.get_webmentions(targets, since_id).total_pages).to eq(1)
+      end
+    end
 
+    context 'when the request failed' do
       before do
-        allow(webmentions).to receive(:get_webmention_io_response).and_return(no_links_response)
+        allow(mock_client).to receive(:http_get).and_return(nil)
+        allow(mock_policy).to receive(:failure)
       end
 
-      it 'returns empty array' do
+      it 'reports a failure with no items and does not claim none were found' do
         result = webmentions.get_webmentions(targets, since_id)
-        expect(result).to eq([])
+
+        expect(result).not_to be_success
+        expect(result.items).to eq([])
+        expect(Jekyll::WebmentionIO).not_to have_received(:log).with('info', 'No webmentions found.')
+      end
+    end
+
+    context 'when the response has no links' do
+      it 'returns no items but still reports success' do
+        [{ 'links' => [] }, {}].each do |payload|
+          allow(mock_client).to receive(:http_get).and_return(JSON.generate(payload))
+
+          result = webmentions.get_webmentions(targets, since_id)
+
+          expect(result.items).to eq([])
+          expect(result).to be_success
+        end
       end
     end
   end
@@ -205,13 +224,10 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
         allow(mock_policy).to receive(:failure)
       end
 
-      it 'returns the response body' do
+      it 'returns the response body without recording a failure' do
         result = webmentions.get_body_from_uri(uri)
-        expect(result).to eq(response_body)
-      end
 
-      it 'does not call policy.failure' do
-        webmentions.get_body_from_uri(uri)
+        expect(result).to eq(response_body)
         expect(mock_policy).not_to have_received(:failure)
       end
     end
@@ -222,13 +238,10 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
         allow(mock_client).to receive(:http_get)
       end
 
-      it 'returns false' do
+      it 'returns false without making an HTTP request' do
         result = webmentions.get_body_from_uri(uri)
-        expect(result).to be false
-      end
 
-      it 'does not make HTTP request' do
-        webmentions.get_body_from_uri(uri)
+        expect(result).to be false
         expect(mock_client).not_to have_received(:http_get)
       end
     end
@@ -240,14 +253,11 @@ RSpec.describe Jekyll::WebmentionIO::Webmentions do
         allow(mock_policy).to receive(:failure).with(uri)
       end
 
-      it 'calls policy.failure' do
-        webmentions.get_body_from_uri(uri)
-        expect(mock_policy).to have_received(:failure).with(uri)
-      end
-
-      it 'returns false' do
+      it 'records a failure and returns false' do
         result = webmentions.get_body_from_uri(uri)
+
         expect(result).to be false
+        expect(mock_policy).to have_received(:failure).with(uri)
       end
     end
   end

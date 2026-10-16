@@ -67,7 +67,7 @@ module Jekyll
         cached_webmentions = WebmentionIO.caches.incoming_webmentions
 
         if cached_webmentions.key? uri
-          all_webmentions = cached_webmentions[uri].clone
+          all_webmentions = cached_webmentions[uri].webmentions.clone
           WebmentionIO.log 'info', "#{all_webmentions.length} total webmentions for #{uri}"
 
           if args.length.positive?

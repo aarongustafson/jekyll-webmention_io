@@ -20,31 +20,16 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
   end
 
   describe 'accessor methods' do
-    describe '#incoming_webmentions' do
-      it 'creates cache file with correct path' do
-        cache = caches.incoming_webmentions
-        expect(cache.path).to end_with('webmention_io_incoming.yml')
-      end
-    end
-
-    describe '#outgoing_webmentions' do
-      it 'creates cache file with correct path' do
-        cache = caches.outgoing_webmentions
-        expect(cache.path).to end_with('webmention_io_outgoing.yml')
-      end
-    end
-
-    describe '#bad_uris' do
-      it 'creates cache file with correct path' do
-        cache = caches.bad_uris
-        expect(cache.path).to end_with('webmention_io_bad_uris.yml')
-      end
-    end
-
-    describe '#site_lookups' do
-      it 'creates cache file with correct path' do
-        cache = caches.site_lookups
-        expect(cache.path).to end_with('webmention_io_lookups.yml')
+    # Path construction itself is covered by 'uses Jekyll.sanitized_path for path
+    # construction' below; this only pins each accessor to its own cache file.
+    it 'exposes each cache under its own file name' do
+      {
+        incoming_webmentions: 'webmention_io_incoming.yml',
+        outgoing_webmentions: 'webmention_io_outgoing.yml',
+        bad_uris: 'webmention_io_bad_uris.yml',
+        site_lookups: 'webmention_io_lookups.yml'
+      }.each do |accessor, filename|
+        expect(caches.public_send(accessor).path).to end_with(filename)
       end
     end
   end
@@ -53,19 +38,24 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
     # Because we can't directly initialize the Cache class, we're just going to pick
     # one of them that we can use for our behavioural tests.
     let(:cache) { caches.incoming_webmentions }
+    let(:mentions) { { '1' => { 'raw' => { 'target' => 'https://example.com/page.html' } } } }
 
     describe 'initialization' do
       context 'when cache file exists and is valid YAML' do
         before do
           FileUtils.mkdir_p(File.dirname(cache.path))
-          File.write(cache.path, YAML.dump({ 'existing_key' => 'existing_value' }))
+          File.write(cache.path, YAML.dump({ 'existing_key' => mentions }))
           # Clear singleton and create new instance to test loading
           described_class.reset
           @new_cache = caches.incoming_webmentions
         end
 
         it 'loads existing data from file' do
-          expect(@new_cache['existing_key']).to eq('existing_value')
+          expect(@new_cache['existing_key'].webmentions).to eq(mentions)
+        end
+
+        it 'reads the URLs the mentions came back under' do
+          expect(@new_cache['existing_key'].canonical_urls).to eq(['https://example.com/page.html'])
         end
       end
 
@@ -98,72 +88,56 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
           @new_cache = caches.incoming_webmentions
         end
 
-        it 'initializes with false for empty file' do
-          # SafeYAML.load_file returns false for empty files, and this doesn't raise an exception
-          # so the rescue block doesn't catch it
-          expect(@new_cache.instance_variable_get(:@data)).to eq(false)
+        it 'starts empty' do
+          # SafeYAML.load_file returns false for an empty file rather than raising, so
+          # this is the branch that has to leave the cache usable.
+          expect(@new_cache.empty?).to be true
         end
       end
     end
 
     describe 'hash-like behavior' do
       it 'supports iteration with each' do
-        cache['key1'] = 'value1'
-        cache['key2'] = 'value2'
+        cache.store('key1', mentions)
+        cache.store('key2', mentions)
 
-        collected = cache.map { |k, v| [k, v] }
-        expect(collected).to contain_exactly(%w[key1 value1], %w[key2 value2])
+        collected = {}
+        cache.each { |key, entry| collected[key] = entry.webmentions }
+
+        expect(collected).to eq('key1' => mentions, 'key2' => mentions)
       end
 
-      it 'supports key existence checking' do
-        cache['test_key'] = 'test_value'
+      it 'creates an entry on demand' do
+        expect(cache.entry('new_key').webmentions).to eq({})
+        expect(cache.key?('new_key')).to be true
+      end
+
+      it 'behaves like a hash for storage, retrieval, presence and deletion' do
+        expect(cache.empty?).to be true
+
+        cache.store('test_key', mentions)
+
+        expect(cache.empty?).to be false
+        expect(cache['test_key'].webmentions).to eq(mentions)
         expect(cache.key?('test_key')).to be true
         expect(cache.key?('nonexistent')).to be false
-      end
 
-      it 'supports key deletion' do
-        cache['key_to_delete'] = 'value'
-        expect(cache.key?('key_to_delete')).to be true
-
-        deleted_value = cache.delete('key_to_delete')
-        expect(deleted_value).to eq('value')
-        expect(cache.key?('key_to_delete')).to be false
-      end
-
-      it 'supports nested value access with dig' do
-        cache['nested'] = { 'inner' => { 'deep' => 'value' } }
-        expect(cache.dig('nested', 'inner', 'deep')).to eq('value')
-        expect(cache.dig('nested', 'inner', 'nonexistent')).to be_nil
-      end
-
-      it 'supports key-value assignment and retrieval' do
-        cache['test_key'] = 'test_value'
-        expect(cache['test_key']).to eq('test_value')
-      end
-
-      it 'supports empty checking' do
-        expect(cache.empty?).to be true
-        cache['key'] = 'value'
-        expect(cache.empty?).to be false
+        expect(cache.delete('test_key').webmentions).to eq(mentions)
+        expect(cache.key?('test_key')).to be false
       end
     end
 
     describe '#write' do
-      it 'writes data to file in YAML format' do
+      it 'writes the entries in YAML format' do
         FileUtils.mkdir_p(File.dirname(cache.path))
 
-        cache['test_key'] = 'test_value'
-        cache['nested'] = { 'inner' => 'value' }
+        cache.store('test_key', mentions)
 
         cache.write
 
         expect(File.exist?(cache.path)).to be true
-        loaded_data = YAML.load_file(cache.path)
-        expect(loaded_data).to eq(
-          {
-            'test_key' => 'test_value',
-            'nested' => { 'inner' => 'value' }
-          }
+        expect(YAML.load_file(cache.path)).to eq(
+          'test_key' => { 'webmentions' => mentions, 'canonical_urls' => ['https://example.com/page.html'] }
         )
       end
 
@@ -171,20 +145,17 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
         FileUtils.mkdir_p(File.dirname(cache.path))
 
         # Write initial data
-        cache['initial'] = 'data'
+        cache.store('initial', {})
         cache.write
 
         # Modify and write again
-        cache['initial'] = 'modified'
-        cache['new'] = 'data'
+        cache.store('initial', mentions)
+        cache.store('new', {})
         cache.write
 
-        loaded_data = YAML.load_file(cache.path)
-        expect(loaded_data).to eq(
-          {
-            'initial' => 'modified',
-            'new' => 'data'
-          }
+        expect(YAML.load_file(cache.path)).to eq(
+          'initial' => { 'webmentions' => mentions, 'canonical_urls' => ['https://example.com/page.html'] },
+          'new' => { 'webmentions' => {}, 'canonical_urls' => [] }
         )
       end
     end
@@ -193,8 +164,8 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
       it 'clears internal data' do
         FileUtils.mkdir_p(File.dirname(cache.path))
 
-        cache['key1'] = 'value1'
-        cache['key2'] = 'value2'
+        cache.store('key1', mentions)
+        cache.store('key2', mentions)
         cache.write
         expect(cache.empty?).to be false
 
@@ -205,7 +176,7 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
       it 'deletes the cache file when it exists' do
         FileUtils.mkdir_p(File.dirname(cache.path))
 
-        cache['test'] = 'value'
+        cache.store('test', mentions)
         cache.write
         expect(File.exist?(cache.path)).to be true
 
@@ -217,6 +188,17 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
         # The clear method should not raise an error when the file doesn't exist
         expect { cache.clear }.not_to raise_error
         expect(cache.empty?).to be true
+      end
+    end
+
+    describe 'round-tripping a lookup date' do
+      it 'reads back the date it wrote' do
+        caches.site_lookups.store('/page.html', Date.today)
+        caches.site_lookups.write
+
+        described_class.reset
+
+        expect(caches.site_lookups['/page.html'].last_check_date).to eq(Date.today)
       end
     end
   end
@@ -231,11 +213,17 @@ RSpec.describe Jekyll::WebmentionIO::Caches do
 
   describe 'error handling' do
     context 'when cache folder cannot be created' do
-      let(:readonly_dir) { '/root/readonly' }
-      let(:config_with_readonly) { double('Config', cache_folder: readonly_dir) }
+      # A regular file in the path is unwritable regardless of the user running the
+      # suite, where a permissions-based path is still writable when run as root.
+      let(:blocking_file) { File.join(temp_dir, 'not-a-directory') }
+      let(:config_with_blocked_folder) { double('Config', cache_folder: File.join(blocking_file, 'cache')) }
+
+      before do
+        File.write(blocking_file, '')
+      end
 
       it 'raises an error during initialization' do
-        expect { described_class.new(config_with_readonly) }.to raise_error(Errno::EACCES)
+        expect { described_class.new(config_with_blocked_folder) }.to raise_error(SystemCallError)
       end
     end
   end

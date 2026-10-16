@@ -33,8 +33,8 @@ module Jekyll
 
           return if outgoing.empty?
 
-          outgoing.each do |source, targets|
-            targets.each do |target, response|
+          outgoing.each do |source, entry|
+            entry.webmentions.each do |target, response|
               # skip ones we’ve handled
               next unless response == false || response.instance_of?(Integer)
 
@@ -53,11 +53,11 @@ module Jekyll
               response = (response || 0) + 1
 
               if !max_attempts.nil? && response > max_attempts
-                outgoing[source][target] = ''
+                entry.webmentions[target] = ''
                 WebmentionIO.log 'msg', "Giving up sending from #{source} to #{target}."
                 next
               else
-                outgoing[source][target] = response
+                entry.webmentions[target] = response
               end
 
               # get the response
@@ -71,7 +71,7 @@ module Jekyll
                 response = ''
               end
 
-              outgoing[source][target] = response
+              entry.webmentions[target] = response
               count += 1
             end
           end

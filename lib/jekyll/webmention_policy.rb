@@ -39,7 +39,7 @@ module Jekyll
         # decide what to do.
         #
         # First pull the retry policy given the type of the last error for the URI
-        policy_entry = @config.bad_uri_policy.for_state(entry['state'])
+        policy_entry = @config.bad_uri_policy.for_state(entry.state)
 
         return false if policy_entry.policy == Config::UriPolicy::BAN
 
@@ -48,7 +48,7 @@ module Jekyll
         if policy_entry.policy == Config::UriPolicy::RETRY
           now = Time.now
 
-          attempts = entry['attempts']
+          attempts = entry.attempts
           max_attempts = policy_entry.max_attempts
 
           if !max_attempts.nil? && (attempts >= max_attempts)
@@ -64,7 +64,7 @@ module Jekyll
           # the retry_delay list is used for all remaining retries.
           delay = retry_delay[(attempts - 1).clamp(0, retry_delay.length - 1)]
 
-          recheck_at = (entry['last_checked'] + (delay * 3600))
+          recheck_at = (entry.last_check_date + (delay * 3600))
 
           if recheck_at.to_r > now.to_r
             Jekyll::WebmentionIO.log 'msg', "Skipping #{uri}, next attempt will happen after #{recheck_at}"
@@ -123,37 +123,11 @@ module Jekyll
 
       private
 
-      # Retrieve the bad_uris cache entry for the given URI.  This method
-      # takes the cache and a URI instance (i.e. parsing must already be done).
-      #
-      # If the URI has no entry in the cache, returns nil and *not* a default
-      # entry.
+      # The bad_uris entry for the given URI, or nil when the cache has none -- which
+      # is not the same as an entry with default values. Older cache shapes, and the
+      # check date the arithmetic below needs, are the entry's own business now.
       def get_bad_uri_cache_entry(uri)
-        bad_uris = @caches.bad_uris
-
-        return nil if !bad_uris.key? uri.host
-
-        entry = bad_uris[uri.host].clone
-
-        if entry.instance_of? String
-          # Older version of the bad URL cache, convert to new format with some
-          # "sensible" defaults.
-
-          entry = {
-            'state' => State::UNSUPPORTED,
-            'last_checked' => DateTime.parse(entry).to_time,
-            'attempts' => 1
-          }
-        else
-          # Otherwise, parse the check time into a real Time object before
-          # returning the entry.
-          #
-          # We convert to a Time object so we can do arithmetic on it later.
-
-          entry['last_checked'] = DateTime.parse(entry['last_checked']).to_time
-        end
-
-        entry
+        @caches.bad_uris[uri.host]
       end
 
       # Update the URI cache for this entry.
@@ -177,13 +151,13 @@ module Jekyll
 
           return if bad_uris.delete(uri.host).nil?
         else
-          old_entry = get_bad_uri_cache_entry(uri) || {}
-
-          bad_uris[uri.host] = {
+          entry = {
             'state' => state,
-            'attempts' => old_entry.fetch('attempts', 0) + 1,
+            'attempts' => (get_bad_uri_cache_entry(uri)&.attempts || 0) + 1,
             'last_checked' => Time.now.to_s
           }
+
+          bad_uris.store(uri.host, entry)
         end
 
         bad_uris.write

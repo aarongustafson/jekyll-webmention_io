@@ -21,6 +21,13 @@ module Jekyll
         @type = determine_type
       end
 
+      # The page the mention was sent to, as webmention.io recorded it: the URL it
+      # filed the page under, which is not necessarily one of the URLs asked about,
+      # since a query matches a page by alias as well as by URL.
+      def target
+        @raw['target']
+      end
+
       def to_hash
         gather_content
 

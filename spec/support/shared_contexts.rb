@@ -19,3 +19,26 @@ RSpec.shared_context 'webmention_io_stubs' do
     allow(Jekyll::WebmentionIO).to receive(:templates).and_return(templates)
   end
 end
+
+# The client answers a lookup with a Result rather than a bare list of mentions, so
+# that a caller can tell "nothing new" apart from "the call failed"; the specs answer
+# with the same shape.
+RSpec.shared_context 'webmention lookup results' do
+  def lookup_result(items, total_pages: 1, success: true)
+    Jekyll::WebmentionIO::Webmentions::Result.new(items: items, total_pages: total_pages, success: success)
+  end
+
+  def webmention_for(id, target)
+    raw = {
+      'id' => id,
+      'source' => 'http://source.com',
+      'target' => target,
+      'verified_date' => '2025-10-19T00:00:00+00:00',
+      'data' => {}
+    }
+    item = Jekyll::WebmentionIO::WebmentionItem.new(raw)
+    allow(item).to receive(:to_hash).and_return({ 'id' => id, 'raw' => raw })
+
+    item
+  end
+end

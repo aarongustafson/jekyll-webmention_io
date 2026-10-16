@@ -12,6 +12,7 @@ require_relative 'webmention_io/webmention_item'
 require_relative 'webmention_io/js_handler'
 require_relative 'webmention_policy'
 require_relative 'webmentions'
+require_relative 'webmention_collector'
 require_relative 'config'
 require_relative 'templates'
 

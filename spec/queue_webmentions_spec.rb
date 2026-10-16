@@ -4,8 +4,8 @@ require 'spec_helper'
 
 describe Jekyll::WebmentionIO::QueueWebmentions do
   include_context 'webmention_io_stubs'
+  include_context 'cache files'
 
-  let(:outgoing_webmentions_cache) { {} }
   let(:documents) { [] }
   let(:collections) { {} }
 
@@ -13,9 +13,12 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
     allow(config).to receive(:documents).and_return(documents)
     allow(config).to receive(:collections).and_return(collections)
     allow(config).to receive(:site_url).and_return('http://example.com')
+  end
 
-    allow(caches).to receive(:outgoing_webmentions).and_return(outgoing_webmentions_cache)
-    allow(outgoing_webmentions_cache).to receive(:write)
+  # The queue as the cache holds it, unwrapped so an expectation reads like the
+  # frontmatter the generator was asked to build.
+  def outgoing_webmentions_cache
+    caches.outgoing_webmentions.to_h.transform_values(&:webmentions)
   end
 
   let(:generator) { described_class.new }
@@ -260,7 +263,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    outgoing_webmentions_cache["http://example.com/#{page.url}"] = webmention
+    caches.outgoing_webmentions.store("http://example.com/#{page.url}", webmention)
     documents.append(page)
 
     generator.generate
@@ -293,7 +296,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
       }
     )
 
-    outgoing_webmentions_cache["http://example.com/#{page.url}"] = webmention
+    caches.outgoing_webmentions.store("http://example.com/#{page.url}", webmention)
     documents.append(page)
 
     generator.generate
@@ -324,7 +327,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
         }
       }
     )
-    outgoing_webmentions_cache["http://example.com/#{page.url}"] = webmention
+    caches.outgoing_webmentions.store("http://example.com/#{page.url}", webmention)
     documents.append(page)
 
     generator.generate
@@ -370,7 +373,7 @@ describe Jekyll::WebmentionIO::QueueWebmentions do
       }
     )
 
-    outgoing_webmentions_cache["http://example.com/#{page.url}"] = webmentions
+    caches.outgoing_webmentions.store("http://example.com/#{page.url}", webmentions)
     documents.append(page)
 
     generator.generate

@@ -99,8 +99,8 @@ module Jekyll
             # Old cached responses might use either the full or short URIs so
             # we need to check for both.
             cached_response =
-              outgoing.dig(shorturi, mentioned_uri) ||
-              outgoing.dig(fulluri, mentioned_uri)
+              outgoing[shorturi]&.webmentions&.dig(mentioned_uri) ||
+              outgoing[fulluri]&.webmentions&.dig(mentioned_uri)
 
             if cached_response.nil?
               next if WebmentionIO.config.pause_lookups
@@ -115,8 +115,7 @@ module Jekyll
                 end
               end
 
-              outgoing[uri] ||= {}
-              outgoing[uri][mentioned_uri] = response
+              outgoing.entry(uri).webmentions[mentioned_uri] = response
             elsif !target.nil?
               process_syndication(post, target, cached_response)
             end

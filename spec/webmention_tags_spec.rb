@@ -4,10 +4,10 @@ require 'spec_helper'
 
 RSpec.shared_context 'webmention_tag_context' do
   include_context 'webmention_io_stubs'
+  include_context 'cache files'
 
   let(:url) { 'http://www.test.com' }
   let(:context) { Struct.new(:page, :line_number, :registers).new(Struct.new(:url).new(url), 1, {}) }
-  let(:incoming_webmentions) { {} }
   let(:template) do
     <<~TEMPLATE
       {% for webmention in webmentions %}
@@ -17,8 +17,6 @@ RSpec.shared_context 'webmention_tag_context' do
   end
 
   before do
-    allow(caches).to receive(:incoming_webmentions).and_return(incoming_webmentions)
-
     allow(templates).to receive(:template_contents).and_return(template)
   end
 end
@@ -28,7 +26,7 @@ RSpec.shared_examples 'a webmention tag' do
 
   it 'renders a single tag' do
     content = 'Foo Bar Baz'
-    incoming_webmentions[url] = [{ 'id' => 1, 'type' => type, 'content' => content }]
+    caches.incoming_webmentions.store(url, [{ 'id' => 1, 'type' => type, 'content' => content }])
 
     tag = described_class.parse(nil, 'page.url', nil, context)
     result = tag.render(context)
@@ -37,7 +35,7 @@ RSpec.shared_examples 'a webmention tag' do
   end
 
   it 'ignores other webmention types' do
-    incoming_webmentions[url] = [{ 'id' => 1, 'type' => 'foo', 'content' => 'test' }]
+    caches.incoming_webmentions.store(url, [{ 'id' => 1, 'type' => 'foo', 'content' => 'test' }])
 
     tag = described_class.parse(nil, 'page.url', nil, context)
     result = tag.render(context)
@@ -91,12 +89,16 @@ end
 RSpec.describe Jekyll::WebmentionIO::WebmentionsTag do
   include_context 'webmention_tag_context'
 
-  before do
-    incoming_webmentions[url] = [
+  let(:mentions) do
+    [
       { 'id' => 1, 'type' => 'like', 'content' => 'Number 1' },
       { 'id' => 2, 'type' => 'bookmark', 'content' => 'Number 2' },
       { 'id' => 3, 'type' => 'reply', 'content' => 'Number 3' }
     ]
+  end
+
+  before do
+    caches.incoming_webmentions.store(url, mentions)
   end
 
   it 'renders all tags' do

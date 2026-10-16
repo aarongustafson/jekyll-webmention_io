@@ -6,6 +6,16 @@ require_relative 'network_client'
 module Jekyll
   module WebmentionIO
     class Webmentions
+      # One page of a mentions lookup. The gather step needs `success?` to tell
+      # "nothing new" apart from "the call failed" -- a lookup that failed must
+      # not be recorded as a completed one -- and `total_pages` to know whether
+      # it should ask for another page.
+      Result = Struct.new(:items, :total_pages, :success, keyword_init: true) do
+        def success?
+          success
+        end
+      end
+
       attr_writer :api_suffix
 
       # Initializes a Webmention.io client, taking a WebmentionPolicy instance
@@ -13,7 +23,7 @@ module Jekyll
       # that is used to perform low-level network operations, and a set of
       # parameters that specifies the endpoint URL, path, and query parameters
       # to use.
-      def initialize(policy, client = NetworkClient.new, url = Config::DEFAULT_API_URL, path = 'mentions', suffix = '&perPage=9999')
+      def initialize(policy, client = NetworkClient.new, url = Config::DEFAULT_API_URL, path = 'mentions', suffix = '&per-page=1000')
         @policy = policy
         @client = client
 
@@ -75,14 +85,19 @@ module Jekyll
       # `links` key that's mapped to an array of originating source URLs
       # for any webmentions sent to the target.
       #
-      # The method returns a list of WebmentionItem instances for each of
-      # the supplied URLs.
-      def get_webmentions(targets, since_id)
+      # The method returns a Result for one page of mentions, holding a
+      # WebmentionItem for each of the supplied URLs. `since_id` asks only for
+      # mentions newer than the given wm-id and is omitted when nil; `page`
+      # counts from zero, as webmention.io's does.
+      def get_webmentions(targets, since_id, page = 0)
         api_params = targets.collect { |v| "target[]=#{v}" }.join('&')
         api_params << "&since_id=#{since_id}" if since_id
         api_params << '&sort-by=published'
+        api_params << "&page=#{page}"
 
         response = get_webmention_io_response(api_params)
+
+        return Result.new(items: [], total_pages: 0, success: false) if response.nil?
 
         links = response['links'] || []
 
@@ -92,7 +107,11 @@ module Jekyll
           WebmentionIO.log 'info', "Here’s what we got back:\n\n#{response.inspect}\n\n"
         end
 
-        links.reverse.map { |wm| WebmentionIO::WebmentionItem.new(wm) }
+        Result.new(
+          items: links.reverse.map { |wm| WebmentionIO::WebmentionItem.new(wm) },
+          total_pages: (response.dig('paging', 'total-pages') || 1).to_i,
+          success: true
+        )
       end
 
       # High-level wrapper method for making an HTTP GET call that respects
@@ -144,11 +163,11 @@ module Jekyll
         url = URI::Parser.new.escape("#{@api_endpoint}?#{api_params}")
         Jekyll::WebmentionIO.log 'info', "Sending request to #{url}."
         source = get_body_from_uri(url)
-        if source
-          JSON.parse(source)
-        else
-          {}
-        end
+
+        # nil, not an empty response: the caller has to be able to tell a failed
+        # request apart from a successful one that found nothing, or it will
+        # record the failed lookup as a completed one.
+        source ? JSON.parse(source) : nil
       end
     end
   end
