@@ -17,6 +17,13 @@ module Jekyll
       safe true
       priority :high
 
+      # How long a post counts as new, in days. A post the service has never answered for
+      # has no URL spellings on record, so its first mention arrives filed under a URL an
+      # answer cannot be matched against -- and an unmatched answer sends the whole batch
+      # back to be redone a post at a time. New posts are the ones whose first mentions are
+      # still arriving, so they are looked up on their own.
+      NEW_POST_WINDOW = 2
+
       def generate(_ = nil)
         @caches = WebmentionIO.caches
 
@@ -26,19 +33,32 @@ module Jekyll
 
         WebmentionIO.log 'msg', 'Beginning to gather webmentions of your posts. This may take a while.'
 
-        WebmentionIO
-          .config
-          .documents
-          .filter_map { |post| get_webmention_target(post) }
-          .partition(&:since_id)
-          .flat_map { |group| batches(group) }
-          .each { |batch| gather(batch) }
+        targets = WebmentionIO.config.documents.filter_map { |post| get_webmention_target(post) }
+        solo, batched = targets.partition { |target| needs_own_request?(target) }
+
+        requests = solo.map { |target| [target] }
+
+        # One since_id covers a whole request, so posts whose mentions have already been
+        # seen are batched apart from posts the service has never answered for.
+        requests += batched.partition(&:since_id).flat_map { |group| batches(group) }
+
+        requests.each { |batch| gather(batch) }
 
         @caches.site_lookups.write
         @caches.incoming_webmentions.write
       end
 
       private
+
+      def needs_own_request?(target)
+        target.canonical_urls.empty? && recently_published?(target.post)
+      end
+
+      def recently_published?(post)
+        return false unless post.respond_to?('date') && post.date
+
+        post.date.to_date > Date.today - NEW_POST_WINDOW
+      end
 
       # A request may carry MAX_URLS_PER_REQUEST `target[]` values, and a target holds one
       # URL per spelling its post answers to, so a batch is cut by URL count rather than by

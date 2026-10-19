@@ -84,6 +84,21 @@ describe Jekyll::WebmentionIO::WebmentionCollector do
     expect { collector.lookup(batch) }.to raise_error(ArgumentError, /since_id/)
   end
 
+  it 'asks about a batch of one without fetching the same page twice' do
+    item = webmention_for('9', 'https://example.com/somewhere-else.html')
+    calls = []
+    allow(webmentions).to receive(:get_webmentions) do |urls, _since_id, _page_number|
+      calls << urls
+
+      lookup_result([item])
+    end
+
+    collected = collector.lookup([target('https://example.com/page.html')])
+
+    expect(calls).to eq([['https://example.com/page.html']])
+    expect(collected).to eq('/page.html' => [item])
+  end
+
   context 'when an answer names a URL that matches nothing' do
     let(:stray) { webmention_for('9', 'https://example.com/somewhere-else.html') }
     let(:batch) do

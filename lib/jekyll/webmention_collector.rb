@@ -55,6 +55,8 @@ module Jekyll
       # answer naming a URL that matches nothing is redone a post at a time instead, where
       # everything a post is told belongs to that post.
       def gather_mentions(targets)
+        return fetch_by_post(targets) if targets.length == 1
+
         mentions = fetch_mentions(targets)
 
         return {} if mentions.nil?

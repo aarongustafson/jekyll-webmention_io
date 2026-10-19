@@ -25,6 +25,12 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
     caches.incoming_webmentions[post.url]&.webmentions
   end
 
+  # A post with a publication date, which is what decides whether it is new enough to
+  # still be likely to receive its first mention.
+  def dated_page(path, date)
+    double('Jekyll::Page', url: path, data: {}, uri: "https://example.com#{path}", date: date)
+  end
+
   context 'when gathering webmentions' do
     let(:page) { double('Jekyll::Page', url: '/page.html', data: {}, uri: 'https://example.com/page.html') }
     let(:other_page) { double('Jekyll::Page', url: '/other.html', data: {}, uri: 'https://example.com/other.html') }
@@ -197,6 +203,41 @@ describe Jekyll::WebmentionIO::GatherWebmentions do
         generator.generate(site)
 
         expect(sizes).to eq([31, 31])
+      end
+
+      it 'asks about a new post on its own, rather than letting it spoil the batch for the rest' do
+        fresh = dated_page('/fresh.html', DateTime.now)
+        documents << fresh
+        # webmention.io files a page under the URL it resolved, which for a post it has
+        # never answered for is one an answer cannot be matched against.
+        refiled = webmention_for('9', 'https://example.com/fresh/')
+        calls = []
+        allow(webmentions).to receive(:get_webmentions) do |urls, _since_id, _page_number|
+          calls << urls
+
+          lookup_result(urls.include?(fresh.uri) ? [refiled] : [])
+        end
+
+        generator.generate(site)
+
+        expect(calls).to contain_exactly([fresh.uri], [page.uri, other_page.uri])
+        expect(cached_mentions(fresh)).to have_key('9')
+      end
+
+      it 'shares a request between new posts whose filings are already known' do
+        recent_page = dated_page('/recent.html', DateTime.now)
+        other_recent_page = dated_page('/other-recent.html', DateTime.now)
+        [recent_page, other_recent_page].each do |recent|
+          caches.incoming_webmentions.store(
+            recent.url,
+            { '100' => { 'raw' => { 'id' => 100, 'target' => recent.uri, 'verified_date' => '2025-10-18' } } }
+          )
+          documents << recent
+        end
+
+        generator.generate(site)
+
+        expect(webmentions).to have_received(:get_webmentions).with([recent_page.uri, other_recent_page.uri], 100, 0)
       end
 
       it 'keeps posts with nothing cached out of a request with posts that have cached mentions' do
