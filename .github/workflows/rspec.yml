@@ -36,10 +36,22 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
 
+    # The head leg is a canary: a gem that has not caught up with the new Ruby is
+    # information rather than a build failure, so a failed install there is tolerated and
+    # reported below. Every other leg is held to a real failure, since a broken install
+    # there is a broken Gemfile rather than an upstream gap.
     - name: Install dependencies
+      id: install
+      continue-on-error: ${{ matrix.experimental || false }}
       run: bundle install
 
+    - name: Note the canary's install failure
+      if: steps.install.outcome == 'failure' && matrix.experimental
+      run: |
+        echo "::warning title=Ruby head canary::bundle install failed on ruby-head, which is usually a gem that has not caught up with it yet. Currently eventmachine 1.2.7: its extension uses the Data_Wrap_Struct API Ruby 4.1 removed."
+
     - name: Run tests with coverage
+      if: steps.install.outcome == 'success'
       run: bundle exec rake coverage
       env:
         COVERAGE: 'true'
